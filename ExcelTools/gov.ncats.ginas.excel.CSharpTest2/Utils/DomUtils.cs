@@ -1,0 +1,261 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+namespace gov.ncats.ginas.excel.CSharpTest2.Utils
+{
+    public class DomUtils
+    {
+        public static void BuildDocumentBody(HtmlDocument document, bool includeScriptMaterial = false)
+        {
+            HtmlElement bodyElement = document.Body;
+            bodyElement.InnerHtml = string.Empty;
+
+            HtmlElement newDiv = document.CreateElement("div");
+            //HtmlElement advancedDiv = document.CreateElement("div");
+            //advancedDiv.SetAttribute("className", "advanced");
+            //HtmlElement apiLabel = document.CreateElement("label");
+            //apiLabel.SetAttribute("for", "apiBase");
+            //apiLabel.InnerText = "Base API URL:";
+            //HtmlElement apiInput = document.CreateElement("input");
+            //apiInput.SetAttribute("id", "apiBase");
+            ////apiInput.SetAttribute("value", "https://tripod.nih.gov/dev/ginas/app/api/v1/");
+            //apiInput.SetAttribute("value", "http://localhost:9000/ginas/app/api/v1");            
+            //advancedDiv.AppendChild(apiLabel);
+            //advancedDiv.AppendChild(apiInput);
+            //newDiv.AppendChild(advancedDiv);
+
+            //HtmlElement manualDiv = document.CreateElement("div");
+            //manualDiv.SetAttribute("className", "manual");
+            //HtmlElement dataDiv = document.CreateElement("div");
+            //dataDiv.SetAttribute("className", "data");
+            //HtmlElement h1 = document.CreateElement("h1");
+            //h1.InnerText = "Input";
+            //dataDiv.AppendChild(h1);
+            //manualDiv.AppendChild(dataDiv);
+            //HtmlElement inputTextarea = document.CreateElement("textarea");
+            //inputTextarea.SetAttribute("id", "input");
+            //manualDiv.AppendChild(inputTextarea);
+            //newDiv.AppendChild(manualDiv);
+
+            //HtmlElement buttonDiv = document.CreateElement("div");
+            //buttonDiv.SetAttribute("className", "buttons");
+            //HtmlElement button = document.CreateElement("button");
+            //button.SetAttribute("onclick", "resolve()");
+            //button.InnerText = "Map->";
+            //buttonDiv.AppendChild(button);
+            //newDiv.AppendChild(buttonDiv);
+            //HtmlElement dataDiv2 = document.CreateElement("div");
+            //dataDiv2.SetAttribute("className", "data");
+            //HtmlElement h12 = document.CreateElement("h1");
+            //h12.InnerText = "Output";
+            //dataDiv2.AppendChild(h12);
+            //HtmlElement textarea = document.CreateElement("textarea");
+            //textarea.SetAttribute("id", "output");
+            //dataDiv2.AppendChild(textarea);
+            //newDiv.AppendChild(dataDiv2);
+
+            HtmlElement outputForm = document.CreateElement("form");
+            outputForm.SetAttribute("id", "outputSettings");
+            newDiv.AppendChild(outputForm);
+            bodyElement.AppendChild(newDiv);
+
+            if (includeScriptMaterial)
+            {
+                HtmlElement divElement = document.CreateElement("div");
+                divElement.SetAttribute("id", "showScripts");
+                HtmlElement innerDiv = document.CreateElement("div");
+                innerDiv.SetAttribute("className", "scriptlist");
+                HtmlElement selectElement = document.CreateElement("select");
+                selectElement.SetAttribute("id", "scriptlist");
+                selectElement.SetAttribute("size", "10");
+                //selectElement.Style = "visibility:hidden";
+                innerDiv.AppendChild(selectElement);
+                divElement.AppendChild(innerDiv);
+
+                innerDiv = document.CreateElement("div");
+                innerDiv.SetAttribute("className", "scriptdetails");
+                innerDiv.SetAttribute("id", "scriptdetails");
+                divElement.AppendChild(innerDiv);
+                bodyElement.AppendChild(divElement);
+            }
+
+            HtmlElement divElement2 = document.CreateElement("div");
+            HtmlElement formElement = document.CreateElement("form");
+            formElement.SetAttribute("id", "scriptArguments");
+            divElement2.AppendChild(formElement);
+            bodyElement.AppendChild(divElement2);
+
+            divElement2 = document.CreateElement("div");
+            divElement2.SetAttribute("id", "argTemplate");
+            divElement2.SetAttribute("className", "template");
+
+            HtmlElement innerDiv2= document.CreateElement("div");
+            innerDiv2.SetAttribute("className", "argument");
+
+            HtmlElement inner2Div = document.CreateElement("div");
+            HtmlElement labelElement = document.CreateElement("label");
+            labelElement.SetAttribute("for", "$arg$");
+            labelElement.InnerText = "$arg$";
+            HtmlElement spanElement = document.CreateElement("span");
+            spanElement.SetAttribute("className", "required");
+            spanElement.SetAttribute("title", "required");
+            spanElement.InnerText = "$req$";
+            inner2Div.AppendChild(labelElement);
+            inner2Div.AppendChild(spanElement);
+            innerDiv2.AppendChild(inner2Div);
+
+            inner2Div = document.CreateElement("div");
+            HtmlElement textAreaElement = document.CreateElement("textarea");
+            textAreaElement.SetAttribute("id", "$arg$Value");
+            textAreaElement.SetAttribute("name", "$arg$");
+            textAreaElement.SetAttribute("className", "paramArgValue");
+            textAreaElement.InnerText = "$value$";
+            if(!includeScriptMaterial) textAreaElement.Style = "visibility:hidden";
+            inner2Div.AppendChild(textAreaElement);
+            innerDiv2.AppendChild(inner2Div);
+            divElement2.AppendChild(innerDiv2);
+            bodyElement.AppendChild(divElement2);
+
+            HtmlElement divElement3 = document.CreateElement("div");
+            divElement3.SetAttribute("id", "fetcherTemplate");
+            divElement3.SetAttribute("className", "template");
+            if (!includeScriptMaterial) divElement3.Style = "visibility:hidden";
+            innerDiv2= document.CreateElement("div");
+            innerDiv2.SetAttribute("className", "checkop");
+            HtmlElement inputElement = document.CreateElement("input");
+            inputElement.SetAttribute("type", "checkbox");
+            inputElement.SetAttribute("name", "$name$");
+            inputElement.SetAttribute("id", "$name$");
+            labelElement = document.CreateElement("label");
+            labelElement.SetAttribute("for", "$name$");
+            labelElement.InnerText = "$name$";
+            
+            innerDiv2.AppendChild(inputElement);
+            innerDiv2.AppendChild(labelElement);
+
+            divElement3.AppendChild(innerDiv2);
+            bodyElement.AppendChild(divElement3);
+
+            HtmlElement brElement = document.CreateElement("br");
+            bodyElement.AppendChild(brElement);
+            brElement = document.CreateElement("br");
+            bodyElement.AppendChild(brElement);
+
+            HtmlElement mainFormElement = document.CreateElement("form");
+            mainFormElement.SetAttribute("name", "ginas");
+            HtmlElement h3Element = document.CreateElement("h3");
+            h3Element.SetAttribute("className", "consolehead");
+            h3Element.SetAttribute("id", "consoleHeadWebOutput");
+            h3Element.InnerText = "Web output:";
+            mainFormElement.AppendChild(h3Element);
+
+            brElement = document.CreateElement("br");
+            mainFormElement.AppendChild(brElement);
+            textAreaElement = document.CreateElement("textarea");
+            textAreaElement.SetAttribute("id", "console");
+            mainFormElement.AppendChild(textAreaElement);
+
+            brElement = document.CreateElement("br");
+            mainFormElement.AppendChild(brElement);
+
+            //spanElement = document.CreateElement("span");
+            //spanElement.InnerText = "Command:";
+            //mainFormElement.AppendChild(spanElement);
+
+            //HtmlElement textInputElement = document.CreateElement("input");
+            //textInputElement.SetAttribute("type", "text");
+            //textInputElement.SetAttribute("name", "commandInput");
+            //textInputElement.SetAttribute("id", "commandInput");
+            //textInputElement.SetAttribute("placeholder", "[command to run]");
+            //textInputElement.SetAttribute("size", "50");
+            //textInputElement.SetAttribute("value", "window");
+            //mainFormElement.AppendChild(textInputElement);
+
+            //inputElement = document.CreateElement("input");
+            //inputElement.SetAttribute("type", "button");
+            //inputElement.SetAttribute("value", "Run");
+            //inputElement.SetAttribute("click", "alert('hello!');");
+            ////inputElement.SetAttribute("onclick",
+            ////    "runCommandForCSharp(document.getElementById('commandInput').value)");
+            //mainFormElement.AppendChild(inputElement);
+
+            bodyElement.AppendChild(mainFormElement);
+            HtmlElement lastScript = document.CreateElement("script");
+            lastScript.InnerHtml= FileUtils.GetLastJavaScript();
+            bodyElement.AppendChild(lastScript);
+        }
+
+        public static void BuildDocumentHead(HtmlDocument document)
+        {
+            HtmlElement headElement = GetFirstHead(document);
+            if (headElement == null)
+            {
+                Debug.WriteLine("No head found!");
+                headElement = document.Body;
+            }
+            string inner = headElement.InnerText;
+            headElement.InnerHtml = string.Empty;
+
+            HtmlElement metaCharset = document.CreateElement("meta");
+            metaCharset.SetAttribute("http-equiv", "content-type");
+            metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
+            headElement.AppendChild(metaCharset);
+
+            HtmlElement metaCompat = document.CreateElement("meta");
+            metaCompat.SetAttribute("http-equiv", "X-UA-Compatible");
+            metaCompat.SetAttribute("content", "IE=Edge");
+            headElement.AppendChild(metaCompat);
+
+            HtmlElement jQueryScript = document.CreateElement("script");
+            jQueryScript.SetAttribute("type", "text/javascript");
+            jQueryScript.SetAttribute("scr", "https://code.jquery.com/jquery-1.12.4.js");
+            //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.min.js");
+            headElement.AppendChild(jQueryScript);
+
+            HtmlElement lodashScript = document.CreateElement("script");
+            lodashScript.SetAttribute("type", "text/javascript");
+            lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
+            headElement.AppendChild(lodashScript);
+
+            HtmlElement jsonPatchScript = document.CreateElement("script");
+            jsonPatchScript.SetAttribute("type", "text/javascript");
+            jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
+            headElement.AppendChild(jsonPatchScript);
+
+            HtmlElement mainGinasScript = document.CreateElement("script");
+            mainGinasScript.SetAttribute("type", "text/javascript");
+            mainGinasScript.InnerHtml = FileUtils.GetJavaScript(); //GetMinJavaScript();
+            headElement.AppendChild(mainGinasScript);
+
+            HtmlElement shimScript = document.CreateElement("script");
+            shimScript.SetAttribute("type", "text/javascript");
+            shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; window['console'] = {log: function (r){var currValue = document.getElementById('console').value; document.getElementById('console').value = currValue + '\\r\\n' +r;}}"; 
+               // Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; 
+            //shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; window['console'] = {log: function (r){var currValue = document.getElementById('console').value; document.getElementById('console').value = currValue + '\\r\\n' +r;}}";
+            headElement.AppendChild(shimScript);
+            
+            HtmlElement styleElement = document.CreateElement("style");
+            styleElement.SetAttribute("type", "text/css");
+            styleElement.InnerHtml = FileUtils.GetCss();
+            headElement.AppendChild(styleElement);
+
+        }
+        public static HtmlElement GetFirstHead(HtmlDocument document)
+        {
+            foreach (HtmlElement elem in document.All)
+            {
+                if (elem.TagName.Equals("head", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return elem;
+                }
+            }
+            return null;
+        }
+
+    }
+}

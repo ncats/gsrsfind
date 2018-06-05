@@ -1,0 +1,27 @@
+{
+  "Servers": [
+    {
+      "ServerName": "tripod.nih.gov prod",
+      "ServerUrl": "https://tripod.nih.gov/ginas/app/",
+      "Username": "mitch",
+      "PrivateKey": null,
+      "Token": null
+    },
+    {
+      "ServerName": "tripod.nih.gov dev",
+      "ServerUrl": "https://tripod.nih.gov/dev/ginas/app/",
+      "Username": "admin",
+      "PrivateKey": "uG5YRhGiJAz3swRMeri8,",
+      "Token": null
+    },
+    {
+      "ServerName": "localhost 9000 test",
+      "ServerUrl": "http://localhost:9000/ginas/app/",
+      "Username": "mitch",
+      "PrivateKey": "Em6XgmzddkHPL027ltMh",
+      "Token": null
+    }
+  ],
+  "DebugMode": false,
+  "BatchSize": 0
+}
