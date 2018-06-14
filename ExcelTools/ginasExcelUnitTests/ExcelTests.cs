@@ -88,7 +88,9 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void GetSearchValuesTest()
         {
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\RangeParseTest.xlsx";
+
+            string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
             string[] values = { "aspirin", "cyclosporin", "CYANOCOBALAMIN" };
             List<string> expectedValues = values.ToList();
                
@@ -111,7 +113,9 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void FindRowTest()
         {
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\search test file";
+
+            string sheetFilePath = @"..\..\..\Test_Files\search test file";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
             string searchTarget = "Value to find";
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
@@ -170,7 +174,10 @@ namespace ginasExcelUnitTests
             largeResults = largeResults.Replace("$IMGFORMAT$", "png");
             string key = "gsrs_zkbcdorqhl";
             Retriever retriever = new Retriever();
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\manual test2.xlsx";
+
+
+            string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
             
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             Worksheet sheet = workbook.Worksheets[2];
@@ -195,7 +202,9 @@ namespace ginasExcelUnitTests
             largeResults = largeResults.Replace("$IMGFORMAT$", "png");
             string key = "gsrs_zkbcdorqhl";
             Retriever retriever = new Retriever();
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\manual test2.xlsx";
+
+            string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             Worksheet sheet = workbook.Worksheets[2];
@@ -218,7 +227,11 @@ namespace ginasExcelUnitTests
         public void RetrieverStartOperationTest()
         {
             Retriever retriever = new Retriever();
-            string filePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\manual test2.xlsx";
+            
+
+            string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
             Workbook workbook = ReadExcelWorkbook(filePath);
             Worksheet sheet = workbook.Sheets[1];
             sheet.Select();
@@ -242,7 +255,10 @@ namespace ginasExcelUnitTests
         public void StartResolutionTest1()
         {
             Retriever retriever = new Retriever();
-            string filePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\manual test2.xlsx";
+            
+            string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
             Workbook workbook = ReadExcelWorkbook(filePath);
             Worksheet sheet = workbook.Sheets[1];
             sheet.Select();
@@ -263,7 +279,9 @@ namespace ginasExcelUnitTests
 
         private Workbook ReadExcelWorkbook()
         {
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\comment test.xlsx";
+
+            string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             return workbook;
         }

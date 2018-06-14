@@ -11,6 +11,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using ginasExcelUnitTests.Model;
+using System.IO;
 
 namespace gov.ncats.ginas.excel.tools.Controller.Tests
 {
@@ -81,7 +82,8 @@ namespace gov.ncats.ginas.excel.tools.Controller.Tests
 
         private Workbook getExcelSheet()
         {
-            string sheetFilePath = @"C:\ginas_source\Excel\CSharpTest2\Test_Files\manual data load test.xlsx";
+            string sheetFilePath = @"..\..\..\Test_Files\manual data load test.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             return workbook;
         }
