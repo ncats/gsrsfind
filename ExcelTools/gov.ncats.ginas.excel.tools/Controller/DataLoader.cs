@@ -18,14 +18,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
     {
         public const string LOAD_OPERATION = "BATCH";
         private const string STATUS_KEY = "IMPORT STATUS";
-        private IScriptExecutor _scriptExecutor;
+        private IScriptExecutor ScriptExecutor;
         private int _scriptsProcessed = 0;
         private bool _notified = false;
         private DateTime _resolutionStart;
 
         public void SetScriptExecutor(IScriptExecutor scriptExecutor)
         {
-            _scriptExecutor = scriptExecutor;
+            ScriptExecutor = scriptExecutor;
         }
 
 
@@ -35,20 +35,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
             set;
         }
 
-        public void StartOperation(Excel.Window window)
+        public void StartOperation()
         {
             GinasConfiguration = FileUtils.GetGinasConfiguration();
 
             ScriptQueue = new Queue<string>();
             CurrentOperationType = OperationType.Loading;
-            _selection = window.Application.Selection;
+            ExcelSelection =ExcelWindow.Application.Selection;
         
             RetrievalForm form = new RetrievalForm();
             form.Controller = this;
             form.CurrentOperationType = OperationType.Loading;
-            StatusUpdater = form;
-            _scriptExecutor = form;
-            form.Show();
+            SetStatusUpdater(form);
+            ScriptExecutor = form;
+            form.ShowDialog();
 
             Excel.Range arange = GetExecutingRange();
             if( arange == null)
@@ -68,13 +68,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             ScriptQueue = new Queue<string>();
             CurrentOperationType = OperationType.ShowScripts;
-            _window = window;
+            ExcelWindow = window;
 
             RetrievalForm form = new RetrievalForm();
             form.Controller = this;
             form.CurrentOperationType = OperationType.ShowScripts;
             StatusUpdater = form;
-            _scriptExecutor = form;
+            ScriptExecutor = form;
             form.Show();
         }
 
@@ -82,29 +82,29 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             string msg = "";
 
-            Callback cb = CreateUpdateCallback(_selection.Application.ActiveCell, true, msg);
+            Callback cb = CreateUpdateCallback(ExcelSelection.Application.ActiveCell, true, msg);
             if (!string.IsNullOrEmpty(msg)) StatusUpdater.UpdateStatus(msg);
-            if (cb != null) _scriptExecutor.ExecuteScript("showPreview(tmpRunner)");
+            if (cb != null) ScriptExecutor.ExecuteScript("showPreview(tmpRunner)");
         }
 
         public bool StartResolution(bool newSheet)
         {
             if( CurrentOperationType == OperationType.ShowScripts)
             {
-                string selectedScriptName =(string) _scriptExecutor.ExecuteScript("$('#scriptlist').val()");
+                string selectedScriptName =(string) ScriptExecutor.ExecuteScript("$('#scriptlist').val()");
                 if( string.IsNullOrEmpty(selectedScriptName))
                 {
                     UIUtils.ShowMessageToUser("Please select a script for your new sheet");
                     return true;
                 }
                 SheetUtils sheetUtils = new SheetUtils();
-                sheetUtils.CreateSheet(_window.Application.ActiveWorkbook, selectedScriptName, 
-                    _scriptExecutor);
+                sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, selectedScriptName, 
+                    ScriptExecutor);
             }
             else
             {
                 Authenticate();
-                StartLoading(_selection);
+                StartLoading(ExcelSelection);
             }
             return true;
         }
@@ -116,10 +116,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 string script1 = string.Format("GlobalSettings.authKey = '{0}'",
                     GinasConfiguration.SelectedServer.PrivateKey);
-                _scriptExecutor.ExecuteScript(script1);
+                ScriptExecutor.ExecuteScript(script1);
                 string script2 = string.Format("GlobalSettings.authUsername = '{0}'",
                     GinasConfiguration.SelectedServer.Username);
-                _scriptExecutor.ExecuteScript(script2);
+                ScriptExecutor.ExecuteScript(script2);
             }
         }
 
@@ -167,7 +167,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 + ".get(function(b){cresults['"
                 + cb.getKey() + "']=b;window.external.Notify('"
                 + cb.getKey() + "');})";
-            _scriptExecutor.ExecuteScript(script);
+            ScriptExecutor.ExecuteScript(script);
             cb.setScript(script);
 
             Callbacks.Add(cb.getKey(), cb);
@@ -215,21 +215,21 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 if (!allowFinished) return null;
             }
             //    'this is a trick to make the script accessible
-            _scriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + scriptName + "');");
-            _scriptExecutor.ExecuteScript("tmpRunner=tmpScript.runner();");
+            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + scriptName + "');");
+            ScriptExecutor.ExecuteScript("tmpRunner=tmpScript.runner();");
 
             foreach (string key in keys.Keys)
             {
                 if (!string.IsNullOrWhiteSpace(GetProperty(keys, key, "")))
                 {
                     string testScript = "tmpScript.hasArgumentByName('" + key + "')";
-                    object testValue = _scriptExecutor.ExecuteScript(testScript);
+                    object testValue = ScriptExecutor.ExecuteScript(testScript);
                     Debug.WriteLine("value: " + testValue);
                     if (testValue is string && (testValue as string).Equals("true", 
                             StringComparison.CurrentCultureIgnoreCase))
                     {
                         object param = 
-                            _scriptExecutor.ExecuteScript("tmpScript.getArgumentByName('" + key + "')");
+                            ScriptExecutor.ExecuteScript("tmpScript.getArgumentByName('" + key + "')");
                         ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
                         string parameterValue = (keys[key].Text != null) ? keys[key].Text :
                             string.Empty;
@@ -237,7 +237,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         parameterValue = parameterValue.Replace("'", "\\'").Replace("\n", "\\n");
                         string paramValueScript = string.Format("tmpRunner.setValue('{0}', '{1}')",
                             parameter.key, parameterValue);
-                        _scriptExecutor.ExecuteScript(paramValueScript);
+                        ScriptExecutor.ExecuteScript(paramValueScript);
                     }
                 }
             }
@@ -366,7 +366,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             sw.Stop();
         }
 
-        public void HandleResults(string resultsKey, string message)
+        public object HandleResults(string resultsKey, string message)
         {
             Debug.WriteLine(string.Format("HandleResults received message {0} for key {1}",
                 message, resultsKey));
@@ -376,8 +376,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callbacks.Remove(resultsKey);
 
             string statusMessage = string.Format("{0} items to go", ScriptQueue.Count);
-            if (ScriptQueue.Count == 0) statusMessage = "Processing complete!";
+            if (ScriptQueue.Count == 0)
+            {
+                statusMessage = "Processing complete!";
+                StatusUpdater.Complete();
+            }
             StatusUpdater.UpdateStatus(statusMessage);
+            return "true";
         }
 
         private void EndProcessNotification()
@@ -385,11 +390,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             //dialog itself will handle saving of debug info.
             StatusUpdater.UpdateStatus("Completed");
             this._notified = true;
+            StatusUpdater.Complete();
         }
 
         private Excel.Range GetExecutingRange()
         {
-            Excel.Range r = _selection;
+            Excel.Range r = ExcelSelection;
             if (r == null) return null;
             Excel.Worksheet activeSheet = r.Application.ActiveSheet;
             r = r.Application.Intersect(ActiveRange(), 
@@ -401,8 +407,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         private Excel.Range ActiveRange()
         {
-            Excel.Worksheet activeSheet = _selection.Application.ActiveSheet;
-            Excel.Range r = _selection.Application.Intersect(activeSheet.UsedRange, _selection.Cells);
+            Excel.Worksheet activeSheet = ExcelSelection.Application.ActiveSheet;
+            Excel.Range r = ExcelSelection.Application.Intersect(activeSheet.UsedRange, ExcelSelection.Cells);
             return r;
         }
  

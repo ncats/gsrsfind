@@ -9,5 +9,7 @@ namespace gov.ncats.ginas.excel.tools.Model
     public interface IStatusUpdater
     {
         void UpdateStatus(string message);
+
+        void Complete();
     }
 }

@@ -10,8 +10,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
 {
     public class DomUtils
     {
-        public static void BuildDocumentBody(HtmlDocument document, bool includeScriptMaterial = false)
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static void BuildDocumentBody(HtmlDocument document, bool includeScriptMaterial = false,
+            bool makeDebugVisible = false)
         {
+            log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             HtmlElement bodyElement = document.Body;
             bodyElement.InnerHtml = string.Empty;
 
@@ -70,6 +74,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 divElement.SetAttribute("id", "showScripts");
                 HtmlElement innerDiv = document.CreateElement("div");
                 innerDiv.SetAttribute("className", "scriptlist");
+                HtmlElement h3ElementScripts = document.CreateElement("h4");
+                h3ElementScripts.InnerHtml = "Please select a script and click 'Add Sheet'";
+                h3ElementScripts.SetAttribute("id", "scriptListHeader");
+                innerDiv.AppendChild(h3ElementScripts);
                 HtmlElement selectElement = document.CreateElement("select");
                 selectElement.SetAttribute("id", "scriptlist");
                 selectElement.SetAttribute("size", "10");
@@ -152,12 +160,20 @@ namespace gov.ncats.ginas.excel.tools.Utils
             h3Element.SetAttribute("className", "consolehead");
             h3Element.SetAttribute("id", "consoleHeadWebOutput");
             h3Element.InnerText = "Web output:";
+            if (!makeDebugVisible)
+            {
+                h3Element.Style = "visibility:hidden";
+            }
             mainFormElement.AppendChild(h3Element);
 
             brElement = document.CreateElement("br");
             mainFormElement.AppendChild(brElement);
             textAreaElement = document.CreateElement("textarea");
             textAreaElement.SetAttribute("id", "console");
+            if (!makeDebugVisible)
+            {
+                textAreaElement.Style = "visibility:hidden";
+            }
             mainFormElement.AppendChild(textAreaElement);
 
             brElement = document.CreateElement("br");
@@ -192,10 +208,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static void BuildDocumentHead(HtmlDocument document)
         {
+            log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+
             HtmlElement headElement = GetFirstHead(document);
             if (headElement == null)
             {
-                Debug.WriteLine("No head found!");
+                log.Warn("No head object found; using body");
                 headElement = document.Body;
             }
             string inner = headElement.InnerText;
@@ -229,7 +247,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             HtmlElement mainGinasScript = document.CreateElement("script");
             mainGinasScript.SetAttribute("type", "text/javascript");
-            mainGinasScript.InnerHtml = FileUtils.GetJavaScript(); //GetMinJavaScript();
+            string imageFormat = Properties.Resources.ImageFormat;
+            mainGinasScript.InnerHtml = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat); 
             headElement.AppendChild(mainGinasScript);
 
             HtmlElement shimScript = document.CreateElement("script");

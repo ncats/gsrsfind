@@ -1,44 +1,23 @@
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\BuildPage.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas_controller.css
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas_controller.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas_min.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas_controller.html
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\LastScript.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\gov.ncats.ginas.excel.DataTools.dll
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\gov.ncats.ginas.excel.DataTools.pdb
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\gov.ncats.ginas.excel.DataTools.dll.manifest
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\gov.ncats.ginas.excel.DataTools.vsto
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\Interop.MSHTML.dll
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.csproj.ResolveComReference.cache
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.CSharpTest2.Properties.Resources.resources
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.csproj.GenerateResource.Cache
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.csproj.CoreCompileInputs.cache
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.DataTools.dll
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.DataTools.pdb
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas tools.config
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\ginas.config.json
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.csproj.CopyComplete
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\bin\Debug\etc\error page.html
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.GinasRibbon.resources
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.UI.ConfigurationForm.resources
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.CSharpTest2\obj\Debug\gov.ncats.ginas.excel.tools.UI.RetrievalForm.resources
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas tools.config
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas.config.json
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\log4net.config
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\BuildPage.js
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\error page.html
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.css
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_min.js
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.html
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\LastScript.js
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\gov.ncats.ginas.excel.DataTools.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\gov.ncats.ginas.excel.DataTools.pdb
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\gov.ncats.ginas.excel.DataTools.dll.manifest
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\gov.ncats.ginas.excel.DataTools.vsto
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\log4net.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\log4net.xml
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\Interop.MSHTML.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csproj.ResolveComReference.cache
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.Properties.Resources.resources
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.GinasRibbon.resources
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.UI.ConfigurationForm.resources
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.UI.RetrievalForm.resources
@@ -47,5 +26,3 @@ C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncat
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csproj.CopyComplete
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.DataTools.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.DataTools.pdb
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.Properties.Resources.resources
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache

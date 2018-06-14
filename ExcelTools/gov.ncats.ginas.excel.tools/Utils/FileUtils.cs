@@ -10,6 +10,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
 {
     public class FileUtils
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(
+            System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static string GetJavaScript()
         {
             //String javascriptFilePath = @"C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\etc\ginas_controller.js";
@@ -17,18 +20,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(javascriptFilePath);//.Replace("  ", "").Replace("\r\n", "");
         }
 
-        public static string GetMinJavaScript()
-        {
-            string javascriptFilePath = GetCurrentFolder() + @"\etc\ginas_min.js";
-            return File.ReadAllText(javascriptFilePath).Replace("  ", "").Replace("\r\n", "");
-        }
-
-        public static string GetPartialJavaScript()
-        {
-            string javascriptFilePath = GetCurrentFolder() + @"\etc\ginas_controller p1a.js";
-            return File.ReadAllText(javascriptFilePath);
-        }
-
+ 
         public static string GetLastJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\LastScript.js";
@@ -43,7 +35,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 System.Windows.Forms.MessageBox.Show("HTML file not found!");
                 return "";
             }
-            //@"C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\etc\ginas_controller.html";
             return File.ReadAllText(htmlFilePath);
         }
 
@@ -58,13 +49,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(htmlFilePath);
         }
 
-
-        public static string getJQueryCode()
-        {
-            string filePath = @"C:\downloads\jquery\jquery-1.12.4.js";
-            return File.ReadAllText(filePath);
-        }
-
         public static string GetCss()
         {
             string styleFilePath = GetCurrentFolder() + @"\etc\ginas_controller.css";
@@ -76,27 +60,38 @@ namespace gov.ncats.ginas.excel.tools.Utils
             File.WriteAllText(filePath, stuff);
         }
 
-        public static string BuildScriptFromFile()
-        {
-            string sourcePath = GetCurrentFolder() + @"\etc\BuildPage.js";
-            string[] lines = File.ReadAllLines(sourcePath);
-            return string.Join(Environment.NewLine, lines);
-        }
-
         public static GinasToolsConfiguration GetGinasConfiguration()
         {
+            log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string userConfigPath = GetUserFolder() + @"\ginas.config.json";
             string configFilePath = userConfigPath;
             if (!File.Exists(userConfigPath))
             {
+                log.Debug("Unable to located user configuration file " + configFilePath);
                 configFilePath = GetCurrentFolder() + @"\etc\ginas.config.json";
             }
             string configString = File.ReadAllText(configFilePath);
-            return JSTools.GetGinasToolsConfigurationFromString(configString);
+            log.Debug("configString: " + configString);
+            GinasToolsConfiguration config = null;
+            try
+            {
+                config = JSTools.GetGinasToolsConfigurationFromString(configString);
+                log.Debug("converted config object: " + config.ToString());
+            }
+            catch (Exception ex)
+            {
+                log.Fatal("Error loading configuration: " + ex.Message, ex);
+            }
+
+
+            log.Debug("converted config string to config object");
+            return config;
         }
 
         public static void SaveGinasConfiguration(GinasToolsConfiguration config)
         {
+            log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+
             string configFilePath = GetUserFolder() + @"\ginas.config.json";
             string configString = JSTools.GetStringFromGinasToolsConfiguration(config);
             File.WriteAllText(configFilePath, configString);
@@ -109,6 +104,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static string GetUserFolder()
         {
+            log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+
             string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
                 + Path.DirectorySeparatorChar + "ginas";
             DirectoryInfo folderInfo = new DirectoryInfo(folder);

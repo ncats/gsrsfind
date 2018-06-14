@@ -46,7 +46,7 @@ scriptElement.setAttribute('type', 'text/javascript');
 scriptElement.innerHTML = 'if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; var cresults = { "getItem": function (v) { return this[v]; }, "popItem": function (v) { var ret = this[v]; delete this[v]; return ret; } }; window["console"] = {log: function (r){var currValue = document.getElementById("console").value; document.getElementById("console").value = currValue + "\\r\\n" +r;}}';
 headElement.appendChild(scriptElement);
 
-if (!headElems || headElems.length == 0) {
+if (!headElems || headElems.length === 0) {
     document.getElementsByTagName("html")[0].appendChild(headElement);
 }
 

@@ -55,7 +55,7 @@
             this.ginasTab.Groups.Add(this.retrievalgroup);
             this.ginasTab.Groups.Add(this.updateGroup);
             this.ginasTab.Groups.Add(this.configurationGroup);
-            this.ginasTab.Label = "ginas";
+            this.ginasTab.Label = "g-srs";
             this.ginasTab.Name = "ginasTab";
             // 
             // retrievalgroup

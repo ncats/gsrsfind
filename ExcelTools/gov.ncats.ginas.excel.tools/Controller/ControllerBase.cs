@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Timers;
 using gov.ncats.ginas.excel.tools.Model;
 
-using Excel=Microsoft.Office.Interop.Excel;
+using Excel = Microsoft.Office.Interop.Excel;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 namespace gov.ncats.ginas.excel.tools.Controller
@@ -17,15 +17,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
         protected static int _checkInterval = 30;
         protected Timer _timer;
         protected int _totalScripts = 0;
-        protected Excel.Range _selection;
-        protected Excel.Window _window;
+        protected Excel.Range ExcelSelection;
+        protected Excel.Window ExcelWindow;
         protected Queue<string> ScriptQueue;
 
         protected Dictionary<string, Callback> Callbacks;
 
         public void SetExcelWindow(Excel.Window window)
         {
-            _window = window;
+            ExcelWindow = window;
         }
 
         public OperationType CurrentOperationType
@@ -46,14 +46,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
             set;
         }
 
-        public IStatusUpdater StatusUpdater
+        protected IStatusUpdater StatusUpdater;
+
+        public void SetStatusUpdater(IStatusUpdater statusUpdater)
         {
-            get;
-            set;
+            StatusUpdater = statusUpdater;
         }
 
         public int GetBatchSize()
         {
+            if (ToolsConfiguration != null && ToolsConfiguration.BatchSize > 0)
+            {
+                return ToolsConfiguration.BatchSize;
+            }
+
             int batchSize;
             string batchSizeRaw = Properties.Resources.DefaultBatchSize;
             if (!int.TryParse(batchSizeRaw, out batchSize))
@@ -75,5 +81,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
+        public GinasToolsConfiguration ToolsConfiguration = Utils.FileUtils.GetGinasConfiguration();
     }
 }

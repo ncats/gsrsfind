@@ -8,6 +8,7 @@ using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using ginasExcelUnitTests.Model;
 using gov.ncats.ginas.excel.tools.Model;
+using gov.ncats.ginas.excel.tools.Controller;
 
 namespace ginasExcelUnitTests
 {
@@ -102,6 +103,37 @@ namespace ginasExcelUnitTests
             Assert.AreEqual("PT", output.name);
             Assert.AreEqual("Preferred Term of the new substance", output.description);
             Assert.IsNull(output.defaultValue);
+        }
+
+        [TestMethod]
+        public void RemoteFileExistsTestTrue()
+        {
+            string url1 = "http://localhost:9000/ginas/app/img/3982bff1-da0a-49a5-be34-4adb8c7648af.png?size=300";
+            Assert.IsTrue(ImageOps.RemoteFileExists(url1));
+        }
+
+
+        [TestMethod]
+        public void RemoteFileExistsTestFalse()
+        {
+            string url1 = "http://localhost:9000/ginas/app/img/3982bff1-da0a-49a5-be34-4adb8c7648afblah.png?size=300";
+            Assert.IsFalse(ImageOps.RemoteFileExists(url1));
+        }
+
+        [TestMethod]
+        public void LaunchLastScriptTest()
+        {
+            Retriever retriever = new Retriever();
+
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater( statusUpdater);
+            string dummyScript = "test 'value' for unit test";
+            retriever.GetScriptQueue().Enqueue(dummyScript);
+            retriever.LaunchLastScript();
+            Assert.AreEqual(dummyScript, scriptExecutorMock.TestScript);
+            Assert.AreEqual(0, retriever.GetScriptQueue().Count);
         }
 
         private BatchCallback setupData()

@@ -6,6 +6,7 @@
         Resolution = 1,
         Loading = 2,
         ShowScripts =3,
-        Other = 4
+        GetStructures =4,
+        Other = 5
     }
 }

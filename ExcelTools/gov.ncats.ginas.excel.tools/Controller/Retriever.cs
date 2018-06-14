@@ -8,7 +8,6 @@ using System.Timers;
 using System.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 
-using gov.ncats.ginas.excel.tools.UI;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model;
@@ -18,128 +17,169 @@ namespace gov.ncats.ginas.excel.tools.Controller
 {
     public class Retriever : ControllerBase, IController
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public Retriever()
         {
             ItemsPerBatch = GetBatchSize();
+            ScriptQueue = new Queue<string>();
+            Callbacks = new Dictionary<string, Callback>();
         }
 
         public void SetScriptExecutor(IScriptExecutor scriptExecutor)
         {
-            _scriptExecutor = scriptExecutor;
+            ScriptExecutor = scriptExecutor;
         }
 
-        private IScriptExecutor _scriptExecutor;
+        private IScriptExecutor ScriptExecutor;
 
-        
-        
         private int _totalBatches;
-        
+
         private bool _notified = false;
 
-        public void StartOperation(Excel.Window window)
+        private bool _resolveToNewSheet = false;
+        private static int newSheetRow = 1;
+
+        //for unit tests
+        public void SetSelection(Excel.Range selection)
         {
-            Callbacks = new Dictionary<string, Callback>();
+            ExcelSelection = selection;
+        }
+
+        public void StartOperation()
+        {
             ScriptQueue = new Queue<string>();
 
-            CurrentOperationType = OperationType.Resolution;
-
             CallbackFactory factory = new CallbackFactory();
-            Excel.Worksheet activeWorksheet = ((Excel.Worksheet)window.Application.ActiveSheet);
-            _selection = window.Application.Selection;
-            List<SearchValue> searchValues = GetSearchValues(_selection);
+            Excel.Worksheet activeWorksheet = ((Excel.Worksheet)ExcelWindow.Application.ActiveSheet);
+            ExcelSelection = ExcelWindow.Application.Selection;
+            if (ExcelSelection == null)
+            {
+                UIUtils.ShowMessageToUser("Error obtaining access to Excel!");
+                return;
+            }
+            List<SearchValue> searchValues = GetSearchValues(ExcelSelection);
             string callbackKey = JSTools.RandomIdentifier();
 
             if (searchValues.Any(v => !string.IsNullOrWhiteSpace(v.Value)))
             {
                 string searchScript = MakeImageSearch(callbackKey, searchValues.Select(sv => sv.Value).ToList());
-                ImgCallback imgCallback = new ImgCallback(_selection);
-                RetrievalForm form = new RetrievalForm();
-                form.Controller = this;
-                form.Show();
-                StatusUpdater = form;
-                _scriptExecutor = form;
-                form.ScriptToExecute = searchScript;
+                //ImgCallback imgCallback = new ImgCallback(ExcelSelection);
+                ScriptExecutor.SetScript(searchScript);
+                newSheetRow = 1;
             }
             else
             {
                 UIUtils.ShowMessageToUser("Please select a chemical name or ID");
                 return;
             }
-
-            if( StatusUpdater != null)
-            {
-                StatusUpdater.UpdateStatus("Getting user selections");
-            }
         }
 
-        public void HandleResults(string resultsKey, string message)
+        public object HandleResults(string resultsKey, string message)
         {
-            Debug.WriteLine(string.Format("HandleResults received message {0} for key {1}",
+            log.Debug(string.Format("HandleResults received message {0} for key {1}",
                 message, resultsKey));
 
+            Dictionary<string, string> results = new Dictionary<string, string>();
+
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
+            ImageOps imageOps = new ImageOps();
+
             foreach (string key in returnedValue.Keys)
             {
-                string[] messageParts = returnedValue[key][0].Split('\t');
-                int currentRow = _selection.Row;
-
-                int currentColumn = _selection.Column;
-                int dataRow = SheetUtils.FindRow(_selection, key, currentColumn);
-                for (int part = 1; part < messageParts.Length; part++)
+                log.DebugFormat("Handling result for key {0}", key);
+                string keyResult = "OK";
+                try
                 {
-                    int column = currentColumn + part;
-                    string cellId = SheetUtils.GetColumnName(column) + dataRow;
-                    string result = messageParts[part];
-                    if (result.Equals("[object Object]")) continue;
-                    if (ImageOps.IsImageUrl(result))
-                    {
-                        ImageOps imageOps = new ImageOps();
-                        cellId = SheetUtils.GetColumnName(column - 1) + dataRow;
-                        Excel.Range currentCell = _selection.Worksheet.Range[cellId];
-                        imageOps.AddImageCaption(currentCell, result, 240);
-                    }
-                    else
-                    {
-                        Excel.Range currentCell = _selection.Worksheet.Range[cellId];
-                        currentCell.Value = result;
-                    }
+                    string[] messageParts = returnedValue[key][0].Split('\t');
+                    int currentRow = ExcelSelection.Row;
 
+                    int currentColumn = ExcelSelection.Column;
+                    int dataRow = (_resolveToNewSheet) ? ++newSheetRow :
+                        SheetUtils.FindRow(ExcelSelection, key, currentColumn);
+                    if (_resolveToNewSheet)
+                    {
+                        string cellId = SheetUtils.GetColumnName(currentColumn) + dataRow;
+                        Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+                        currentCell.Value = key;
+                    }
+                    for (int part = 1; part < messageParts.Length; part++)
+                    {
+                        int column = currentColumn + part;
+                        string cellId = SheetUtils.GetColumnName(column) + dataRow;
+                        string result = messageParts[part];
+                        if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
+                        string imageFormat = Properties.Resources.ImageFormat;
+
+                        if (ImageOps.IsImageUrl(result))
+                        {
+                            if (ImageOps.RemoteFileExists(result))
+                            {
+                                log.Debug("(image)");
+                                cellId = SheetUtils.GetColumnName(column - 1) + dataRow;
+                                Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+                                imageOps.AddImageCaption(currentCell, result, 240);
+                            }
+                            else
+                            {
+                                keyResult = "Invalid Image URL";
+                            }
+                        }
+                        else
+                        {
+                            Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+                            currentCell.Value = result;
+                        }
+                    }
+                    results.Add(key, keyResult);
+                    System.Windows.Forms.Application.DoEvents();
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Error handling key {0} {1} {2}", key, ex.Message, ex);
+                    results.Add(key, "Exception: " + ex.Message);
                 }
             }
-            Callbacks.Remove(resultsKey);
-            
+
+            if (ScriptQueue != null && ScriptQueue.Count > 0)
+            {
+                log.Debug("calling LaunchLastScript");
+                LaunchLastScript();
+            }
+            else log.Debug("Skipping call to LaunchLastScript");
             string statusMessage = string.Format("{0} items to go", ScriptQueue.Count);
             if (ScriptQueue.Count == 0) statusMessage = "Processing complete!";
-            StatusUpdater.UpdateStatus(statusMessage);
+            if (StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
+            return results;
         }
 
         public bool StartResolution(bool newSheet)
         {
+            _resolveToNewSheet = newSheet;
             float secondsPerItem = 0.4f;
             Callbacks = new Dictionary<string, Callback>();
             ScriptQueue = new Queue<string>();
             Excel.Range r = null;
             try
             {
-                r = _window.RangeSelection;
+                r = ExcelWindow.RangeSelection;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Debug.WriteLine("Error: " + ex.Message);
+                log.Debug("Error: " + ex.Message);
 
             }
-            if( r== null)
+            if (r == null)
             {
                 return false;
             }
-            _selection = r;
+            ExcelSelection = r;
             BatchCallback cb = CallbackFactory.CreateBatchCallback();
             RangeWrapper wrapped = null;
-            /* todo: handle newSheet!
-             if( newSheet)
+            if (newSheet)
             {
-                wrapped = getNewSheetResolverCursor();
-            }*/
+                log.Debug("Resolving to new sheet");
+                wrapped = GetNewSheetResolverCursor();
+            }
 
             int currItem = 0;
             int currItemWithinBatch = 0;
@@ -171,7 +211,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         QueueOneBatch(cb, preSubmit);
                         cb = CallbackFactory.CreateBatchCallback();
                         currItemWithinBatch = 0;
-                        Debug.Print("Prepared batch containing " + ItemsPerBatch + " items");
+                        log.Debug("Prepared batch containing " + ItemsPerBatch + " items");
                         preSubmit.Clear();
                     }
                 }
@@ -192,76 +232,28 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-        //        private RangeWrapper getNewSheetResolverCursor()
-        //        {
-        //            string[] headers, theaders;
-        //            theaders = Split(getScriptPrimitive("_.map($('div.checkop input:checked'), 'name').join('___');"), "___");
-        //            headers = new string[1, Information.UBound(theaders) - Information.LBound(theaders) + 1];
-        //            int i;
-
-        //            for (i = Information.LBound(theaders); i <= Information.UBound(theaders); i++)
-        //                headers[0, i] = theaders[i];
-
-        //            Worksheet nsheet;
-        //            ;/* Cannot convert EmptyStatementSyntax, CONVERSION ERROR: Conversion for EmptyStatement not implemented, please report this issue in '' at character 446
-        //   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.MethodBodyVisitor.DefaultVisit(SyntaxNode node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.VisitEmptyStatement(EmptyStatementSyntax node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.Syntax.EmptyStatementSyntax.Accept[TResult](VisualBasicSyntaxVisitor`1 visitor)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
-
-        //Input: 
-        //    Set nsheet = ActiveWorkbook.Sheets.Add
-
-        // */
-        //            nsheet.Name = ExcelTools.getNewSheetName("Resolved");
-        //            nsheet.Range("A1").FormulaR1C1 = "Query";
-        //            nsheet.Range("B1").Resize(1, Information.UBound(theaders) - Information.LBound(theaders) + 1) = headers;
-        //            RangeWrapper wrapped;
-        //            ;/* Cannot convert EmptyStatementSyntax, CONVERSION ERROR: Conversion for EmptyStatement not implemented, please report this issue in '' at character 707
-        //   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.MethodBodyVisitor.DefaultVisit(SyntaxNode node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.VisitEmptyStatement(EmptyStatementSyntax node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.Syntax.EmptyStatementSyntax.Accept[TResult](VisualBasicSyntaxVisitor`1 visitor)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
-
-        //Input: 
-        //    Set wrapped = RangeWrapperFactory.createRangeWrapper(nsheet.Range("A2"))
-
-        // */
-        //            ;/* Cannot convert EmptyStatementSyntax, CONVERSION ERROR: Conversion for EmptyStatement not implemented, please report this issue in '' at character 784
-        //   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.MethodBodyVisitor.DefaultVisit(SyntaxNode node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.VisitEmptyStatement(EmptyStatementSyntax node)
-        //   at Microsoft.CodeAnalysis.VisualBasic.Syntax.EmptyStatementSyntax.Accept[TResult](VisualBasicSyntaxVisitor`1 visitor)
-        //   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
-        //   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
-
-        //Input: 
-        //    Set getNewSheetResolverCursor = wrapped
-
-        // */
-        //        }
-
         public void LaunchLastScript()
         {
             Stopwatch sw = new Stopwatch();
             if (ScriptQueue.Count > 0)
             {
                 sw.Start();
-                Debug.Print("About to run script from queue. Script queue count: "
+                log.Debug("About to run script from queue. Script queue count: "
                     + ScriptQueue.Count + " at " + DateTime.Now);
                 StartCorrespondingCallback(ScriptQueue.Peek());
-                _scriptExecutor.ExecuteScript(ScriptQueue.Dequeue());
+                log.Debug(" through StartCorrespondingCallback: " + sw.ElapsedMilliseconds + " milliseconds");
+                ScriptExecutor.ExecuteScript(ScriptQueue.Dequeue());
+                log.Debug(" ExecuteScript: " + sw.ElapsedMilliseconds + " milliseconds");
+
                 StatusUpdater.UpdateStatus("Processing batch " + (_totalBatches - ScriptQueue.Count)
-            + " of " + _totalBatches);
-                Debug.Print("launching script took: " + sw.ElapsedMilliseconds + " milliseconds");
+                    + " of " + _totalBatches);
+                log.Debug("launching script took: " + sw.ElapsedMilliseconds + " milliseconds");
+                sw.Reset();
             }
             else
             {
                 StatusUpdater.UpdateStatus("All batches have been processed");
+                log.Debug("No scripts in queue. ");
             }
         }
 
@@ -274,25 +266,28 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callback cb;
             pos1 = script.IndexOf("'");
             pos2 = script.IndexOf("'", pos1 + 1);
-            key = script.Substring(pos1 + 1, (pos2 - pos1 -1));
+            key = script.Substring(pos1 + 1, (pos2 - pos1 - 1));
             if (Callbacks.ContainsKey(key))
             {
                 cb = Callbacks[key];
                 cb.start();
-                Debug.Print(" ... found callback and marked it as started");
-
+                log.Debug(" ... found callback and marked it as started");
             }
         }
 
         private void QueueOneBatch(Callback cb, List<string> submittable)
         {
             cb.setKey(JSTools.RandomIdentifier());
+            while (Callbacks.ContainsKey(cb.getKey()))
+            {
+                log.Error("Callback contains duplicate key: " + cb.getKey());
+                cb.setKey(JSTools.RandomIdentifier());
+            }
             Callbacks.Add(cb.getKey(), cb);
-            Debug.Print("preparing callback with key " + cb.getKey() + " at " + DateTime.Now);
+            log.Debug("preparing callback with key " + cb.getKey() + " at " + DateTime.Now);
             string script = MakeSearch(cb.getKey(), submittable);
-            Debug.Print("script: " + script);
+            log.Debug("script: " + script);
 
-            // executeScript script
             ScriptQueue.Enqueue(script);
         }
 
@@ -303,8 +298,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
                 string cellValue = selection.Worksheet.get_Range(cellName).Value;
-                Debug.WriteLine(string.Format("cell {0} = value: {1}",
-                    cellName, cellValue));
+                //log.Debug(string.Format("cell {0} = value: {1}",
+                //    cellName, cellValue));
                 searchValues.Add(cellValue);
             }
             return searchValues;
@@ -317,7 +312,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
                 string cellValue = selection.Worksheet.get_Range(cellName).Value;
-                Debug.WriteLine(string.Format("cell {0} = value: {1}",
+                log.Debug(string.Format("cell {0} = value: {1}",
                     cellName, cellValue));
                 searchValues.Add(new SearchValue(cellValue, row.Row));
             }
@@ -391,12 +386,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
             sw.Start();
             string message;
             bool haveActive = false;
-            Debug.Print("Starting in checkAllCallbacks");
+            log.Debug("Starting in checkAllCallbacks");
             if (Callbacks == null || Callbacks.Count == 0)
             {
                 message = "callbacks null or empty";
-                Debug.Print(message);
+                log.Debug(message);
+                _timer.Close();
                 _timer.Stop();
+                _timer.Enabled = false;
                 return;
             }
             message = "callback total: " + Callbacks.Count;
@@ -427,7 +424,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             callbackKeysToRemove.ForEach(k =>
             {
                 this.Callbacks.Remove(k);
-                Debug.Print("just removed batchcallback with key " + k);
+                log.Debug("just removed batchcallback with key " + k);
             });
             KeepCheckingCallbacks = haveActive;
             if (!haveActive)
@@ -435,26 +432,27 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 message = "No active callbacks detected";
             }
 
-            Debug.Print(message);
+            log.Debug(message);
 
             if (!KeepCheckingCallbacks && ((ScriptQueue == null) || ScriptQueue.Count == 0))
             {
+                _timer.Elapsed -= CheckAllCallbacks;
+                _timer.AutoReset = false;
                 _timer.Stop();
                 _timer.Close();
                 _timer = null;
-                Debug.Print("_timer closed");
+                log.Debug("_timer closed");
                 if (!haveActive)
                 {
-                    Debug.Print("about to clear callbacks");
+                    log.Debug("about to clear callbacks");
                     this.Callbacks.Clear();
                 }
-
             }
-            else if (ScriptQueue != null && ScriptQueue.Count > 0)
-            {
-                LaunchLastScript();
-            }
-            Debug.Print("end of checkAllCallbacks which took " + sw.Elapsed);
+            //else if (ScriptQueue != null && ScriptQueue.Count > 0)
+            //{
+            //    LaunchLastScript();
+            //}
+            log.Debug("end of checkAllCallbacks which took " + sw.Elapsed);
             sw.Stop();
         }
         public void LaunchCheckJob()
@@ -463,11 +461,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string interval = "00:00:" + String.Format("{0:00}", _checkInterval);
             //'assume interval is less than 60 seconds!
 
-            Debug.Print("LaunchCheckJob using interval " + interval);
+            log.Debug("LaunchCheckJob using interval " + interval);
             _timer = new Timer(_checkInterval * secondsToMilliseconds);
             _timer.AutoReset = true;
             _timer.Elapsed += CheckAllCallbacks;
-            Debug.Print("(checkAllCallbacks)");
+            log.Debug("(checkAllCallbacks)");
             _timer.Start();
         }
 
@@ -475,5 +473,46 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
 
         }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+            ExcelWindow = null;
+            ExcelSelection = null;
+        }
+
+        //for unit tests
+        public Queue<String> GetScriptQueue()
+        {
+            return ScriptQueue;
+        }
+
+        private RangeWrapper GetNewSheetResolverCursor()
+        {
+            string[] headers;
+            object checkedInput = ScriptExecutor.ExecuteScript("_.map($('div.checkop input:checked'), 'name').join('___');");
+            headers = (checkedInput as string).Split("___".ToCharArray());
+
+            Excel.Worksheet nsheet = ExcelWindow.Application.Sheets.Add();
+            SheetUtils sheetUtils = new SheetUtils();
+            nsheet.Name = sheetUtils.GetNewSheetName(ExcelSelection.Application.ActiveWorkbook,
+                "Resolved");
+            nsheet.Range["A1"].FormulaR1C1 = "Query";
+            int currCol = -1;
+            foreach (string header in headers)
+            {
+                if (string.IsNullOrWhiteSpace(header))
+                {
+                    log.Debug("Header contains blank");
+                    continue;
+                }
+                nsheet.Range["B1"].Offset[0, ++currCol].FormulaR1C1 = header;
+                log.DebugFormat("put header into column {0}", currCol);
+            }
+            RangeWrapper wrapped = RangeWrapperFactory.CreateRangeWrapper(nsheet.Range["A2"]);
+            ExcelSelection = nsheet.Range["A2"];
+            return wrapped;
+        }
+
     }
 }

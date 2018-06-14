@@ -9,5 +9,7 @@ namespace gov.ncats.ginas.excel.tools.Model
     public interface IScriptExecutor
     {
         object ExecuteScript(string script);
+
+        void SetScript(string script);
     }
 }

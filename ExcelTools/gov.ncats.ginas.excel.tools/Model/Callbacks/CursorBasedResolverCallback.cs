@@ -35,5 +35,9 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             }
         }
 
+        public RangeWrapper GetRangeWrapper()
+        {
+            return this.cursor;
+        }
     }
 }

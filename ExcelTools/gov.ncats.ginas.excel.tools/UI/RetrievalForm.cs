@@ -10,27 +10,39 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
+
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
 using gov.ncats.ginas.excel.tools.Model;
+
 
 namespace gov.ncats.ginas.excel.tools.UI
 {
     [ComVisible(true)]
     public partial class RetrievalForm : Form, IStatusUpdater, IScriptExecutor
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         string _html;
         string _javascript;
         string _expectedTitle;
         string _baseUrl;
-        List<string> _completedScripts = new List<string>();
         const string COMPLETED_DOCUMENT_TITLE = "ginas Tools";
         const string NAVIGATION_CANCELED = "Navigation Canceled";
+        GinasToolsConfiguration _configuration = null;
+        string _scriptToRunUponCompletion;
 
         public RetrievalForm()
         {
-            InitializeComponent();
-            this.LoadStartup();
+            log.Debug("Starting in RetrievalForm");
+            try
+            {
+                InitializeComponent();
+                this.LoadStartup();
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error initializating RetrievalForm: " + ex.Message, ex);
+            }
         }
 
         public IController Controller
@@ -44,27 +56,40 @@ namespace gov.ncats.ginas.excel.tools.UI
             set;
         }
 
+        public void SetScript(string script)
+        {
+            _scriptToRunUponCompletion = script;
+        }
+
         public void UpdateStatus(string message)
         {
             labelStatus.Text = message;
+            this.Focus();
         }
+
+        public void Complete()
+        {
+            HandleDebugInfoSave();
+            Close();
+        }
+
         internal void LoadStartup()
         {
-            GinasToolsConfiguration configuration = FileUtils.GetGinasConfiguration();
-
+            _configuration = FileUtils.GetGinasConfiguration();
+            log.Debug("Loaded configuration ");
+            log.Debug(" selected url:" + _configuration.SelectedServer.ServerUrl);
             JSTools tools = new JSTools();
-            Debug.WriteLine(tools.GetType().FullName);
             string html = FileUtils.GetHtml();
             string javascript = FileUtils.GetJavaScript();
             _javascript = javascript;
             string imageFormat = Properties.Resources.ImageFormat;
             javascript = javascript.Replace("$IMGFORMAT$", imageFormat);
-            string initURL = configuration.SelectedServer.ServerUrl;
+            string initURL = _configuration.SelectedServer.ServerUrl;
             _baseUrl = initURL;
             html = html.Replace("$GSRS_LIBRARY$", javascript);
             this._html = html;
             //temp:
-            //FileUtils.WriteToFile(@"c:\temp\debug.html", html);
+            FileUtils.WriteToFile(@"c:\temp\debug.html", html);
             _expectedTitle = "g-srs";
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
@@ -72,13 +97,15 @@ namespace gov.ncats.ginas.excel.tools.UI
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
 
             //webBrowser1.Navigate(initURL);
+            log.Debug(" about to navigate to " + initURL);
             webBrowser1.Url = new Uri(initURL);
         }
 
         private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            Debug.WriteLine("title:" + webBrowser1.DocumentTitle);
-            Debug.WriteLine("ReadyState:" + webBrowser1.ReadyState);
+            //Debug.WriteLine("title:" + webBrowser1.DocumentTitle);
+            //Debug.WriteLine("ReadyState:" + webBrowser1.ReadyState);
+            log.Debug("webBrowser1.DocumentTitle: " + webBrowser1.DocumentTitle);
             if (webBrowser1.DocumentTitle.Equals(_expectedTitle))
             {
                 BuildGinasToolsDocument();
@@ -104,6 +131,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                     buttonResolve.Text = "Add Sheet";
                     buttonAddStructure.Enabled = false;
                     buttonAddStructure.Visible = false;
+                }
+                else if (CurrentOperationType == OperationType.GetStructures)
+                {
+                    ExecuteScript("setMode('resolver');");
+                    if(!string.IsNullOrWhiteSpace(_scriptToRunUponCompletion))
+                    {
+                        ExecuteScript(_scriptToRunUponCompletion);
+                    }
                 }
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
@@ -152,11 +187,10 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public object ExecuteScript(string script)
         {
-            string scriptArg = script;
+            webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
-            Debug.WriteLine("Going to run script: " + script);
-            object returnedValue = webBrowser1.Document.InvokeScript(functionName, new object[] { scriptArg });
-            Debug.WriteLine("Return from JS: " + returnedValue);
+            log.Debug("Going to run script: " + script);
+            object returnedValue = webBrowser1.Document.InvokeScript(functionName, new object[] { script });
             return returnedValue;
         }
 
@@ -167,12 +201,19 @@ namespace gov.ncats.ginas.excel.tools.UI
                 string followupCommand = "cresults.popItem('" + message + "')";
                 object result = ExecuteScript(followupCommand);
                 Controller.HandleResults(message, (string)result);
+                if (CurrentOperationType == OperationType.GetStructures)
+                {
+                    log.Debug("Closing dialog after getting structures");
+                    HandleDebugInfoSave();
+                    Controller.Dispose();
+                    Close();                    
+                }
             }
         }
 
         public void Proceed(string message)
         {
-            Debug.WriteLine(message, "message from browser");
+            log.Debug("message from browser: " + message);
         }
 
         private void buttonResolve_Click(object sender, EventArgs e)
@@ -185,6 +226,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 DialogResult = DialogResult.Yes;
                 Close();
+                Dispose();
             }
         }
 
@@ -195,17 +237,19 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonAddStructure_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(ScriptToExecute))
-            {
-                ExecuteScript(ScriptToExecute);
-                _completedScripts.Add(ScriptToExecute);
-                ScriptToExecute = string.Empty;
-            }
+            CurrentOperationType = OperationType.GetStructures;
+            this.Controller.StartOperation();
         }
 
         private void RetrievalForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (checkBoxSaveDiagnostic.Checked)
+            log.Debug("RetrievalForm_FormClosing");
+            //HandleDebugInfoSave();
+        }
+
+        private void HandleDebugInfoSave()
+        {
+            if (checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures)
             {
                 string script = "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
@@ -217,8 +261,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                     FileUtils.WriteToFile(saveFileDialog.FileName, debugInfo);
                 }
             }
-        }
 
+        }
         private void BuildGinasToolsDocument()
         {
             //clear out old event handlers and scripts... optimistically
@@ -227,20 +271,20 @@ namespace gov.ncats.ginas.excel.tools.UI
                 "$('script').remove(); " });
 
             DomUtils.BuildDocumentHead(webBrowser1.Document);
-            while (webBrowser1.IsBusy)
+            int iter = 0;
+            while (webBrowser1.IsBusy && ++iter < 1000)
             {
-                Debug.Write("busy (2)...");
+                log.Debug("busy (2)...");
             }
 
-            DomUtils.BuildDocumentBody(webBrowser1.Document, 
-                (CurrentOperationType== OperationType.Loading || CurrentOperationType == OperationType.ShowScripts));
+            DomUtils.BuildDocumentBody(webBrowser1.Document,
+                (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
+                _configuration.DebugMode);
             webBrowser1.Document.Title = "ginas Tools";
             webBrowser1.Document.Body.SetAttribute("className", string.Empty);
             webBrowser1.Document.Body.Style = "padding-top:10px";
-            FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.Body.OuterHtml);
-            //inputElement.AttachEventHandler("click", HandleClick);
-
-            int after = webBrowser1.Document.All.Count;
+            this.checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
+            //FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.Body.OuterHtml);
             webBrowser1.Visible = true;
         }
 
@@ -257,12 +301,24 @@ namespace gov.ncats.ginas.excel.tools.UI
                 }
             }
             webBrowser1.Document.InvokeScript("handleReady");
-            Debug.WriteLine(webBrowser1.DocumentText);
+            log.Debug(webBrowser1.DocumentText);
         }
 
         public void HandleClick(object obj, EventArgs args)
         {
             MessageBox.Show(args.ToString());
+        }
+
+        private void buttonDebugDOM_Click(object sender, EventArgs e)
+        {
+            string dom = (string)ExecuteScript("document.body.outerHTML");
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
+            saveFileDialog.Title = "Save DOM Dump?";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                FileUtils.WriteToFile(saveFileDialog.FileName, dom);
+            }
         }
     }
 }

@@ -11,9 +11,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
 {
     public interface IController
     {
-        void StartOperation(Window window);
+        void StartOperation();
 
-        void HandleResults(string resultsKey, string message);
+        object HandleResults(string resultsKey, string message);
 
         bool StartResolution(bool newSheet);
 
@@ -22,5 +22,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         void SetScriptExecutor(IScriptExecutor scriptExecutor);
 
         void ContinueSetup();
+
+        void Dispose();
     }
 }

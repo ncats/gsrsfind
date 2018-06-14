@@ -32,10 +32,12 @@ var GSRSAPI = {
                     && g_api.GlobalSettings.authKey.length > 0) {
                     req.headers["auth-username"] = g_api.GlobalSettings.authUsername;
                     req.headers["auth-key"] = g_api.GlobalSettings.authKey;
+                    console.log("using name/key authentication");
                 }
                 else if (g_api.GlobalSettings.authToken !== null
                     && g_api.GlobalSettings.authToken.length > 0) {
                     req.headers["auth-token"] = g_api.GlobalSettings.authToken;
+                    console.log("using token authentication");
                 }
                 else {
                     console.log("no authentication configured");
@@ -112,8 +114,8 @@ var GSRSAPI = {
                     },
                     error: function (response, error, t) {
                         var msg = 'Error from server. response: '
-                            + JSON.stringify(response) + '; error: '
-                            + JSON.stringify(error) + '\t' + '; t:' + t;
+                            + JSON.stringify(response) + '; url: '
+                            + this.url;
                         console.log(msg);
                         if ((response.status >= 400 && response.status <= 600) || (response.status == 0)) {
                             if (response.status == 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
@@ -1509,11 +1511,20 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Image URL", function (simpleSub) {
-        var base = GlobalSettings.getBaseURL().replace(/api.*/g, "");
-        var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300";
-        return JPromise.ofScalar(imgurl);
-    })
-);
+        return simpleSub.fetch("structure/smiles") 
+            .andThen(function (s) {
+                /*console.log("Result of retrieval of structure/smiles for " + JSON.stringify(s));*/
+                if (s && s.valid === false) {
+                    console.log("No structure found!");
+                    return "";
+                }
+                var base = GlobalSettings.getBaseURL().replace(/api.*/g, "");
+                var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300";
+                
+                return imgurl;
+            });
+    }    
+));
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Protein Sequence", function (simpleSub) {

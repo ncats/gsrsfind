@@ -16,6 +16,8 @@ namespace gov.ncats.ginas.excel.tools
 {
     public partial class GinasRibbon
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private void ginas_Load(object sender, RibbonUIEventArgs e)
         {
 
@@ -23,25 +25,36 @@ namespace gov.ncats.ginas.excel.tools
 
         private void button1_Click(object sender, RibbonControlEventArgs e)
         {
-            Debug.WriteLine("Click handler (debug)");
-            Console.WriteLine("Click handler (console)");
+            log.Debug("click on 'Get Data'");
             RetrievalForm form = new RetrievalForm();
             Retriever retriever = new Retriever();
-            retriever.StatusUpdater = form;
+            retriever.SetStatusUpdater(form);
             retriever.CurrentOperationType = OperationType.Resolution;
             retriever.SetScriptExecutor( form);
             Excel.Window window = e.Control.Context;
             retriever.SetExcelWindow(window);
+            form.CurrentOperationType = OperationType.Resolution;
             form.Controller = retriever;
-            form.Show();
+            form.ShowDialog();
         }
 
 
         private void button2_Click(object sender, RibbonControlEventArgs e)
         {
+            log.Debug("click on 'Get Structure'");
             Excel.Window window = e.Control.Context;
+            RetrievalForm form = new RetrievalForm();
+            form.Visible = false;
+            form.CurrentOperationType = OperationType.GetStructures;
             Retriever retriever = new Retriever();
-            retriever.StartOperation(window);
+            retriever.CurrentOperationType = OperationType.GetStructures;
+            retriever.SetStatusUpdater( form);
+            retriever.SetScriptExecutor(form);
+            retriever.SetExcelWindow(window);
+            form.Controller = retriever;
+            retriever.StartOperation();
+            //form.ShowDialog();
+            log.Debug("end of click handler");
         }
 
         private void button3_Click(object sender, RibbonControlEventArgs e)
@@ -50,13 +63,16 @@ namespace gov.ncats.ginas.excel.tools
 
         private void button3_Click_1(object sender, RibbonControlEventArgs e)
         {
+            log.Debug("click on 'Load Data'");
             Excel.Window window = e.Control.Context;
             DataLoader loader = new DataLoader();
-            loader.StartOperation(window);
+            loader.SetExcelWindow(window);
+            loader.StartOperation();
         }
 
        private void buttonConfigure_Click(object sender, RibbonControlEventArgs e)
        {
+            log.Debug("click on 'Configure'");
             ConfigurationForm form = new ConfigurationForm();
             form.ShowDialog();
         }
@@ -67,14 +83,21 @@ namespace gov.ncats.ginas.excel.tools
             stringBuilder.Append("Welcome to ginas Excel Tools!");
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append("Some icons provided by ");
+            stringBuilder.Append("https://www.flaticon.com/");
+            stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append(Environment.NewLine);
             String applicationName = Assembly.GetExecutingAssembly().FullName;
-            stringBuilder.AppendLine("Nerdy details:");
+            stringBuilder.AppendLine("Technical details:");
             stringBuilder.Append(applicationName);
+            stringBuilder.Append(Environment.NewLine);
+            
             UIUtils.ShowMessageToUser(stringBuilder.ToString());
         }
 
         private void button4_Click(object sender, RibbonControlEventArgs e)
         {
+            log.Debug("click on 'Create Loading Sheet'");
             Excel.Window window = e.Control.Context;
             DataLoader loader = new DataLoader();
             loader.StartSheetCreation(window);

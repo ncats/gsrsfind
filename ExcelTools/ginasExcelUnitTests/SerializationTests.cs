@@ -41,8 +41,16 @@ namespace ginasExcelUnitTests
             GinasResult result = JSTools.GetGinasResultFromString(input);
             Assert.AreEqual("Success", result.message);
             Assert.IsTrue(result.valid);
+        }
 
-
+        [TestMethod]
+        public void TestDeserialization()
+        {
+            string ginasConfigRaw = "{	\"SelectedServer\" :	    {      \"ServerName\": \"pre prod\",      \"ServerUrl\": \"http://gsrs.preprod.fda.gov/ginas/app/\",      \"Username\": \"MITCHELL.MILLER\",      \"PrivateKey\": \"B72uOzsIDWSD83DE1Y50\",      \"Token\": \"blah\"    },  \"Servers\": [    {      \"ServerName\": \"tripod.nih.gov prod\",      \"ServerUrl\": \"https://tripod.nih.gov/ginas/app/\",      \"Username\": \"mitch\",      \"PrivateKey\": \"blah\",      \"Token\": \"blah\"    },    {      \"ServerName\": \"tripod.nih.gov dev\",      \"ServerUrl\": \"https://tripod.nih.gov/dev/ginas/app/\",      \"Username\": \"admin\",      \"PrivateKey\": \"uG5YRhGiJAz3swRMeri8\",      \"Token\": \"null\"    },    {      \"ServerName\": \"localhost 9000 test\",      \"ServerUrl\": \"http://localhost:9000/ginas/app/\",      \"Username\": \"mitch\",      \"PrivateKey\": \"Em6XgmzddkHPL027ltMh\",      \"Token\": \"null\"    }  ],  \"DebugMode\": false,  \"BatchSize\": 0}";
+            GinasToolsConfiguration config= JSTools.GetGinasToolsConfigurationFromString(ginasConfigRaw);
+            Assert.AreEqual(3, config.Servers.Count);
+            Assert.IsNotNull(config.SelectedServer);
+            Console.WriteLine(config.ToString());
         }
     }
 }

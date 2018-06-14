@@ -14,6 +14,9 @@ namespace gov.ncats.ginas.excel.tools.UI
 {
     public partial class ConfigurationForm : Form
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(
+            System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public GinasToolsConfiguration CurrentConfiguration
         {
             get;
@@ -22,6 +25,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public ConfigurationForm()
         {
+            log.Debug("Starting in ConfigurationForm");
             InitializeComponent();
         }
 
@@ -42,16 +46,31 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void ConfigurationForm_Load(object sender, EventArgs e)
         {
             CurrentConfiguration = Utils.FileUtils.GetGinasConfiguration();
-            LoadConfiguration();
+            log.Debug("loaded configuration: " + CurrentConfiguration.ToString());
+            try
+            {
+                DisplayCurrentConfiguration();
+            }
+            catch(Exception ex)
+            {
+                log.Error("Error loading configuration: " + ex.Message, ex);
+            }
+ 
         }
 
-        private void LoadConfiguration()
+        private void DisplayCurrentConfiguration()
         {
+            log.Debug("DisplayCurrentConfiguration");
             comboBoxURLs.Items.Clear();
             CurrentConfiguration.Servers.ForEach(s => comboBoxURLs.Items.Add(s.ServerUrl));
             if(CurrentConfiguration.SelectedServer != null)
             {
                 comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
+                log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
+            }
+            else
+            {
+                log.Debug(" selected server null");
             }
             
             textBoxBatchSize.Text = CurrentConfiguration.BatchSize.ToString();
@@ -79,6 +98,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 GinasServer newServer = new GinasServer();
                 newServer.ServerUrl = comboBoxURLs.Text;
+                if (!newServer.ServerUrl.EndsWith("/")) newServer.ServerUrl = newServer.ServerUrl + "/";
                 newServer.Username = textBoxUsername.Text;
                 newServer.PrivateKey = textBoxKey.Text;
                 newServer.ServerName = newServer.ServerUrl;

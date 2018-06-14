@@ -36,6 +36,20 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("GinasToolsConfiguration ");
+            stringBuilder.Append("Total servers: " + Servers.Count);
+            stringBuilder.Append("; ");
+            stringBuilder.Append("selected server: ");
+            stringBuilder.Append(((SelectedServer == null) ? "null" : SelectedServer.ToString()));
+            stringBuilder.Append("; ");
+            Servers.ForEach(s => stringBuilder.Append(s.ToString()));
+
+            return stringBuilder.ToString();
+        }
     }
 
     public class GinasServer
@@ -68,6 +82,14 @@ namespace gov.ncats.ginas.excel.tools.Model
         {
             get;
             set;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("GinasServer ");
+            stringBuilder.Append("URL: " + ServerUrl);
+            return stringBuilder.ToString();
         }
     }
 }

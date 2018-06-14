@@ -14,13 +14,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
         const int id_length = 10;
         const String id_prefix = "gsrs_";
 
-        public static string RandomIdentifier(int length  = id_length)
+        public static string RandomIdentifier(int length  = id_length, bool foundDupe = false)
         {
             String ident;
             String alpha;
             ident = "";
             alpha = "abcdefghijklmnopqrstuvwxyz";
-            Random rnd = new Random();
+            Random rnd = new Random((foundDupe ) ? DateTime.Now.Millisecond+1 : DateTime.Now.Millisecond);
 
             int i;
 

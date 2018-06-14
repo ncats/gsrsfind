@@ -83,11 +83,23 @@ function setMode(m) {
 }
 
 function runCommandForCSharp(stuffToRun) {
-    console.log('runCommandForCSharp about to eval ' + stuffToRun);
+    if (!stuffToRun || stuffToRun === null || stuffToRun.length === 0) {
+        console.log('empty arg to runCommandForCSharp');
+        return null;
+    }
+    var debugOutput = true;
+    if (stuffToRun.indexOf("auth") >= 0) {
+        debugOutput = false;
+    }
+    if (debugOutput) {
+        console.log('runCommandForCSharp about to eval ' + stuffToRun);
+    }
     var result = eval(stuffToRun);
     if (result) {
         if (typeof (result) === 'string') {
-            console.log('result was string: ' + result);
+            if (debugOutput) {
+                console.log('result was string: ' + result);
+            }
             return result;
         }
         console.log('result: ' + JSON.stringify(result));

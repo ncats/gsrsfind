@@ -17,8 +17,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             var value = "";
             if (index > letters.Length)
-                value += letters[(index-1) / letters.Length - 1];
-            value += letters[(index-1) % letters.Length];
+                value += letters[(index - 1) / letters.Length - 1];
+            value += letters[(index - 1) % letters.Length];
             return value;
         }
 
@@ -30,9 +30,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 int currentRow = rangeToSearch.Row + row;
                 string cellName = GetColumnName(columnToSearch) + currentRow;
                 object value = rangeToSearch.Worksheet.Range[cellName].Value;
-                if( value is string)
+                if (value is string)
                 {
-                    string cellValue = (string) value;
+                    string cellValue = (string)value;
                     if (cellValue.Equals(textToFind)) return currentRow;
 
                 }
@@ -40,7 +40,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return 0;
         }
 
-        public bool DoesSheetExist(Workbook workbook, string sheetName )
+        public bool DoesSheetExist(Workbook workbook, string sheetName)
         {
             foreach (Worksheet sheet in workbook.Sheets)
             {
@@ -52,7 +52,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return false;
         }
 
-        public void CreateSheet(Workbook workbook, string scriptName, 
+        public void CreateSheet(Workbook workbook, string scriptName,
             Model.IScriptExecutor scriptExecutor)
         {
             if (DoesSheetExist(workbook, scriptName))
@@ -68,29 +68,29 @@ namespace gov.ncats.ginas.excel.tools.Utils
             Worksheet nsheet;
             int i;
 
-            nsheet= workbook.Sheets.Add();
+            nsheet = workbook.Sheets.Add();
             nsheet.Name = scriptName;
 
             Range topCorner = nsheet.Range["A1"];
             topCorner.FormulaR1C1 = "BATCH:" + scriptName;
-            topCorner.AddComment( "This column header must be here for the script to execute");
+            topCorner.AddComment("This column header must be here for the script to execute");
             topCorner.ColumnWidth = 15;
             topCorner.Interior.Pattern = XlPattern.xlPatternSolid;
             topCorner.Interior.PatternColorIndex = XlPattern.xlPatternAutomatic;
             topCorner.Interior.Color = 49407;
             topCorner.Interior.TintAndShade = 0;
             topCorner.Interior.PatternTintAndShade = 0;
-            
+
             object lengthRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.length");
             int argListLength = Convert.ToInt32(lengthRaw);
-            for ( i = 0; i < argListLength; i++)
+            for (i = 0; i < argListLength; i++)
             {
                 Range cell = nsheet.Range["A1"].Offset[0, i + 1];
                 object argNameRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").name");
                 string argName = (string)argNameRaw;
                 cell.FormulaR1C1 = argName;
-                string argDescription = (string) scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").description");
-                if(!string.IsNullOrWhiteSpace(argDescription))
+                string argDescription = (string)scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").description");
+                if (!string.IsNullOrWhiteSpace(argDescription))
                 {
                     cell.AddComment(argDescription);
                 }
@@ -115,5 +115,25 @@ namespace gov.ncats.ginas.excel.tools.Utils
             workbook.Application.ActiveWindow.FreezePanes = true;
             nsheet.Activate();
         }
+
+        public string GetNewSheetName(Workbook workbook, string suggest )
+        {
+            
+            string nsuggest = suggest;
+            for(int i = 2; i < 1000; i++)
+            {
+                if (DoesSheetExist(workbook, nsuggest))
+                {
+                    nsuggest = suggest + " " + i;
+                }
+                else
+                {
+                    return nsuggest;
+                }
+            }
+            return string.Empty;
+        }
+        
+
     }
 }

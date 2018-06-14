@@ -64,11 +64,13 @@
     <Compile Include="Model\getItemMock.cs" />
     <Compile Include="Model\ggetMock.cs" />
     <Compile Include="Model\ScriptExecutorMock.cs" />
+    <Compile Include="Model\StatusUpdaterMock.cs" />
     <Compile Include="ResolverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExcelTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="FileUtilTests.cs" />
+    <Compile Include="ModelTests.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>
