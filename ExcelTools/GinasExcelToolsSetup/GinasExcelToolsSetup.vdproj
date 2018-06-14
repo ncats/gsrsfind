@@ -15,12 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_07CFB5F144BD4AD88098DFA2C6D7CE2C"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_103E004B3275436AAABB71059A4C6F57"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -244,10 +238,10 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.1"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    "Name" = "8:Microsoft .NET Framework 4.7.1 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.1"
                     }
                 }
             }
@@ -312,26 +306,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_07CFB5F144BD4AD88098DFA2C6D7CE2C"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\ginas_min.js"
-            "TargetName" = "8:ginas_min.js"
-            "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_103E004B3275436AAABB71059A4C6F57"
             {
             "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\Error Page.html"
@@ -868,7 +842,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:g-srs Excel Tools"
         "ProductCode" = "8:{E9694118-EBA5-47B4-AC8C-15A77FEE4B0F}"
-        "PackageCode" = "8:{C5EF5C5C-BC6F-4E8E-AAB4-878268855576}"
+        "PackageCode" = "8:{807714F3-8BFE-4A8B-8557-955451C02B64}"
         "UpgradeCode" = "8:{062471F8-A8E0-4BD3-91C6-F1B13C472D41}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -876,12 +850,12 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:National Center for Advancing Translational Science"
+        "Manufacturer" = "8:NCATS"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:g-srs Excel Tools"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:The ginas team"
+        "ARPCONTACT" = "8:The NCATS team"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
