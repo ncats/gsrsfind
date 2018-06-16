@@ -173,7 +173,7 @@ var GSRSAPI = {
                                 }
                             };
                             console.log(' about to invoke cb');
-                            cb(retMsg);
+                            cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
                         }
                         else {
                             console.log('Error missing');

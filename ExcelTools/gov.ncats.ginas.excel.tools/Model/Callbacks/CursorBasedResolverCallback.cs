@@ -39,5 +39,12 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         {
             return this.cursor;
         }
+
+        public int OriginalRow
+        {
+            get;
+            set;
+        }
+
     }
 }

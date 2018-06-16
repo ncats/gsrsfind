@@ -25,7 +25,7 @@
     <OutputType>Library</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
     <RootNamespace>gov.ncats.ginas.excel.tools</RootNamespace>
-    <AssemblyName>gov.ncats.ginas.excel.DataTools</AssemblyName>
+    <AssemblyName>g-srs Excel Tools</AssemblyName>
     <LoadBehavior>3</LoadBehavior>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <DefineConstants>VSTO40</DefineConstants>
@@ -237,7 +237,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="etc\ginas.config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
     <Content Include="log4net.config">

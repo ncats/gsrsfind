@@ -131,7 +131,7 @@ namespace ginasExcelUnitTests
             retriever.SetStatusUpdater( statusUpdater);
             string dummyScript = "test 'value' for unit test";
             retriever.GetScriptQueue().Enqueue(dummyScript);
-            retriever.LaunchLastScript();
+            retriever.LaunchFirstScript();
             Assert.AreEqual(dummyScript, scriptExecutorMock.TestScript);
             Assert.AreEqual(0, retriever.GetScriptQueue().Count);
         }

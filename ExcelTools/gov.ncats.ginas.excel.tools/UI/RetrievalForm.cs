@@ -30,10 +30,12 @@ namespace gov.ncats.ginas.excel.tools.UI
         const string NAVIGATION_CANCELED = "Navigation Canceled";
         GinasToolsConfiguration _configuration = null;
         string _scriptToRunUponCompletion;
+        bool _savedDebugInfo;
 
         public RetrievalForm()
         {
             log.Debug("Starting in RetrievalForm");
+            Visible = false;
             try
             {
                 InitializeComponent();
@@ -89,7 +91,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             html = html.Replace("$GSRS_LIBRARY$", javascript);
             this._html = html;
             //temp:
-            FileUtils.WriteToFile(@"c:\temp\debug.html", html);
+            //FileUtils.WriteToFile(@"c:\temp\debug.html", html);
             _expectedTitle = "g-srs";
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
@@ -99,6 +101,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             //webBrowser1.Navigate(initURL);
             log.Debug(" about to navigate to " + initURL);
             webBrowser1.Url = new Uri(initURL);
+            _savedDebugInfo = false;
         }
 
         private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
@@ -116,14 +119,18 @@ namespace gov.ncats.ginas.excel.tools.UI
                     buttonResolve.Text = "Execute";
                     buttonAddStructure.Enabled = false;
                     buttonAddStructure.Visible = false;
+                    checkBoxNewSheet.Enabled = false;
+                    checkBoxNewSheet.Visible = false;
                     ExecuteScript("setMode('update');");
                     Controller.ContinueSetup();
+                    this.Visible = true;
                 }
                 else if (CurrentOperationType == OperationType.Resolution)
                 {
                     ExecuteScript("setMode('resolver');");
                     buttonAddStructure.Enabled = true;
                     buttonAddStructure.Visible = true;
+                    this.Visible = true;
                 }
                 else if (CurrentOperationType == OperationType.ShowScripts)
                 {
@@ -131,6 +138,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     buttonResolve.Text = "Add Sheet";
                     buttonAddStructure.Enabled = false;
                     buttonAddStructure.Visible = false;
+                    this.Visible = true;
                 }
                 else if (CurrentOperationType == OperationType.GetStructures)
                 {
@@ -140,15 +148,19 @@ namespace gov.ncats.ginas.excel.tools.UI
                         ExecuteScript(_scriptToRunUponCompletion);
                     }
                 }
+                buttonDebugDOM.Enabled = _configuration.DebugMode;
+                buttonDebugDOM.Visible = _configuration.DebugMode;
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
             {
                 //last script
+                log.Warn("webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE)");
                 HtmlElement lastScript = webBrowser1.Document.CreateElement("script");
                 lastScript.InnerText = FileUtils.GetLastJavaScript();
                 webBrowser1.Document.Body.AppendChild(lastScript);
 
                 webBrowser1.Visible = true;
+                
             }
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
@@ -158,6 +170,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 html = html.Replace("$MESSAGE2$", "Close dialog and try again or notify your administrator");
                 webBrowser1.DocumentText = html;
                 webBrowser1.Visible = true;
+                Visible = true;
             }
         }
 
@@ -244,12 +257,13 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void RetrievalForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             log.Debug("RetrievalForm_FormClosing");
-            //HandleDebugInfoSave();
+            HandleDebugInfoSave();
         }
 
         private void HandleDebugInfoSave()
         {
-            if (checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures)
+            if ((checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures )
+                && !_savedDebugInfo)
             {
                 string script = "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
@@ -261,7 +275,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     FileUtils.WriteToFile(saveFileDialog.FileName, debugInfo);
                 }
             }
-
+            _savedDebugInfo = true;
         }
         private void BuildGinasToolsDocument()
         {

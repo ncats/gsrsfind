@@ -33,8 +33,10 @@ namespace gov.ncats.ginas.excel.tools
             retriever.SetScriptExecutor( form);
             Excel.Window window = e.Control.Context;
             retriever.SetExcelWindow(window);
+            
             form.CurrentOperationType = OperationType.Resolution;
             form.Controller = retriever;
+            form.Visible = false;
             form.ShowDialog();
         }
 

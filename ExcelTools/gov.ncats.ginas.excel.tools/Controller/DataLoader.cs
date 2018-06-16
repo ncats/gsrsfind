@@ -46,6 +46,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             RetrievalForm form = new RetrievalForm();
             form.Controller = this;
             form.CurrentOperationType = OperationType.Loading;
+            form.Visible = false;
             SetStatusUpdater(form);
             ScriptExecutor = form;
             form.ShowDialog();

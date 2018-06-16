@@ -20,7 +20,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             String alpha;
             ident = "";
             alpha = "abcdefghijklmnopqrstuvwxyz";
-            Random rnd = new Random((foundDupe ) ? DateTime.Now.Millisecond+1 : DateTime.Now.Millisecond);
+            Random rnd = new Random(DateTime.Now.Millisecond);
+            //(foundDupe ) ? DateTime.Now.Millisecond+1 : DateTime.Now.Millisecond
 
             int i;
 

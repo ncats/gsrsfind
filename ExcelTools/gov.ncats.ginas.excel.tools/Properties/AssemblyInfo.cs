@@ -14,6 +14,7 @@ using System.Security;
 [assembly: AssemblyCopyright("Copyright © National Center for Advancing Translational Science 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: InternalsVisibleTo("ginasExcelUnitTests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

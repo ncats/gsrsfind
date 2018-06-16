@@ -79,5 +79,17 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             }
             return false;
         }
+
+        public Callback FindInnerCallback(string key)
+        {
+            foreach(Callback callback in icbs)
+            {
+                if( callback.getKey().Equals(key))
+                {
+                    return callback;
+                }
+            }
+            return null;
+        }
     }
 }

@@ -15,31 +15,25 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_048CC523DB414261B5FB74C2E979B248"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_103E004B3275436AAABB71059A4C6F57"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_3E5AA113210047BE9EB42DAD8B6698B8"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_4283BA4FADE8421D94ABDD50CEF3C5BD"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_440630209E6A448F8CCE9B442C10BA8A"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7656E86030FA459293A7332A99268CA0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -52,7 +46,7 @@
         "Entry"
         {
         "MsmKey" = "8:_8214781EEEF1891EDF05D4FA4E95569E"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -82,7 +76,7 @@
         "Entry"
         {
         "MsmKey" = "8:_90A908452047C21A52C6495503B12035"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -94,13 +88,13 @@
         "Entry"
         {
         "MsmKey" = "8:_AB72F7EDED85CA404495BB54FAFDF667"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_AC91D24C656DCB4B08195A7D71996CBF"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -111,14 +105,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
-        "OwnerKey" = "8:_UNDEFINED"
+        "MsmKey" = "8:_CE852B12A297B8810C8C59352F7989AF"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_CE852B12A297B8810C8C59352F7989AF"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "MsmKey" = "8:_D42546DEE623446CA504AE28BF7A571A"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -130,7 +124,7 @@
         "Entry"
         {
         "MsmKey" = "8:_D487C3CCA2F2DA50BBA58EB5B903DF13"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -148,7 +142,7 @@
         "Entry"
         {
         "MsmKey" = "8:_D6BCCDBB1FD0B44A2456314BF4C7FD49"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -159,8 +153,14 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C972CB68D05F4D32B5678894B4E1F3FD"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -306,12 +306,12 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_103E004B3275436AAABB71059A4C6F57"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_048CC523DB414261B5FB74C2E979B248"
             {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\Error Page.html"
-            "TargetName" = "8:Error Page.html"
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\bin\\Debug\\g-srs Excel Tools.dll.manifest"
+            "TargetName" = "8:g-srs Excel Tools.dll.manifest"
             "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
+            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -326,12 +326,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3E5AA113210047BE9EB42DAD8B6698B8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_103E004B3275436AAABB71059A4C6F57"
             {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\bin\\Debug\\gov.ncats.ginas.excel.DataTools.vsto"
-            "TargetName" = "8:gov.ncats.ginas.excel.DataTools.vsto"
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\Error Page.html"
+            "TargetName" = "8:Error Page.html"
             "Tag" = "8:"
-            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
+            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -383,26 +383,6 @@
             "TargetName" = "8:ginas_controller.css"
             "Tag" = "8:"
             "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7656E86030FA459293A7332A99268CA0"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\bin\\Debug\\gov.ncats.ginas.excel.DataTools.dll.manifest"
-            "TargetName" = "8:gov.ncats.ginas.excel.DataTools.dll.manifest"
-            "Tag" = "8:"
-            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -692,6 +672,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D42546DEE623446CA504AE28BF7A571A"
+            {
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\bin\\Debug\\g-srs Excel Tools.vsto"
+            "TargetName" = "8:g-srs Excel Tools.vsto"
+            "Tag" = "8:"
+            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D487C3CCA2F2DA50BBA58EB5B903DF13"
             {
             "AssemblyRegister" = "3:1"
@@ -842,7 +842,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:g-srs Excel Tools"
         "ProductCode" = "8:{E9694118-EBA5-47B4-AC8C-15A77FEE4B0F}"
-        "PackageCode" = "8:{807714F3-8BFE-4A8B-8557-955451C02B64}"
+        "PackageCode" = "8:{F5DD02AA-21BA-4F70-BB01-D24F8746481E}"
         "UpgradeCode" = "8:{062471F8-A8E0-4BD3-91C6-F1B13C472D41}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -874,7 +874,13 @@
             {
                 "Keys"
                 {
-                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_CB1660853B974EA8823CC2F8B51440DF"
+                }
+            }
+            "HKCU"
+            {
+                "Keys"
+                {
+                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_742D620EA9A04094A08472DDAA81F8EE"
                     {
                     "Name" = "8:Software"
                     "Condition" = "8:"
@@ -885,40 +891,6 @@
                         {
                             "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_EA923C94CEC34C53A443D2A1551A7FDB"
                             {
-                            "Name" = "8:[Manufacturer]"
-                            "Condition" = "8:"
-                            "AlwaysCreate" = "11:FALSE"
-                            "DeleteAtUninstall" = "11:FALSE"
-                            "Transitive" = "11:FALSE"
-                                "Keys"
-                                {
-                                }
-                                "Values"
-                                {
-                                }
-                            }
-                        }
-                        "Values"
-                        {
-                        }
-                    }
-                }
-            }
-            "HKCU"
-            {
-                "Keys"
-                {
-                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_F6882A9B5C83481B97CF0B584F4AC318"
-                    {
-                    "Name" = "8:Software"
-                    "Condition" = "8:"
-                    "AlwaysCreate" = "11:FALSE"
-                    "DeleteAtUninstall" = "11:FALSE"
-                    "Transitive" = "11:FALSE"
-                        "Keys"
-                        {
-                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_CF47A023586E4CF9BDCEBBBCCF7ECE27"
-                            {
                             "Name" = "8:Microsoft"
                             "Condition" = "8:"
                             "AlwaysCreate" = "11:FALSE"
@@ -926,7 +898,7 @@
                             "Transitive" = "11:FALSE"
                                 "Keys"
                                 {
-                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_C5E9FB7833DB4F20BE86B7BAE5186507"
+                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_3FECFB92905045A581582D57565A1E88"
                                     {
                                     "Name" = "8:Office"
                                     "Condition" = "8:"
@@ -935,7 +907,7 @@
                                     "Transitive" = "11:FALSE"
                                         "Keys"
                                         {
-                                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_B636F0BE67034F51822B4A7B3AD983CD"
+                                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_F2A5F4EF712B405FAF49E5DD4AECF19F"
                                             {
                                             "Name" = "8:Excel"
                                             "Condition" = "8:"
@@ -944,7 +916,7 @@
                                             "Transitive" = "11:FALSE"
                                                 "Keys"
                                                 {
-                                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_22069E45CE3D4388BEFF962B1824174D"
+                                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_25B7BD72621E49D2B58152FDCE9763A3"
                                                     {
                                                     "Name" = "8:Addins"
                                                     "Condition" = "8:"
@@ -953,7 +925,7 @@
                                                     "Transitive" = "11:FALSE"
                                                         "Keys"
                                                         {
-                                                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_ECF7C2567DE149EFAE1E8BAE9B5D672B"
+                                                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_EAB75D2B02E342B5A9CEE26A0A913FD1"
                                                             {
                                                             "Name" = "8:gov.ncats.ginas.excel.DataTools"
                                                             "Condition" = "8:"
@@ -971,7 +943,7 @@
                                                                     "Condition" = "8:"
                                                                     "Transitive" = "11:FALSE"
                                                                     "ValueTypes" = "3:1"
-                                                                    "Value" = "8:Excel Tools for ginas access"
+                                                                    "Value" = "8:Excel Tools for access to g-srs"
                                                                     }
                                                                     "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_6918483F9F01407D9A2F65486FD808BC"
                                                                     {
@@ -987,7 +959,7 @@
                                                                     "Condition" = "8:"
                                                                     "Transitive" = "11:FALSE"
                                                                     "ValueTypes" = "3:1"
-                                                                    "Value" = "8:Excel Tools for ginas access"
+                                                                    "Value" = "8:Excel Tools for access to g-srs"
                                                                     }
                                                                     "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_D24B2CDA350B45328EB03948D3B35D2C"
                                                                     {
@@ -995,7 +967,7 @@
                                                                     "Condition" = "8:"
                                                                     "Transitive" = "11:FALSE"
                                                                     "ValueTypes" = "3:1"
-                                                                    "Value" = "8:file:///[TARGETDIR]/gov.ncats.ginas.excel.DataTools.vsto"
+                                                                    "Value" = "8:file:///[TARGETDIR]/g-srs Excel Tools.vsto"
                                                                     }
                                                                 }
                                                             }
@@ -1449,9 +1421,9 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C972CB68D05F4D32B5678894B4E1F3FD"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F11B1223BD1D42D38DD68C3B3BB7A68E"
             {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\obj\\Debug\\gov.ncats.ginas.excel.DataTools.dll"
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\obj\\Debug\\g-srs Excel Tools.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"

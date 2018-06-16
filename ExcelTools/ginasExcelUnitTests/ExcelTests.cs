@@ -39,7 +39,7 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void ImageOps_hasComment_Test()
         {
-            Workbook book = ReadExcelWorkbook();
+            Workbook book = ReadDefaultExcelWorkbook();
             Worksheet sheet = book.Worksheets.Item[1];
             Range cellWithComment = sheet.Range["A1"];
             Range cellWithoutComment = sheet.Range["B1"];
@@ -150,7 +150,7 @@ namespace ginasExcelUnitTests
         {
             string sheetThatExists = "SheetNumber2";
             string sheetThatDoesNotExist = "What the heck?";
-            Workbook workbook = ReadExcelWorkbook();
+            Workbook workbook = ReadDefaultExcelWorkbook();
             SheetUtils utils = new SheetUtils();
             Assert.IsFalse(utils.DoesSheetExist(workbook, sheetThatDoesNotExist));
             Assert.IsTrue(utils.DoesSheetExist(workbook, sheetThatExists));
@@ -159,13 +159,46 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void CreateRangeWrapperTest()
         {
-            Workbook workbook = ReadExcelWorkbook();
+            Workbook workbook = ReadDefaultExcelWorkbook();
             Worksheet sheet= workbook.Sheets[1];
             Range range = sheet.Range["A1", "B2"];
             RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(range);
             Assert.AreEqual(wrapper.getRange().Count, range.Count);
         }
 
+        [TestMethod]
+        public void FindRowForKeyTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = workbook.Sheets[1];
+            Range range = sheet.Range["B2", "B9"];
+
+            List<Callback> callbacks = new List<Callback>();
+            for(int row = 1; row< range.Cells.Count; row++)
+            {
+                Range currRange = range.Cells[row];
+                RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(currRange);
+                
+                CursorBasedResolverCallback cursorBasedResolverCallback = CallbackFactory.CreateCursorBasedResolverCallback(wrapper);
+                cursorBasedResolverCallback.OriginalRow = row;
+                cursorBasedResolverCallback.setKey("key" + row);
+                callbacks.Add(cursorBasedResolverCallback);
+            }
+            BatchCallback batchCallback = new BatchCallback(callbacks);
+            Retriever retriever = new Retriever();
+            retriever.GetCallbacks().Add("Batch1", batchCallback);
+
+            string methodName = "FindRowForKey";
+            MethodInfo methodToTest = retriever.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+            object[] callParms = new object[1];
+            callParms[0] = "key2";
+
+            int locatedRow= (int) methodToTest.Invoke(retriever, callParms);
+            Assert.AreEqual(2, locatedRow);
+        }
 
         [TestMethod]
         public void HandleResultsBigTest()
@@ -272,12 +305,14 @@ namespace ginasExcelUnitTests
             
             bool result = retriever.StartResolution(false);
             Queue<string> scriptQueue = retriever.GetScriptQueue();
-            Assert.IsTrue(scriptQueue.Count > 0);
+            Assert.IsTrue((scriptQueue.Count > 0) 
+                || !(string.IsNullOrWhiteSpace(scriptExecutorMock.TestScript)));
             Assert.IsTrue(result);
             workbook.Close(false);
         }
 
-        private Workbook ReadExcelWorkbook()
+
+        private Workbook ReadDefaultExcelWorkbook()
         {
 
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
