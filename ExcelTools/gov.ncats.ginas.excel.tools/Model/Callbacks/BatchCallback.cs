@@ -15,13 +15,13 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             icbs = callbacks;
         }
 
-        public BatchCallback addCallback(Callback cb)
+        public BatchCallback AddCallback(Callback cb)
         {
             icbs.Add(cb);
             return this;
         }
 
-        public new void Execute(dynamic jsResp )
+        public new void Execute(dynamic jsResp)
         {
             //base.Execute(jsResp);
             base.is_executed = true; // we cannot call base.Execute because 
@@ -33,13 +33,13 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             {
                 if (c != null)
                 {
-                    if( c.getKey().Length >0)
+                    if (c.getKey().Length > 0)
                     {
                         dynamic dynamJsResp = /*(dynamic)*/jsResp;
                         Debug.WriteLine("dynamJs: " + (dynamJsResp as object).GetType().Name);
                         dynamic obj = dynamJsResp.gGet(c.getKey());
-                        
-                        for( int k = 0; k< obj.length; k++)
+
+                        for (int k = 0; k < obj.length; k++)
                         {
                             string value = obj.getItem(k);
                             c.Execute(value);
@@ -49,20 +49,20 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
                 }
             }
         }
-        public void removeCallback(Callback cb)
+        public void RemoveCallback(Callback cb)
         {
             if (icbs == null || icbs.Count == 0) return;
-            
+
             List<int> itemsToRemove = new List<int>();
-            for( int i = 0; i < icbs.Count; i++)
+            for (int i = 0; i < icbs.Count; i++)
             {
                 Callback testCb = icbs[i];
-                if( testCb.getKey().Equals(cb.getKey()))
+                if (testCb.getKey().Equals(cb.getKey()))
                 {
                     itemsToRemove.Add(i);
                 }
             }
-            foreach(int j in itemsToRemove)
+            foreach (int j in itemsToRemove)
             {
                 icbs.RemoveAt(j);
             }
@@ -70,9 +70,9 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 
         public bool ContainsActiveCallback()
         {
-            foreach(Callback cb in icbs)
+            foreach (Callback cb in icbs)
             {
-                if( !cb.hasExecuted() && ! cb.isExpiredNow())
+                if (!cb.HasExecuted() && !cb.IsExpiredNow())
                 {
                     return true;
                 }
@@ -82,14 +82,31 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 
         public Callback FindInnerCallback(string key)
         {
-            foreach(Callback callback in icbs)
+            foreach (Callback callback in icbs)
             {
-                if( callback.getKey().Equals(key))
+                if (callback.getKey().Equals(key))
                 {
                     return callback;
                 }
             }
             return null;
+        }
+
+        public new void SetExpiration(DateTime newExpirationDate)
+        {
+            base.SetExpiration(newExpirationDate);
+            foreach (Callback callback in icbs)
+            {
+                callback.SetExpiration(newExpirationDate);
+            }
+        }
+
+        public void SetInnerExecuted()
+        {
+            foreach(Callback cb in icbs)
+            {
+                cb.SetExecuted();
+            }
         }
     }
 }

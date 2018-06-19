@@ -78,6 +78,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
+        /// <summary>
+        /// Process a set of results. Fetch details from JavaScript and transfer
+        /// individual values to the spreadsheet
+        /// </summary>
+        /// <param name="resultsKey"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public object HandleResults(string resultsKey, string message)
         {
             log.Debug(string.Format("HandleResults received message {0} for key {1}",
@@ -98,19 +105,35 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     int currentRow = ExcelSelection.Row;
 
                     int currentColumn = ExcelSelection.Column;
-                    int dataRow = 
+                    int dataRow =
                         SheetUtils.FindRow(ExcelSelection, key, currentColumn);
                     if (_resolveToNewSheet)
                     {
                         //increase row by one to account for header
-                        int rowForData = FindRowForKey(key) +1;
+                        int originalRowNum = FindRowForKey(key);
+                        if (originalRowNum < 0)
+                        {
+                            keyResult = "Unable to locate for for key " + key;
+                            log.Warn(keyResult);
+                            continue;
+                        }
+                        int rowForData = originalRowNum + 1;
 
                         string cellId = SheetUtils.GetColumnName(currentColumn) + rowForData;
-                        log.DebugFormat("Located row {0} for key {1}. CellId: {2}", 
-                            rowForData, key, cellId);
+                        log.DebugFormat("Located row {0} for key {1}. CellId: {2}",
+                            originalRowNum, key, cellId);
                         dataRow = rowForData;
                         Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                        currentCell.NumberFormat = "@";//prevent cas numbers from being interpreted as dates
+                        try
+                        {
+                            currentCell.NumberFormat = "@";//prevent cas numbers from being interpreted as dates
+                        }
+                        catch( Exception ex)
+                        {
+                            log.WarnFormat("Error setting format for call {0}. Error: {1} ",
+                                cellId, ex.Message);
+                        }
+                        
                         currentCell.Value = key;
                     }
                     for (int part = 1; part < messageParts.Length; part++)
@@ -157,16 +180,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 LaunchFirstScript();
             }
             else log.Debug("Skipping call to LaunchLastScript");
-            string statusMessage = string.Format("{0} items to go", ScriptQueue.Count);
+            MarkCallbackExecuted(resultsKey);
+            string statusMessage = string.Format("{0} batches to go", ScriptQueue.Count);
             if (ScriptQueue.Count == 0) statusMessage = "Processing complete!";
-            if (StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
+            if (StatusUpdater != null)
+            {
+                StatusUpdater.UpdateStatus(statusMessage);
+            }
             return results;
         }
 
         public bool StartResolution(bool newSheet)
         {
             _resolveToNewSheet = newSheet;
-            float secondsPerItem = 0.4f;
+            float secondsPerItem = 0.45f;
             Callbacks = new Dictionary<string, Callback>();
             ScriptQueue = new Queue<string>();
             Excel.Range r = null;
@@ -186,7 +213,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ExcelSelection = r;
             BatchCallback cb = CallbackFactory.CreateBatchCallback();
             RangeWrapper wrapped = null;
-            
+
             int currItem = 0;
             int currItemWithinBatch = 0;
             List<string> preSubmit = new List<string>();
@@ -218,9 +245,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         rcb = CallbackFactory.CreateResolverCallback(cell);
                     }
                     rcb.setKey(cellText);
-                    DateTime newExpirationDate = DateTime.Now.AddSeconds((currItem * secondsPerItem));
-                    rcb.setExpiration(newExpirationDate);
-                    cb.addCallback(rcb);
+                    cb.AddCallback(rcb);
 
                     if ((currItemWithinBatch % ItemsPerBatch) == 0)
                     {
@@ -253,12 +278,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             DateTime startLaunch = DateTime.Now;
             if (ScriptQueue.Count > 0)
             {
-            
+
                 log.Debug("About to run script from queue. Script queue count: "
                     + ScriptQueue.Count + " at " + DateTime.Now);
                 StartCorrespondingCallback(ScriptQueue.Peek());
                 TimeSpan afterStartCallback = DateTime.Now.Subtract(startLaunch);
-                log.Debug(" through StartCorrespondingCallback: " + afterStartCallback.Milliseconds 
+                log.Debug(" through StartCorrespondingCallback: " + afterStartCallback.Milliseconds
                     + " milliseconds");
                 ScriptExecutor.ExecuteScript(ScriptQueue.Dequeue());
                 TimeSpan afterExecuteScript = DateTime.Now.Subtract(startLaunch);
@@ -287,8 +312,21 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.ContainsKey(key))
             {
                 cb = Callbacks[key];
-                cb.start();
-                log.Debug(" ... found callback and marked it as started");
+                cb.Start();
+                DateTime newExpirationDate = DateTime.Now.AddSeconds(GetExpirationOffset());
+                log.DebugFormat("StartCorrespondingCallback about to set expiration to {0}",
+                    newExpirationDate.ToLongTimeString());
+                if (cb is BatchCallback)
+                {
+                    (cb as BatchCallback).SetExpiration(newExpirationDate);
+                }
+                else
+                {
+                    cb.SetExpiration(newExpirationDate);
+                }
+
+                log.DebugFormat(" ... found callback for key {0}, marked it as started and set expiration date to {1}",
+                     key, newExpirationDate.ToLongTimeString());
             }
         }
 
@@ -421,7 +459,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (string cbKey in this.Callbacks.Keys)
             {
                 Callback cb = Callbacks[cbKey];
-                if (cb.hasStarted())
+                if (cb.HasStarted())
                 {
                     if (cb is BatchCallback)
                     {
@@ -467,7 +505,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     Callbacks.Clear();
                 }
             }
-            
+
             log.Debug("end of checkAllCallbacks which took " + sw.Elapsed);
             sw.Stop();
         }
@@ -538,12 +576,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         private int FindRowForKey(string key)
         {
-            foreach(Callback callback in Callbacks.Values)
+            foreach (Callback callback in Callbacks.Values)
             {
-                if(callback is BatchCallback)
+                if (callback is BatchCallback)
                 {
                     Callback innerCallback = (callback as BatchCallback).FindInnerCallback(key);
-                    if( innerCallback is CursorBasedResolverCallback)
+                    if (innerCallback is CursorBasedResolverCallback)
                     {
                         return (innerCallback as CursorBasedResolverCallback).OriginalRow;
                     }
@@ -551,5 +589,34 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             return -1;
         }
+
+        private float GetExpirationOffset()
+        {
+            if (ToolsConfiguration.ExpirationOffset > 0)
+            {
+                return ToolsConfiguration.ExpirationOffset;
+            }
+            return 120;
+        }
+
+        private void MarkCallbackExecuted(string callbackKey)
+        {
+            log.DebugFormat("{0} called with key {1}",
+                System.Reflection.MethodBase.GetCurrentMethod().Name, callbackKey);
+            if( Callbacks.ContainsKey(callbackKey))
+            {
+                Callback cb = Callbacks[callbackKey];
+                if( cb is BatchCallback)
+                {
+                    log.Debug("Marking inner callbacks of BatchCallback");
+                    (cb as BatchCallback).SetInnerExecuted();
+                }
+                else
+                {
+                    cb.SetExecuted();
+                }
+            }
+        }
+
     }
 }

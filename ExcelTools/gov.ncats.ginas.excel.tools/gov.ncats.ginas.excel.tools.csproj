@@ -233,13 +233,16 @@
     <EmbeddedResource Include="UI\RetrievalForm.resx">
       <DependentUpon>RetrievalForm.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="etc\ginas tools.config">
+    <None Include="etc\g-srs.tools.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="etc\ginas.config.json">
+    <None Include="etc\g-srs.config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
+    <Content Include="etc\g-srs-config.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -282,13 +285,13 @@
     <Content Include="etc\error page.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="etc\ginas_controller.css">
+    <Content Include="etc\g-srs_controller.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="etc\ginas_controller.js">
+    <Content Include="etc\g-srs_controller.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="etc\ginas_controller.html">
+    <Content Include="etc\g-srs_controller.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="etc\LastScript.js">

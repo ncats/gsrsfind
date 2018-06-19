@@ -163,7 +163,7 @@ namespace ginasExcelUnitTests
             Worksheet sheet= workbook.Sheets[1];
             Range range = sheet.Range["A1", "B2"];
             RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(range);
-            Assert.AreEqual(wrapper.getRange().Count, range.Count);
+            Assert.AreEqual(wrapper.GetRange().Count, range.Count);
         }
 
         [TestMethod]

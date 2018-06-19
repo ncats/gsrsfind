@@ -143,10 +143,10 @@ namespace ginasExcelUnitTests
             
             Callback cb1 = new Callback();
             cb1.setKey("a");
-            batchCallback.addCallback(cb1);
+            batchCallback.AddCallback(cb1);
             Callback cb2 = new Callback();
             cb2.setKey("B");
-            batchCallback.addCallback(cb2);
+            batchCallback.AddCallback(cb2);
             return batchCallback;
         }
     }

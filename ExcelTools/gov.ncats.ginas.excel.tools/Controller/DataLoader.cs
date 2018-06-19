@@ -169,7 +169,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 + cb.getKey() + "']=b;window.external.Notify('"
                 + cb.getKey() + "');})";
             ScriptExecutor.ExecuteScript(script);
-            cb.setScript(script);
+            cb.SetScript(script);
 
             Callbacks.Add(cb.getKey(), cb);
             Debug.Print("Added callback " + cb.getKey() + "; total: " + Callbacks.Count);
@@ -245,7 +245,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string tempVal = JSTools.RandomIdentifier();
             UpdateCallback updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
             DateTime newExpirationDate = DateTime.Now.AddSeconds(secondsPerScript);
-            updateCallback.setExpiration(newExpirationDate);
+            updateCallback.SetExpiration(newExpirationDate);
             updateCallback.setKey(tempVal);
             return updateCallback;
         }
@@ -309,13 +309,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (string cbKey in Callbacks.Keys)
             {
                 Callback cb = Callbacks[cbKey];
-                if (cb.hasStarted())
+                if (cb.HasStarted())
                 {
                     if (cb is UpdateCallback)
                     {
                         UpdateCallback updateCb = cb as UpdateCallback;
                         string itemMessage = "looking at updateCallback " + updateCb.getKey();
-                        if (!updateCb.isExpiredNow())
+                        if (!updateCb.IsExpiredNow())
                         {
                             haveActive = true;
                             itemMessage = itemMessage + " active";
@@ -376,7 +376,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             resolverCallback.Execute(result.message);
             Callbacks.Remove(resultsKey);
 
-            string statusMessage = string.Format("{0} items to go", ScriptQueue.Count);
+            string statusMessage = string.Format("{0} batches to go", ScriptQueue.Count);
             if (ScriptQueue.Count == 0)
             {
                 statusMessage = "Processing complete!";

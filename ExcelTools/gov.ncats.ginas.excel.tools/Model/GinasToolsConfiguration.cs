@@ -37,6 +37,11 @@ namespace gov.ncats.ginas.excel.tools.Model
             set;
         }
 
+        public float ExpirationOffset
+        {
+            get;
+            set;
+        }
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();

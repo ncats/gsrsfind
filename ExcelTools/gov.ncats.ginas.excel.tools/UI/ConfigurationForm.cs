@@ -74,11 +74,13 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             
             textBoxBatchSize.Text = CurrentConfiguration.BatchSize.ToString();
+            textBoxExpirationOffset.Text = CurrentConfiguration.ExpirationOffset.ToString("0.00");
             textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
             textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
             checkBoxDebugInfo.Checked = CurrentConfiguration.DebugMode;
             comboBoxURLs.SelectedIndexChanged += ComboBoxURLs_SelectedIndexChanged;
             comboBoxURLs.TextChanged += ComboBoxURLs_TextChanged;
+            
         }
 
         private void ComboBoxURLs_TextChanged(object sender, EventArgs e)
@@ -88,13 +90,13 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            if(comboBoxURLs.SelectedIndex > -1)
+            if (comboBoxURLs.SelectedIndex > -1)
             {
                 CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[comboBoxURLs.SelectedIndex];
                 CurrentConfiguration.SelectedServer.Username = textBoxUsername.Text;
                 CurrentConfiguration.SelectedServer.PrivateKey = textBoxKey.Text;
             }
-            else if( !string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length >0)
+            else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
             {
                 GinasServer newServer = new GinasServer();
                 newServer.ServerUrl = comboBoxURLs.Text;
@@ -107,6 +109,17 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             CurrentConfiguration.DebugMode = checkBoxDebugInfo.Checked;
             CurrentConfiguration.BatchSize = Convert.ToInt32(textBoxBatchSize.Text);
+            float tempFloat;
+            if (float.TryParse(textBoxExpirationOffset.Text, out tempFloat))
+            {
+                CurrentConfiguration.ExpirationOffset = Convert.ToSingle(textBoxExpirationOffset.Text);
+            }
+            else
+            {
+                log.WarnFormat("Unable to get a number from text box value {0}",
+                    textBoxExpirationOffset.Text);
+            }
+            
             Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
 
             DialogResult = DialogResult.OK;

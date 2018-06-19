@@ -15,7 +15,7 @@ namespace gov.ncats.ginas.excel.tools.Providers
         public static RangeWrapper CreateRangeWrapper(Range target)
         {
             RangeWrapper wrapped = new RangeWrapper();
-            wrapped.setRange(target);
+            wrapped.SetRange(target);
             return wrapped;
         }
    

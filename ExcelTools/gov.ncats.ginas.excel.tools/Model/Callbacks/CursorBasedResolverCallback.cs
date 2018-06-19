@@ -30,7 +30,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             {
                 if (arr[i] != "[object Object]")
                 {
-                    cursor.getRange().Offset[0, i].FormulaR1C1 = arr[i];
+                    cursor.GetRange().Offset[0, i].FormulaR1C1 = arr[i];
                 }
             }
         }

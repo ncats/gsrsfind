@@ -27,13 +27,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_1AF8CF8B6EB64A8A93B77D18DEAD127E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1B1C27A3AF2C49748DD787AF19C92CF1"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_4283BA4FADE8421D94ABDD50CEF3C5BD"
         "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_440630209E6A448F8CCE9B442C10BA8A"
+        "MsmKey" = "8:_61AEB0AC131B400D92113DF3475CDD01"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,18 +69,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8BD58980A45B41D091EB6A8AE4D272E5"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_8C69E61D308444DABCEB1E2B77A64959"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_9086F4DDD8DB4E13BF051A5712D9285A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -77,12 +77,6 @@
         {
         "MsmKey" = "8:_90A908452047C21A52C6495503B12035"
         "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_96FA00EFEB1E4FDAA79B434E9B9CE8A0"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -107,6 +101,12 @@
         {
         "MsmKey" = "8:_CE852B12A297B8810C8C59352F7989AF"
         "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_CF2C58CDF1BB475FAF7DB06774D7F132"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -346,6 +346,46 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1AF8CF8B6EB64A8A93B77D18DEAD127E"
+            {
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\g-srs_controller.html"
+            "TargetName" = "8:g-srs_controller.html"
+            "Tag" = "8:"
+            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1B1C27A3AF2C49748DD787AF19C92CF1"
+            {
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\g-srs_controller.css"
+            "TargetName" = "8:g-srs_controller.css"
+            "Tag" = "8:"
+            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_4283BA4FADE8421D94ABDD50CEF3C5BD"
             {
             "AssemblyRegister" = "3:1"
@@ -377,10 +417,10 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_440630209E6A448F8CCE9B442C10BA8A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_61AEB0AC131B400D92113DF3475CDD01"
             {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\ginas_controller.css"
-            "TargetName" = "8:ginas_controller.css"
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\g-srs-config.txt"
+            "TargetName" = "8:g-srs-config.txt"
             "Tag" = "8:"
             "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
             "Condition" = "8:"
@@ -448,46 +488,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8BD58980A45B41D091EB6A8AE4D272E5"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\ginas.config.json"
-            "TargetName" = "8:ginas.config.json"
-            "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8C69E61D308444DABCEB1E2B77A64959"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\ginas_controller.html"
-            "TargetName" = "8:ginas_controller.html"
-            "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9086F4DDD8DB4E13BF051A5712D9285A"
             {
             "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\Properties\\Resources.resx"
@@ -537,26 +537,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_96FA00EFEB1E4FDAA79B434E9B9CE8A0"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\ginas_controller.js"
-            "TargetName" = "8:ginas_controller.js"
-            "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_AB72F7EDED85CA404495BB54FAFDF667"
@@ -670,6 +650,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CF2C58CDF1BB475FAF7DB06774D7F132"
+            {
+            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\g-srs_controller.js"
+            "TargetName" = "8:g-srs_controller.js"
+            "Tag" = "8:"
+            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D42546DEE623446CA504AE28BF7A571A"
@@ -842,7 +842,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:g-srs Excel Tools"
         "ProductCode" = "8:{E9694118-EBA5-47B4-AC8C-15A77FEE4B0F}"
-        "PackageCode" = "8:{F5DD02AA-21BA-4F70-BB01-D24F8746481E}"
+        "PackageCode" = "8:{4D7595F8-FE55-48B8-B414-9B2496F90320}"
         "UpgradeCode" = "8:{062471F8-A8E0-4BD3-91C6-F1B13C472D41}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

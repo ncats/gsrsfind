@@ -6,7 +6,7 @@ using gov.ncats.ginas.excel.tools.Model;
 namespace ginasExcelUnitTests
 {
     [TestClass]
-    public class UnitTest1
+    public class ModelTests
     {
         [TestMethod]
         public void GinasToolsConfigurationToStringTest()
@@ -40,6 +40,16 @@ namespace ginasExcelUnitTests
             string toStringOutput5 = configuration.ToString();
             Console.WriteLine(toStringOutput5);
             Assert.IsNotNull(toStringOutput5);
+        }
+
+        [TestMethod]
+        public void SetDate()
+        {
+            DateTime newExpirationDate = DateTime.Now.AddSeconds(120);
+            string msg = string.Format("Set expiration to {0} on {1}", newExpirationDate.ToLongTimeString(),
+                newExpirationDate.ToShortDateString());
+            Console.WriteLine(msg);
+            Assert.IsTrue(newExpirationDate > DateTime.Now);
         }
     }
 }

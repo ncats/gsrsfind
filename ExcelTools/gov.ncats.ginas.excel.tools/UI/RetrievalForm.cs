@@ -71,6 +71,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public void Complete()
         {
+            buttonCancel.Enabled = true;//just in case...
             HandleDebugInfoSave();
             Close();
         }
@@ -231,6 +232,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonResolve_Click(object sender, EventArgs e)
         {
+            buttonCancel.Enabled = false;
             if (!Controller.StartResolution(checkBoxNewSheet.Checked))
             {
                 MessageBox.Show("Error resolving your data.  Please try again or talk to your ginas administrator");
@@ -257,11 +259,12 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void RetrievalForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             log.Debug("RetrievalForm_FormClosing");
-            HandleDebugInfoSave();
+            if(!_savedDebugInfo) HandleDebugInfoSave();
         }
 
         private void HandleDebugInfoSave()
         {
+            log.Debug("at start of HandleDebugInfoSave, _savedDebugInfo: " + _savedDebugInfo);
             if ((checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures )
                 && !_savedDebugInfo)
             {
@@ -276,6 +279,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 }
             }
             _savedDebugInfo = true;
+            
         }
         private void BuildGinasToolsDocument()
         {

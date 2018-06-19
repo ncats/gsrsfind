@@ -1,11 +1,6 @@
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas tools.config
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas.config.json
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\log4net.config
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\BuildPage.js
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\error page.html
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.css
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.js
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\ginas_controller.html
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\LastScript.js
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\log4net.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
@@ -26,3 +21,9 @@ C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\g-srs Ex
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\g-srs Excel Tools.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\g-srs Excel Tools.pdb
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs.tools.config
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs_controller.css
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs_controller.js
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs_controller.html
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs.config.json
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs-config.txt

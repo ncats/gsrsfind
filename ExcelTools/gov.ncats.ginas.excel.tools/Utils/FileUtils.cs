@@ -16,7 +16,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static string GetJavaScript()
         {
             //String javascriptFilePath = @"C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\etc\ginas_controller.js";
-            string javascriptFilePath = GetCurrentFolder() + @"\etc\ginas_controller.js";
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\g-srs_controller.js";
             return File.ReadAllText(javascriptFilePath);//.Replace("  ", "").Replace("\r\n", "");
         }
 
@@ -29,7 +29,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static string GetHtml()
         {
-            String htmlFilePath = GetCurrentFolder() + @"\etc\ginas_controller.html";
+            String htmlFilePath = GetCurrentFolder() + @"\etc\g-srs_controller.html";
             if (!File.Exists(htmlFilePath))
             {
                 System.Windows.Forms.MessageBox.Show("HTML file not found!");
@@ -51,7 +51,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static string GetCss()
         {
-            string styleFilePath = GetCurrentFolder() + @"\etc\ginas_controller.css";
+            string styleFilePath = GetCurrentFolder() + @"\etc\g-srs_controller.css";
             return File.ReadAllText(styleFilePath);
         }
 
@@ -63,12 +63,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static GinasToolsConfiguration GetGinasConfiguration()
         {
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            string userConfigPath = GetUserFolder() + @"\ginas.config.json";
+            string userConfigPath = GetUserFolder() + @"\g-srs.config.json";
             string configFilePath = userConfigPath;
             if (!File.Exists(userConfigPath))
             {
                 log.Debug("Unable to located user configuration file " + configFilePath);
-                configFilePath = GetCurrentFolder() + @"\etc\ginas.config.json";
+                configFilePath = GetCurrentFolder() + @"\etc\g-srs-config.txt";
             }
             string configString = File.ReadAllText(configFilePath);
             log.Debug("configString: " + configString);
@@ -92,7 +92,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            string configFilePath = GetUserFolder() + @"\ginas.config.json";
+            string configFilePath = GetUserFolder() + @"\g-srs.config.json";
             string configString = JSTools.GetStringFromGinasToolsConfiguration(config);
             File.WriteAllText(configFilePath, configString);
         }
@@ -107,7 +107,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                + Path.DirectorySeparatorChar + "ginas";
+                + Path.DirectorySeparatorChar + "g-srs";
             DirectoryInfo folderInfo = new DirectoryInfo(folder);
             if (!folderInfo.Exists)
             {

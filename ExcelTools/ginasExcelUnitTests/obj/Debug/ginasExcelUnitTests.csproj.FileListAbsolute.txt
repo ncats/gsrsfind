@@ -1,14 +1,9 @@
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\ginas tools.config
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\ginas.config.json
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.config
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\BuildPage.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\error page.html
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\ginas_controller.css
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\ginas_controller.js
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\ginas_controller.html
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\LastScript.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.pdb
@@ -31,3 +26,9 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTe
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.pdb
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.pdb
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs.tools.config
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs-config.txt
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.css
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.js
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.html
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs.config.json

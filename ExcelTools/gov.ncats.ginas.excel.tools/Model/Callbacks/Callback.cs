@@ -8,6 +8,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 {
     public class Callback
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         string key;
         protected Boolean is_executed;
@@ -42,7 +43,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         {
             do
             {
-                if (isExpiredNow())
+                if (IsExpiredNow())
                 {
                     return;
                 }
@@ -50,33 +51,37 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             } while (true);
         }
 
-        public void setExpiration(DateTime newExpirationDate)
+        public void SetExpiration(DateTime newExpirationDate)
         {
-            this.expirationDate = newExpirationDate;
+            log.DebugFormat("Setting expiration to {0} ({1}) on Callback with key {2}. ",
+                newExpirationDate.ToLongTimeString(), newExpirationDate.ToShortDateString(), key);
+            expirationDate = newExpirationDate;
         }
 
-        public Boolean isExpiredNow()
+        public Boolean IsExpiredNow()
         {
             Boolean expired = false;
             if (is_executed || DateTime.Now > expirationDate)
             {
+                log.DebugFormat("Callback {0} with expiration date {1} has expired.  Executed: {2}",
+                    key, expirationDate.ToLongTimeString(), is_executed);
                 expired = true;
             }
             return expired;
         }
 
-        public Boolean hasExecuted()
+        public Boolean HasExecuted()
         {
             return is_executed;
         }
 
 
-        public void start()
+        public void Start()
         {
             has_started = true;
         }
 
-        public Boolean hasStarted()
+        public Boolean HasStarted()
         {
             return has_started;
         }
@@ -86,7 +91,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             has_started = false;
         }
 
-        public void setScript(String scriptText)
+        public void SetScript(String scriptText)
         {
             script = scriptText;
         }
@@ -100,6 +105,11 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         {
             get;
             set;
+        }
+
+        public void SetExecuted()
+        {
+            is_executed = true;
         }
     }
 }

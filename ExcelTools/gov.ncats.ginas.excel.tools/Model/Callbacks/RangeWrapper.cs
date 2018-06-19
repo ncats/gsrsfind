@@ -12,22 +12,21 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
     {
         private Range target;
 
-        public RangeWrapper setRange(Range r)
+        public RangeWrapper SetRange(Range r)
         {
             target = r;
             return this;
         }
 
-        public Range getRange()
+        public Range GetRange()
         {
             return target;
         }
 
-        public RangeWrapper offset(int c , int r)
+        public RangeWrapper Offset(int c , int r)
         {
             target = target.Offset[c, r];
             return this;
         }
-
     }
 }
