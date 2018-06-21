@@ -167,8 +167,8 @@
   -->
   <ItemGroup>
     <Compile Include="Controller\ControllerBase.cs" />
-    <Compile Include="Controller\IController.cs" />
     <Compile Include="Controller\DataLoader.cs" />
+    <Compile Include="Controller\IController.cs" />
     <Compile Include="Controller\Retriever.cs" />
     <Compile Include="Model\Callbacks\BatchCallback.cs" />
     <Compile Include="Model\Callbacks\Callback.cs" />

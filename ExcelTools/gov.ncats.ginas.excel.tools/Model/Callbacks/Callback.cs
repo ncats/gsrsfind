@@ -53,8 +53,8 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 
         public void SetExpiration(DateTime newExpirationDate)
         {
-            log.DebugFormat("Setting expiration to {0} ({1}) on Callback with key {2}. ",
-                newExpirationDate.ToLongTimeString(), newExpirationDate.ToShortDateString(), key);
+            //log.DebugFormat("Setting expiration to {0} ({1}) on Callback with key {2}. ",
+            //    newExpirationDate.ToLongTimeString(), newExpirationDate.ToShortDateString(), key);
             expirationDate = newExpirationDate;
         }
 

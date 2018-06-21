@@ -32,5 +32,22 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             }
         }
 
+        public int RunnerNumber
+        {
+            get;
+            set;
+        }
+
+        public Dictionary<string, string> ParameterValues
+        {
+            get;
+            set;
+        }
+
+        public string LoadScriptName
+        {
+            get;
+            set;
+        }
     }
 }

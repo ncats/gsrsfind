@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Diagnostics;
 using gov.ncats.ginas.excel.tools.Utils;
@@ -18,16 +18,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
     {
         public const string LOAD_OPERATION = "BATCH";
         private const string STATUS_KEY = "IMPORT STATUS";
-        private IScriptExecutor ScriptExecutor;
-        private int _scriptsProcessed = 0;
-        private bool _notified = false;
         private DateTime _resolutionStart;
+        private bool _notified = false;
+        private static int _scriptNumber = 0;
 
-        public void SetScriptExecutor(IScriptExecutor scriptExecutor)
-        {
-            ScriptExecutor = scriptExecutor;
-        }
-
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private GinasToolsConfiguration GinasConfiguration
         {
@@ -61,6 +56,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 StatusUpdater.UpdateStatus("(" + arange.Count + ") records to execute");
                 arange.EntireRow.Select();
             }
+            _notified = false;
         }
 
         public void StartSheetCreation(Excel.Window window)
@@ -79,13 +75,18 @@ namespace gov.ncats.ginas.excel.tools.Controller
             form.Show();
         }
 
+        /// <summary>
+        /// This completes the data required for the dialog to be able to show the 
+        /// user how input is parsed.  This will NOT begin the update process.
+        /// </summary>
         public void ContinueSetup()
         {
             string msg = "";
-
-            Callback cb = CreateUpdateCallback(ExcelSelection.Application.ActiveCell, true, msg);
+            //grab values from the first selected row
+            Callback cb = CreateUpdateCallbackForDisplay(ExcelSelection.Application.ActiveCell, 
+                true, msg);
             if (!string.IsNullOrEmpty(msg)) StatusUpdater.UpdateStatus(msg);
-            if (cb != null) ScriptExecutor.ExecuteScript("showPreview(tmpRunner)");
+            if (cb != null) ScriptExecutor.ExecuteScript("showPreview(tmpRunner" + _scriptNumber+ ")");
         }
 
         public bool StartResolution(bool newSheet)
@@ -127,8 +128,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private void StartLoading(Excel.Range r)
         {
             _totalScripts = 0;
-            _scriptsProcessed = 0;
-
+         
             Callbacks = new Dictionary<string, Callback>();
             if( r == null || r.Count == 0)
             {
@@ -137,21 +137,24 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             _resolutionStart = DateTime.Now;
             _totalScripts = r.Rows.Count;
-            Debug.Print("set totalScripts to row count " + _totalScripts);
+            log.Debug("set totalScripts to row count " + _totalScripts);
             StatusUpdater.UpdateStatus("Processing " + _totalScripts + " updates");
 
             foreach(Excel.Range cell in r)
             {
-                Callback cb = DoScript(cell);
-                cb.Wait();
+                log.Debug("Processing cell with text" + cell.Text);
+                Callback cb = CreateUpdateCallbackForExecution(cell);
+                //cb.Wait();
             }
+
+            StartFirstUpdateCallback();             
             LaunchCheckJob();
         }
 
 
-        public Callback DoScript(Excel.Range arow)
+        public Callback CreateUpdateCallbackForExecution(Excel.Range arow)
         {
-            Callback cb = CreateUpdateCallback(arow);
+            Callback cb = CreateUpdateCallbackForDisplay(arow);
             if (cb == null)
             {
                 cb = CallbackFactory.CreateDummyCallback();
@@ -163,27 +166,25 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 ((UpdateCallback) cb).Execute("STARTED");
             }
-            string script = "tmpRunner"
+            string script = "tmpRunner" + (cb as UpdateCallback).RunnerNumber
                 + ".execute()"
                 + ".get(function(b){cresults['"
                 + cb.getKey() + "']=b;window.external.Notify('"
                 + cb.getKey() + "');})";
-            ScriptExecutor.ExecuteScript(script);
             cb.SetScript(script);
 
             Callbacks.Add(cb.getKey(), cb);
-            Debug.Print("Added callback " + cb.getKey() + "; total: " + Callbacks.Count);
+            log.Debug("Added callback " + cb.getKey() + "; total: " + Callbacks.Count);
             return cb;
         }
 
 
-        public UpdateCallback CreateUpdateCallback(Excel.Range arow, bool allowFinished = false,
+        public UpdateCallback CreateUpdateCallbackForDisplay(Excel.Range arow, bool allowFinished = false,
             string message = "")
         {
             Excel.Application application = arow.Application;
             Dictionary<string, Excel.Range> keys = new Dictionary<string, Excel.Range>();
 
-            float secondsPerScript = 30.0f;
             Excel.Worksheet asheet = arow.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
             Excel.Range crow = asheet.Range[arow.Row + ":" + arow.Row];
@@ -215,38 +216,51 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 message = "(will not execute row, because " + STATUS_KEY + " is not empty)";
                 if (!allowFinished) return null;
             }
-            //    'this is a trick to make the script accessible
-            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + scriptName + "');");
-            ScriptExecutor.ExecuteScript("tmpRunner=tmpScript.runner();");
+            _scriptNumber++;
+
+            Dictionary<string, string> paramValues = new Dictionary<string, string>();
+
+            string tempScriptName = "tmpScript" + _scriptNumber;
+            ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + scriptName + "');");
+            string runnerName = "tmpRunner" + _scriptNumber;
+            ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
 
             foreach (string key in keys.Keys)
             {
                 if (!string.IsNullOrWhiteSpace(GetProperty(keys, key, "")))
                 {
-                    string testScript = "tmpScript.hasArgumentByName('" + key + "')";
+                    string testScript = tempScriptName + ".hasArgumentByName('" + key + "')";
                     object testValue = ScriptExecutor.ExecuteScript(testScript);
                     Debug.WriteLine("value: " + testValue);
-                    if (testValue is string && (testValue as string).Equals("true", 
+                    if (testValue is string && (testValue as string).Equals("true",
                             StringComparison.CurrentCultureIgnoreCase))
                     {
-                        object param = 
-                            ScriptExecutor.ExecuteScript("tmpScript.getArgumentByName('" + key + "')");
+                        object param =
+                            ScriptExecutor.ExecuteScript(tempScriptName + ".getArgumentByName('" + key + "')");
                         ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
                         string parameterValue = (keys[key].Text != null) ? keys[key].Text :
                             string.Empty;
                         //escape characters that causes errors in JavaScript interpreter
                         parameterValue = parameterValue.Replace("'", "\\'").Replace("\n", "\\n");
-                        string paramValueScript = string.Format("tmpRunner.setValue('{0}', '{1}')",
+                        string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
                             parameter.key, parameterValue);
                         ScriptExecutor.ExecuteScript(paramValueScript);
+                        paramValues.Add(parameter.key, parameterValue);
                     }
                 }
             }
             string tempVal = JSTools.RandomIdentifier();
+            while (Callbacks != null && Callbacks.ContainsKey(tempVal))
+            {
+                tempVal = JSTools.RandomIdentifier(10, true);
+            }
             UpdateCallback updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
-            DateTime newExpirationDate = DateTime.Now.AddSeconds(secondsPerScript);
+            updateCallback.RunnerNumber = _scriptNumber;
+            DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset);
             updateCallback.SetExpiration(newExpirationDate);
             updateCallback.setKey(tempVal);
+            updateCallback.ParameterValues = paramValues;
+            updateCallback.LoadScriptName = scriptName;
             return updateCallback;
         }
 
@@ -273,37 +287,30 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public void LaunchCheckJob()
         {
             double secondsToMilliseconds = 1000;
-            string interval = "00:00:" + String.Format("{0:00}", _checkInterval);
-            //'assume interval is less than 60 seconds!
-
-            Debug.Print("LaunchCheckJob using interval " + interval);
+        
+            log.Debug("LaunchCheckJob using interval " + _checkInterval);
             _timer = new Timer(_checkInterval * secondsToMilliseconds);
             _timer.AutoReset = true;
             _timer.Elapsed += CheckUpdateCallbacks;
-            Debug.Print("(checkUpdateCallbacks)");
             _timer.Start();
         }
 
         public void CheckUpdateCallbacks(Object source, ElapsedEventArgs e)
         {
+            log.Debug("Starting in checkUpdateCallbacks");
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
             String message;
-            bool haveActive;
+            bool haveActive = false;
 
             List<string> callbackKeysToRemove = new List<string>();
-            haveActive = false;
-            Debug.Print("Starting in checkUpdateCallbacks");
             if (Callbacks == null || Callbacks.Count == 0)
             {
-                Debug.Print("callbacks collection is empty in CheckUpdateCallbacks");
-                KeepCheckingCallbacks = false;
-                _timer.Stop();
-                return;
+                log.Debug("callbacks collection is empty in CheckUpdateCallbacks");
             }
 
-            Debug.Print("Total callbacks: " + Callbacks.Count);
+            log.Debug("Total callbacks at start: " + Callbacks.Count);
             message = "callback total: " + Callbacks.Count;
             //'go through individual callbacks
             foreach (string cbKey in Callbacks.Keys)
@@ -326,7 +333,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                             callbackKeysToRemove.Add(cbKey);
                         }
 
-                        Debug.Print(itemMessage);
+                        log.Debug(itemMessage);
                     }
                 }
             }
@@ -346,24 +353,29 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     DecremementTotalScripts();
                 }
             }
+            log.Debug("Total callbacks at end: " + Callbacks.Count);
             if (Callbacks.Count == 0)
             {
                 haveActive = false;
             }
 
-            Debug.Print(message);
-            if (!(KeepCheckingCallbacks && haveActive))
+            log.Debug(message);
+            if (!(KeepCheckingCallbacks && haveActive) )
             {
+                _timer.Close();
                 _timer.Stop();
-                Debug.Print("stopped timer");
+                _timer.Enabled = false;
+                log.Debug("stopped timer");
             }
 
-
-            if (_totalScripts == 0)
+            if (Callbacks.Count == 0)
             {
+                KeepCheckingCallbacks = false;
+                _timer.Stop();
+
                 EndProcessNotification();
             }
-            Debug.Print("end of checkUpdateCallbacks which took " + sw.ElapsedMilliseconds);
+            log.Debug("end of checkUpdateCallbacks which took " + sw.ElapsedMilliseconds);
             sw.Stop();
         }
 
@@ -372,26 +384,40 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Debug.WriteLine(string.Format("HandleResults received message {0} for key {1}",
                 message, resultsKey));
             GinasResult result = JSTools.GetGinasResultFromString(message);
-            UpdateCallback resolverCallback = Callbacks[resultsKey] as UpdateCallback;
-            resolverCallback.Execute(result.message);
+            UpdateCallback updateCallback = Callbacks[resultsKey] as UpdateCallback;
+            updateCallback.Execute(result.message);
             Callbacks.Remove(resultsKey);
 
-            string statusMessage = string.Format("{0} batches to go", ScriptQueue.Count);
-            if (ScriptQueue.Count == 0)
+            string statusMessage = string.Format("{0} records to go", ScriptQueue.Count);
+            if (Callbacks.Count ==0)
             {
-                statusMessage = "Processing complete!";
-                StatusUpdater.Complete();
+                statusMessage = "Processing complete at " + DateTime.Now.ToShortTimeString();
+                _timer.Close();
+                _timer.Stop();
+                _timer.Enabled = false;
+                KeepCheckingCallbacks = false;
+                EndProcessNotification();
+                return true;
+            }
+            else
+            {
+                StartFirstUpdateCallback();
             }
             StatusUpdater.UpdateStatus(statusMessage);
+
             return "true";
         }
 
         private void EndProcessNotification()
         {
-            //dialog itself will handle saving of debug info.
-            StatusUpdater.UpdateStatus("Completed");
-            this._notified = true;
-            StatusUpdater.Complete();
+            if(!_notified )
+            {
+                //dialog itself will handle saving of debug info.
+                log.Debug("EndProcessNotification calling Complete");
+                StatusUpdater.UpdateStatus("Completed at " + DateTime.Now.ToShortTimeString());
+                StatusUpdater.Complete();
+            }
+            _notified = true;
         }
 
         private Excel.Range GetExecutingRange()
@@ -412,7 +438,37 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Range r = ExcelSelection.Application.Intersect(activeSheet.UsedRange, ExcelSelection.Cells);
             return r;
         }
- 
 
+        private void RunUpdateCallback(UpdateCallback updateCallback)
+        {
+            log.DebugFormat("RunUpdateCallback handling key {0}", updateCallback.getKey());
+            string tempScriptName = "scriptObject";
+            ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" +  updateCallback.LoadScriptName+ "');");
+            string runnerName = "tmpRunner";
+            ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
+            foreach(string key in updateCallback.ParameterValues.Keys)
+            {
+                string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
+                            key, updateCallback.ParameterValues[key]);
+                ScriptExecutor.ExecuteScript(paramValueScript);
+            }
+            string executionScript = runnerName + ".execute()" +
+                                                     ".get(function(b){cresults['" +
+                                                    updateCallback.getKey() + "']=b;window.external.Notify('"
+                                                    + updateCallback.getKey() + "');})";
+            ScriptExecutor.ExecuteScript(executionScript);
+        }
+
+
+        private void StartFirstUpdateCallback()
+        {
+            if (Callbacks.Count == 0) return;
+            if( Callbacks.Values.First() is UpdateCallback)
+            {
+                UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
+                RunUpdateCallback(updateCallback);
+                updateCallback.Start();
+            }
+        }
     }
 }

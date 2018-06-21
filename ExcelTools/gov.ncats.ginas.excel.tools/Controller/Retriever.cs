@@ -25,20 +25,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callbacks = new Dictionary<string, Callback>();
         }
 
-        public void SetScriptExecutor(IScriptExecutor scriptExecutor)
-        {
-            ScriptExecutor = scriptExecutor;
-        }
 
-        private IScriptExecutor ScriptExecutor;
-
-        private int _totalBatches;
-
+        
         private bool _notified = false;
 
         private bool _resolveToNewSheet = false;
-        private static int newSheetRow = 1;
-
+        
         //for unit tests
         public void SetSelection(Excel.Range selection)
         {
@@ -69,7 +61,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 string searchScript = MakeImageSearch(callbackKey, searchValues.Select(sv => sv.Value).ToList());
                 //ImgCallback imgCallback = new ImgCallback(ExcelSelection);
                 ScriptExecutor.SetScript(searchScript);
-                newSheetRow = 1;
             }
             else
             {
@@ -97,7 +88,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             foreach (string key in returnedValue.Keys)
             {
-                log.DebugFormat("Handling result for key {0}", key);
+                if( ToolsConfiguration.DebugMode)
+                {
+                    log.DebugFormat("Handling result for key {0}", key);
+                }
+                
                 string keyResult = "OK";
                 try
                 {
@@ -186,6 +181,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (StatusUpdater != null)
             {
                 StatusUpdater.UpdateStatus(statusMessage);
+                if (ScriptQueue.Count == 0) StatusUpdater.Complete();//reenable the close button
             }
             return results;
         }
@@ -193,7 +189,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public bool StartResolution(bool newSheet)
         {
             _resolveToNewSheet = newSheet;
-            float secondsPerItem = 0.45f;
             Callbacks = new Dictionary<string, Callback>();
             ScriptQueue = new Queue<string>();
             Excel.Range r = null;
@@ -236,7 +231,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     Callback rcb;
                     if (newSheet)
                     {
-                        log.Debug("Set OriginalRow to " + currItem);
                         rcb = CallbackFactory.CreateCursorBasedResolverCallback(wrapped);
                         (rcb as CursorBasedResolverCallback).OriginalRow = currItem;
                     }
@@ -273,62 +267,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-        public void LaunchFirstScript()
-        {
-            DateTime startLaunch = DateTime.Now;
-            if (ScriptQueue.Count > 0)
-            {
-
-                log.Debug("About to run script from queue. Script queue count: "
-                    + ScriptQueue.Count + " at " + DateTime.Now);
-                StartCorrespondingCallback(ScriptQueue.Peek());
-                TimeSpan afterStartCallback = DateTime.Now.Subtract(startLaunch);
-                log.Debug(" through StartCorrespondingCallback: " + afterStartCallback.Milliseconds
-                    + " milliseconds");
-                ScriptExecutor.ExecuteScript(ScriptQueue.Dequeue());
-                TimeSpan afterExecuteScript = DateTime.Now.Subtract(startLaunch);
-                log.Debug(" ExecuteScript: " + afterExecuteScript.Milliseconds + " milliseconds");
-
-                StatusUpdater.UpdateStatus("Processing batch " + (_totalBatches - ScriptQueue.Count)
-                    + " of " + _totalBatches);
-            }
-            else
-            {
-                StatusUpdater.UpdateStatus("All batches have been processed");
-                log.Debug("No scripts in queue. ");
-            }
-        }
-
-        private void StartCorrespondingCallback(string script)
-        {
-            // locate the key
-            int pos1;
-            int pos2;
-            string key;
-            Callback cb;
-            pos1 = script.IndexOf("'");
-            pos2 = script.IndexOf("'", pos1 + 1);
-            key = script.Substring(pos1 + 1, (pos2 - pos1 - 1));
-            if (Callbacks.ContainsKey(key))
-            {
-                cb = Callbacks[key];
-                cb.Start();
-                DateTime newExpirationDate = DateTime.Now.AddSeconds(GetExpirationOffset());
-                log.DebugFormat("StartCorrespondingCallback about to set expiration to {0}",
-                    newExpirationDate.ToLongTimeString());
-                if (cb is BatchCallback)
-                {
-                    (cb as BatchCallback).SetExpiration(newExpirationDate);
-                }
-                else
-                {
-                    cb.SetExpiration(newExpirationDate);
-                }
-
-                log.DebugFormat(" ... found callback for key {0}, marked it as started and set expiration date to {1}",
-                     key, newExpirationDate.ToLongTimeString());
-            }
-        }
 
         private void QueueOneBatch(Callback cb, List<string> submittable)
         {
@@ -590,16 +528,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return -1;
         }
 
-        private float GetExpirationOffset()
-        {
-            if (ToolsConfiguration.ExpirationOffset > 0)
-            {
-                return ToolsConfiguration.ExpirationOffset;
-            }
-            return 120;
-        }
-
-        private void MarkCallbackExecuted(string callbackKey)
+        protected void MarkCallbackExecuted(string callbackKey)
         {
             log.DebugFormat("{0} called with key {1}",
                 System.Reflection.MethodBase.GetCurrentMethod().Name, callbackKey);

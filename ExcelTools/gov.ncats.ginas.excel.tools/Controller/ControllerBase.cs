@@ -14,6 +14,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
 {
     public class ControllerBase : IDisposable
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        protected int _totalBatches;
+
+        public void SetScriptExecutor(IScriptExecutor scriptExecutor)
+        {
+            ScriptExecutor = scriptExecutor;
+        }
+
+        protected IScriptExecutor ScriptExecutor;
+
         protected static int _checkInterval = 30;
         protected Timer _timer;
         protected int _totalScripts = 0;
@@ -82,5 +92,70 @@ namespace gov.ncats.ginas.excel.tools.Controller
         }
 
         public GinasToolsConfiguration ToolsConfiguration = Utils.FileUtils.GetGinasConfiguration();
+
+        public void LaunchFirstScript()
+        {
+            DateTime startLaunch = DateTime.Now;
+            if (ScriptQueue.Count > 0)
+            {
+                log.Debug("About to run script from queue. Script queue count: "
+                    + ScriptQueue.Count + " at " + DateTime.Now);
+                StartCorrespondingCallback(ScriptQueue.Peek());
+                TimeSpan afterStartCallback = DateTime.Now.Subtract(startLaunch);
+                log.Debug(" through StartCorrespondingCallback: " + afterStartCallback.Milliseconds
+                    + " milliseconds");
+                ScriptExecutor.ExecuteScript(ScriptQueue.Dequeue());
+                TimeSpan afterExecuteScript = DateTime.Now.Subtract(startLaunch);
+                log.Debug(" ExecuteScript: " + afterExecuteScript.Milliseconds + " milliseconds");
+
+                StatusUpdater.UpdateStatus("Processing batch " + (_totalBatches - ScriptQueue.Count)
+                    + " of " + _totalBatches);
+            }
+            else
+            {
+                StatusUpdater.UpdateStatus("All batches have been processed");
+                log.Debug("No scripts in queue. ");
+            }
+        }
+
+        protected void StartCorrespondingCallback(string script)
+        {
+            // locate the key
+            int pos1;
+            int pos2;
+            string key;
+            Callback cb;
+            pos1 = script.IndexOf("'");
+            pos2 = script.IndexOf("'", pos1 + 1);
+            key = script.Substring(pos1 + 1, (pos2 - pos1 - 1));
+            if (Callbacks.ContainsKey(key))
+            {
+                cb = Callbacks[key];
+                cb.Start();
+                DateTime newExpirationDate = DateTime.Now.AddSeconds(GetExpirationOffset());
+                log.DebugFormat("StartCorrespondingCallback about to set expiration to {0}",
+                    newExpirationDate.ToLongTimeString());
+                if (cb is BatchCallback)
+                {
+                    (cb as BatchCallback).SetExpiration(newExpirationDate);
+                }
+                else
+                {
+                    cb.SetExpiration(newExpirationDate);
+                }
+                log.DebugFormat(" ... found callback for key {0}, marked it as started and set expiration date to {1}",
+                     key, newExpirationDate.ToLongTimeString());
+            }
+        }
+
+        protected float GetExpirationOffset()
+        {
+            if (ToolsConfiguration.ExpirationOffset > 0)
+            {
+                return ToolsConfiguration.ExpirationOffset;
+            }
+            return 120;
+        }
+
     }
 }

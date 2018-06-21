@@ -6,7 +6,6 @@ using Microsoft.Office.Tools.Ribbon;
 using Excel = Microsoft.Office.Interop.Excel;
 
 using gov.ncats.ginas.excel.tools.UI;
-using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
 using gov.ncats.ginas.excel.tools.Model;
@@ -82,7 +81,7 @@ namespace gov.ncats.ginas.excel.tools
         private void buttonAbout_Click(object sender, RibbonControlEventArgs e)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("Welcome to ginas Excel Tools!");
+            stringBuilder.Append("Welcome to g-srs Excel Tools!");
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append("Some icons provided by ");
