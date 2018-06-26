@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <title>ginas Tools</title>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <!--https://code.jquery.com/jquery-1.9.1.js-->
+    
+
+    <style type="text/css">
+
+        body {
+            font-family: sans-serif;
+        }
+
+        .scriptlist {
+            padding: 10px;
+            width: 40%;
+            display: inline-block;
+        }
+
+            .scriptlist select {
+                width: 100%;
+            }
+
+        .scriptdetails {
+            padding: 10px;
+            width: 40%;
+            display: inline-block;
+            vertical-align: top; /* here */
+        }
+
+        .manual,
+        .advanced {
+            display: none;
+        }
+
+        .required {
+            color: #ff0000;
+        }
+
+        .template {
+            display: none;
+        }
+
+        .argument textarea {
+            width: 100%;
+        }
+
+        .argument {
+            display: inline-block;
+            width: 33%;
+            padding: 10px;
+        }
+
+        #console {
+            width: 100%;
+            height: 50px;
+            /*display:none;*/
+        }
+
+        .consolehead {
+            /*display: none;*/
+        }
+
+        .data {
+            width: 40%;
+            display: inline-block;
+            padding: 10px;
+        }
+
+        .checkop {
+            width: 30%;
+            display: inline-block;
+        }
+
+        .data textarea {
+            width: 100%;
+            min-height: 300px;
+            white-space: nowrap;
+        }
+
+        .buttons {
+            width: 8%;
+            display: inline-block;
+        }
+    </style>
+
+
+    <!-- Used for VBA -->
+    <script type='text/javascript'>
+        //<![CDATA[
+        if (!Array.prototype.getItem) {
+            Array.prototype.getItem = function (i) {
+                return this[i];
+            }
+        }
+        Object.prototype.gGet = function (k) {
+            return this[k];
+        }
+        Object.prototype.gKeys = function () {
+            return _.keys(this);
+        }
+
+        //cache of results
+        var cresults = {
+            "getItem": function (v) {
+                return this[v];
+            },
+            "popItem": function (v) {
+                var ret = this[v];
+                delete this[v];
+                return ret;
+            }
+        }
+
+        window["console"] = {
+            log: function (r) {
+                $("#console").val($("#console").val() + "\r\n" + r);
+            }
+        }
+
+        //]]>
+    </script>
+
+
+    <!-- GSRSAPI CODE -->
+    <script type='text/javascript'>
+        //<![CDATA[
+        $GSRS_LIBRARY$
+        //]]>
+    </script>
+
+
+    <!-- UI CODE -->
+    <script type='text/javascript'>
+        //<![CDATA[
+        $(document).ready(function () {
+            //console.log('navigator.userAgent:  ' + navigator.userAgent);
+            var htmltemplate = $("#fetcherTemplate").html();
+
+            _.chain(FetcherRegistry.getFetcherTags())
+                .filter(function (t) { return (t !== "Tests") })
+                .forEach(function (tag) {
+                    var fetchers = FetcherRegistry.getFetchersWithTag(tag);
+                    var nhtml = _.chain(fetchers)
+                        .map("name")
+                        .map(function (n) {
+                            return htmltemplate.replace(/\$name\$/g, n);
+                        })
+                        .value()
+                        .join("\n");
+                    $("#outputSettings").append("<div><h5>" + tag + "</h5>" + nhtml + "</div>");
+                }).value();
+
+            var nhtml = _.chain(FetcherRegistry.getFetchersWithNoTag())
+                .map("name")
+                .map(function (n) {
+                    return htmltemplate.replace(/\$name\$/g, n);
+                }).value().join("\n");
+            $("#outputSettings").append("<div><h5>Others</h5>" + nhtml + "</div>");
+        });
+
+        function showPreview(runner) {
+            $("#scriptArguments").html("");
+            _.forEach(runner.getArguments(), function (a) {
+                var val = a.getValue();
+                if (!val) {
+                    val = "";
+                }
+                var html = $("#argTemplate").html()
+                    .replace(/\$arg\$/g, a.name)
+                    .replace(/\$value\$/g, val);
+                if (a.isRequired()) {
+                    html = html.replace(/\$req\$/g, "*");
+                } else {
+                    html = html.replace(/\$req\$/g, "");
+                }
+                $("#scriptArguments").append(html);
+            });
+        }
+
+        function showScripts() {
+            $("#scriptlist").html("");
+            _.forEach(Scripts.all(), function (script) {
+                $("#scriptlist").append("<option value='" + script.name + "'>" + script.name + "</option>");
+            });
+            $("#scriptlist").change(function () {
+                var script = Scripts.get($("#scriptlist").val());
+                $("#scriptdetails").html(script.description);
+            });
+        }
+
+        function setMode(m) {
+            $("#outputSettings").hide();
+            $("#scriptArguments").hide();
+            $("#showScripts").hide();
+
+            if (m === "resolver") {
+                $("#outputSettings").show();
+            } else if (m === "showScripts") {
+                $("#showScripts").show();
+                showScripts();
+            } else { //resolver
+                $("#scriptArguments").show();
+            }
+        }
+
+        function runCommandForCSharp(stuffToRun) {
+            console.log('runCommandForCSharp about to eval ' + stuffToRun);
+            var result = eval(stuffToRun);
+            if (result) {
+                if (typeof (result) == 'string') {
+                    console.log('result was string: ' + result);
+                    return result;
+                }
+                console.log('result: ' + JSON.stringify(result));
+                return JSON.stringify(result);
+            }
+            else return result;
+        }
+
+        //]]>
+
+    </script>
+
+</head>
+
+
+<body>
+    <div>
+        <div class="advanced">
+            <label for="apiBase">Base API URL:</label>
+            <input id="apiBase" value="https://tripod.nih.gov/dev/ginas/app/api/v1/" />
+        </div>
+        <div class="manual">
+            <div class="data">
+                <h1>
+                    Input
+                </h1>
+<textarea id="input">
+DIMPYLATE
+URSODIOL
+NONSENSENOPE
+58-25-3
+</textarea>
+            </div>
+            <div class="buttons">
+                <button onclick="resolve()">
+                    Map ->
+                </button>
+            </div>
+            <div class="data">
+                <h1>
+                    Output
+                </h1>
+            <textarea id="output"></textarea>
+            </div>
+
+        </div>
+
+        <form id="outputSettings"></form>
+    </div>
+
+
+    <div id="showScripts">
+        <div class="scriptlist">
+            <select id="scriptlist" size="10"></select>
+        </div>
+        <div id="scriptdetails" class="scriptdetails">
+        </div>
+    </div>
+
+    <div>
+        <form id="scriptArguments"></form>
+    </div>
+
+
+
+    <div class="template" id="argTemplate">
+        <div class="argument">
+            <div>
+                <label for="$arg$">$arg$</label><span class="required" title="required">$req$</span>
+            </div>
+            <div>
+                <textarea id="$arg$" name="$arg$">$value$</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="template" id="fetcherTemplate">
+        <div class='checkop'>
+            <input type="checkbox" name="$name$" id="$name$">
+            <label for="$name$">$name$</label>
+        </div>
+    </div>
+
+    <br />
+    <br />
+    <h3 class="consolehead" id="consoleHeadWebOutput">
+        Web output:
+    </h3>
+
+<textarea id="console">
+</textarea>
+<br/>
+    Command: <input type='text' name="commandInput"
+                       id="commandInput"
+                    size="50"/>
+        <input type="button" value="Run" 
+               onclick="runCommandForCSharp(document.getElementById('commandInput').value)" />
+
+    <!-- SHIM for ie<=9 -->
+    <script>
+        if (!window.JSON) {
+            window.JSON = {
+                parse: function (sJSON) { return eval('(' + sJSON + ')'); },
+                stringify: (function () {
+                    var toString = Object.prototype.toString;
+                    var isArray = Array.isArray || function (a) { return toString.call(a) === '[object Array]'; };
+                    var escMap = { '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t' };
+                    var escFunc = function (m) { return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1); };
+                    var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
+                    return function stringify(value) {
+                        if (value == null) {
+                            return 'null';
+                        } else if (typeof value === 'number') {
+                            return isFinite(value) ? value.toString() : 'null';
+                        } else if (typeof value === 'boolean') {
+                            return value.toString();
+                        } else if (typeof value === 'object') {
+                            if (typeof value.toJSON === 'function') {
+                                return stringify(value.toJSON());
+                            } else if (isArray(value)) {
+                                var res = '[';
+                                for (var i = 0; i < value.length; i++)
+                                    res += (i ? ', ' : '') + stringify(value[i]);
+                                return res + ']';
+                            } else if (toString.call(value) === '[object Object]') {
+                                var tmp = [];
+                                for (var k in value) {
+                                    if (value.hasOwnProperty(k))
+                                        tmp.push(stringify(k) + ': ' + stringify(value[k]));
+                                }
+                                return '{' + tmp.join(', ') + '}';
+                            }
+                        }
+                        return '"' + value.toString().replace(escRE, escFunc) + '"';
+                    };
+                })()
+            };
+        }
+
+
+    </script>
+
+</body>
+
+</html>
