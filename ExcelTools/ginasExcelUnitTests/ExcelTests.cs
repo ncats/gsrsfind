@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Office.Interop.Excel;
+using Excel=Microsoft.Office.Interop.Excel;
 using System.IO;
 using System.Reflection;
 using System.Linq;
@@ -40,7 +41,7 @@ namespace ginasExcelUnitTests
         public void ImageOps_hasComment_Test()
         {
             Workbook book = ReadDefaultExcelWorkbook();
-            Worksheet sheet = book.Worksheets.Item[1];
+            Worksheet sheet = (Worksheet) book.Worksheets.Item[1];
             Range cellWithComment = sheet.Range["A1"];
             Range cellWithoutComment = sheet.Range["B1"];
 
@@ -95,7 +96,7 @@ namespace ginasExcelUnitTests
             List<string> expectedValues = values.ToList();
                
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = workbook.Worksheets[1];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[1];
             Range selection = sheet.Range["A4", "A6"];
             Retriever retriever = new Retriever();
             string methodToTest = "GetSearchValues";
@@ -119,7 +120,7 @@ namespace ginasExcelUnitTests
             string searchTarget = "Value to find";
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = workbook.Worksheets[1];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[1];
             Range searchRange = sheet.Range["A1", "L33"];
             int searchColumn = 2;
             int expectedRow = 11;
@@ -160,7 +161,7 @@ namespace ginasExcelUnitTests
         public void CreateRangeWrapperTest()
         {
             Workbook workbook = ReadDefaultExcelWorkbook();
-            Worksheet sheet= workbook.Sheets[1];
+            Worksheet sheet= (Worksheet) workbook.Sheets[1];
             Range range = sheet.Range["A1", "B2"];
             RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(range);
             Assert.AreEqual(wrapper.GetRange().Count, range.Count);
@@ -173,13 +174,13 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets[1];
             Range range = sheet.Range["B2", "B9"];
 
             List<Callback> callbacks = new List<Callback>();
             for(int row = 1; row< range.Cells.Count; row++)
             {
-                Range currRange = range.Cells[row];
+                Range currRange = (Range) range.Cells[row];
                 RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(currRange);
                 
                 CursorBasedResolverCallback cursorBasedResolverCallback = CallbackFactory.CreateCursorBasedResolverCallback(wrapper);
@@ -213,7 +214,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = workbook.Worksheets[2];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[2];
             Range range = sheet.Range["A1", "A1000"];
             retriever.SetSelection(range);
             
@@ -240,7 +241,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = workbook.Worksheets[2];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[2];
             Range range = sheet.Range["A1", "A10"];
             retriever.SetSelection(range);
 
@@ -266,7 +267,7 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets[1];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
             
@@ -293,7 +294,7 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets[1];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
 
@@ -311,6 +312,37 @@ namespace ginasExcelUnitTests
             workbook.Close(false);
         }
 
+
+        [TestMethod]
+        public void GetKeysTest()
+        {
+            string methodName = "GetKeys";
+            DataLoader loader = new DataLoader();
+
+            string filePath = @"..\..\..\Test_Files\Registration test.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet) workbook.Sheets[1];
+            sheet.Select();
+            Range row = sheet.Range["A2", "E2"];
+
+            MethodInfo method = loader.GetType().GetMethod(methodName,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+            object[] parms = new object[1];
+            parms[0] = row;
+            object result = method.Invoke(loader, parms);
+            Console.WriteLine("result type:" + result.GetType().Name);
+            Dictionary<string, Range> searchkeys = (Dictionary<string, Range>)result;//loader.GetKeys(row);
+
+            string[] expectedKeys = { "PT", "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS", "SMILES", "MOLFILE", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL" };
+
+            foreach(string key in expectedKeys)
+            {
+                Assert.IsTrue(searchkeys.ContainsKey(key));
+            }
+
+        }
 
         private Workbook ReadDefaultExcelWorkbook()
         {

@@ -68,7 +68,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             Worksheet nsheet;
             int i;
 
-            nsheet = workbook.Sheets.Add();
+            nsheet = (Worksheet)  workbook.Sheets.Add();
             nsheet.Name = scriptName;
 
             Range topCorner = nsheet.Range["A1"];

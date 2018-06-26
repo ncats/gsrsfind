@@ -20,16 +20,20 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         public new void Execute(dynamic res)
         {
             base.is_executed = true;
-            if( res is string)
+            if (res is string)
             {
-                statusRange.FormulaR1C1 = res;
+                SetRangeText(res as string);
             }
-            else if( res is GinasResult)
+            else if (res is GinasResult)
             {
                 GinasResult result = res as GinasResult;
-
-                statusRange.FormulaR1C1 = result.message;
+                SetRangeText(result.message);
             }
+        }
+
+        public void SetRangeText(string rangeText)
+        {
+            statusRange.FormulaR1C1 = rangeText;
         }
 
         public int RunnerNumber

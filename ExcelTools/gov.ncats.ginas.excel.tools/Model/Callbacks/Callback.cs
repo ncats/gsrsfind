@@ -12,7 +12,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 
         string key;
         protected Boolean is_executed;
-        DateTime expirationDate;
+        DateTime expirationDate = DateTime.Now.AddYears(4);//set far in the future so IsExpiredNow will return false
         Boolean has_started;
         String script;
 

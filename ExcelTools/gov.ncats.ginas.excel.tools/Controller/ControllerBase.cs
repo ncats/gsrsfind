@@ -113,7 +113,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             else
             {
-                StatusUpdater.UpdateStatus("All batches have been processed");
+                StatusUpdater.UpdateStatus("All records have been processed");
                 log.Debug("No scripts in queue. ");
             }
         }

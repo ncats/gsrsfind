@@ -39,7 +39,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             try
             {
                 InitializeComponent();
-                this.LoadStartup();
+                LoadStartup();
             }
             catch (Exception ex)
             {
@@ -72,8 +72,12 @@ namespace gov.ncats.ginas.excel.tools.UI
         public void Complete()
         {
             buttonCancel.Enabled = true;//just in case...
-            HandleDebugInfoSave();
-            Close();
+            buttonCancel.Text = "Close";
+            if( CurrentOperationType != OperationType.Resolution)
+            {
+                HandleDebugInfoSave();
+                Close();
+            }
         }
 
         internal void LoadStartup()
@@ -92,7 +96,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             html = html.Replace("$GSRS_LIBRARY$", javascript);
             this._html = html;
             //temp:
-            //FileUtils.WriteToFile(@"c:\temp\debug.html", html);
+            FileUtils.WriteToFile(@"c:\temp\debug.html", html);
             _expectedTitle = "g-srs";
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
@@ -107,9 +111,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            //Debug.WriteLine("title:" + webBrowser1.DocumentTitle);
-            //Debug.WriteLine("ReadyState:" + webBrowser1.ReadyState);
-            log.Debug("webBrowser1.DocumentTitle: " + webBrowser1.DocumentTitle);
+            if(_configuration.DebugMode) log.Debug("webBrowser1.DocumentTitle: " + webBrowser1.DocumentTitle);
             if (webBrowser1.DocumentTitle.Equals(_expectedTitle))
             {
                 BuildGinasToolsDocument();
@@ -125,6 +127,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     ExecuteScript("setMode('update');");
                     Controller.ContinueSetup();
                     this.Visible = true;
+                    Text = "Data Loader";
                 }
                 else if (CurrentOperationType == OperationType.Resolution)
                 {
@@ -132,6 +135,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     buttonAddStructure.Enabled = true;
                     buttonAddStructure.Visible = true;
                     this.Visible = true;
+                    Text = "Data Retriever";
                 }
                 else if (CurrentOperationType == OperationType.ShowScripts)
                 {
@@ -140,6 +144,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     buttonAddStructure.Enabled = false;
                     buttonAddStructure.Visible = false;
                     this.Visible = true;
+                    Text = "Script Selection";
                 }
                 else if (CurrentOperationType == OperationType.GetStructures)
                 {
@@ -149,19 +154,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                         ExecuteScript(_scriptToRunUponCompletion);
                     }
                 }
-                buttonDebugDOM.Enabled = _configuration.DebugMode;
-                buttonDebugDOM.Visible = _configuration.DebugMode;
+                buttonDebugDOM.Enabled = false;// _configuration.DebugMode;
+                buttonDebugDOM.Visible = false;// _configuration.DebugMode;
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
             {
                 //last script
                 log.Warn("webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE)");
-                HtmlElement lastScript = webBrowser1.Document.CreateElement("script");
-                lastScript.InnerText = FileUtils.GetLastJavaScript();
-                webBrowser1.Document.Body.AppendChild(lastScript);
-
                 webBrowser1.Visible = true;
-                
             }
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
@@ -203,7 +203,10 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
-            log.Debug("Going to run script: " + script);
+            if( _configuration.DebugMode)
+            {
+                log.Debug("Going to run script: " + script);
+            }
             object returnedValue = webBrowser1.Document.InvokeScript(functionName, new object[] { script });
             return returnedValue;
         }
@@ -211,7 +214,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         public void Notify(string message)
         {
             if (message.StartsWith("gsrs_"))
-            {
+                {
                 string followupCommand = "cresults.popItem('" + message + "')";
                 object result = ExecuteScript(followupCommand);
                 Controller.HandleResults(message, (string)result);
@@ -253,7 +256,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void buttonAddStructure_Click(object sender, EventArgs e)
         {
             CurrentOperationType = OperationType.GetStructures;
-            this.Controller.StartOperation();
+            Controller.StartOperation();
         }
 
         private void RetrievalForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -290,10 +293,19 @@ namespace gov.ncats.ginas.excel.tools.UI
 
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             int iter = 0;
-            while (webBrowser1.IsBusy && ++iter < 1000)
+            while (webBrowser1.IsBusy && ++iter < 10000)
             {
                 log.Debug("busy (2)...");
+                System.Threading.Thread.Sleep(10);
+                if ((iter % 1000) == 0)
+                {
+                    if( !UIUtils.GetUserYesNo("Loading web page is slow. Continue waiting?"))
+                    {
+                        return;
+                    }
+                }
             }
+            
 
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),

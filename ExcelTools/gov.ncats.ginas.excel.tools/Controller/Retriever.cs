@@ -47,7 +47,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             CallbackFactory factory = new CallbackFactory();
             Excel.Worksheet activeWorksheet = ((Excel.Worksheet)ExcelWindow.Application.ActiveSheet);
-            ExcelSelection = ExcelWindow.Application.Selection;
+            ExcelSelection = (Excel.Range) ExcelWindow.Application.Selection;
             if (ExcelSelection == null)
             {
                 UIUtils.ShowMessageToUser("Error obtaining access to Excel!");
@@ -221,11 +221,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (Excel.Range cell in r.Cells)
             {
 
-                if (cell.Text != null && (!string.IsNullOrWhiteSpace(cell.Text)))
+                if (cell.Text != null && (!string.IsNullOrWhiteSpace((string)cell.Text)))
                 {
                     currItemWithinBatch++;
                     currItem++;
-                    string cellText = cell.Text;
+                    string cellText = (string) cell.Text;
                     log.DebugFormat("   processing input cell text {0}", cellText);
                     preSubmit.Add(cellText.Replace("'", "\'"));
                     Callback rcb;
@@ -291,7 +291,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (Excel.Range row in selection.Rows)
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
-                string cellValue = selection.Worksheet.get_Range(cellName).Value;
+                string cellValue = (string) selection.Worksheet.get_Range(cellName).Value;
                 //log.Debug(string.Format("cell {0} = value: {1}",
                 //    cellName, cellValue));
                 searchValues.Add(cellValue);
@@ -305,7 +305,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (Excel.Range row in selection.Rows)
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
-                string cellValue = selection.Worksheet.get_Range(cellName).Value;
+                string cellValue = (string) selection.Worksheet.get_Range(cellName).Value;
                 log.Debug(string.Format("cell {0} = value: {1}",
                     cellName, cellValue));
                 searchValues.Add(new SearchValue(cellValue, row.Row));
@@ -486,7 +486,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             object checkedInput = ScriptExecutor.ExecuteScript("_.map($('div.checkop input:checked'), 'name').join('___');");
             headers = (checkedInput as string).Split("___".ToCharArray());
 
-            Excel.Worksheet nsheet = ExcelWindow.Application.Sheets.Add();
+            Excel.Worksheet nsheet = (Excel.Worksheet) ExcelWindow.Application.Sheets.Add();
             SheetUtils sheetUtils = new SheetUtils();
             nsheet.Name = sheetUtils.GetNewSheetName(ExcelSelection.Application.ActiveWorkbook,
                 "Resolved");
