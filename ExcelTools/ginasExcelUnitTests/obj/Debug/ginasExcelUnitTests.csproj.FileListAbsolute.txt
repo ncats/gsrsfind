@@ -32,3 +32,8 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_contro
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.html
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs.config.json
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Interop.Excel.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Vbe.Interop.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\stdole.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.xml

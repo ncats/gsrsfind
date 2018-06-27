@@ -172,6 +172,8 @@ var GSRSAPI = {
                                     retMsg.message = 'proxy error on server. Please report this to your administrator!';
                                 }
                             };
+                            console.log('Calling cb with retMsg. cb: ' + JSON.stringify(cb));
+                            
                             if (retMsg) {
                                 cb(retMsg);
                             }
@@ -1490,6 +1492,14 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("InChIKey", function (simpleSub) {
         return simpleSub.fetch("structure!$inchikey()")
             .andThen(function (ik) {
+                /*console.log('inchikey andThen. ik: ' + (typeof ik));*/
+                if (!ik) return null;
+                if (typeof ik === 'object') {
+                    if (ik.retMsg) {
+                        return ik.retMsg;
+                    }
+                    else return "";
+                }
                 var iks = ik.split("=");
                 if (iks.length > 1) {
                     return iks[1];

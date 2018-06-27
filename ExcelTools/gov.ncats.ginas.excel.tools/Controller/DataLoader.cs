@@ -25,6 +25,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private float _secondsPerScript = 10;
         private Dictionary<string, ScriptParameter> _scriptParameters;
         private bool _foundNoActivesLastTime = false;
+        private int _NumTimesFoundNoActives = 0;
+        private const int MAX_TIMES_NO_ACTIVE = 4;
+        private string _currentKey = string.Empty;
 
         internal static string STATUS_STARTED = "STARTED";
 
@@ -238,7 +241,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             UpdateCallback updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
             updateCallback.RunnerNumber = _scriptNumber;
             DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset+ 
-                (Callbacks.Count * _secondsPerScript));
+                (Callbacks.Count* Callbacks.Count * _secondsPerScript));//trying a quadratic term
             updateCallback.SetExpiration(newExpirationDate);
             updateCallback.setKey(tempVal);
             updateCallback.ParameterValues = paramValues;
@@ -398,16 +401,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             else if (!haveActive)
             {
-                //2 runs of this check with no active callbacks mean it's ok to start a new callback
-                if (_foundNoActivesLastTime)
+                // <N> runs of this check with no active callbacks mean it's ok to start a new callback
+                if (_NumTimesFoundNoActives < MAX_TIMES_NO_ACTIVE)
                 {
                     message += "; will now call StartFirstUpdateCallback";
                     StartFirstUpdateCallback();
-                    _foundNoActivesLastTime = false;
+                    _NumTimesFoundNoActives = 0;
                 }
                 else
                 {
-                    _foundNoActivesLastTime = true;
+                    _NumTimesFoundNoActives++;
                 }
             }
 
@@ -419,8 +422,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public object HandleResults(string resultsKey, string message)
         {
-            Debug.WriteLine(string.Format("HandleResults received message {0} for key {1}",
-                message, resultsKey));
+           log.DebugFormat("HandleResults received message {0} for key {1}",
+                message, resultsKey);
+            if( resultsKey.Equals(_currentKey ))
+            {
+                _currentKey = string.Empty;
+            }
             GinasResult result = JSTools.GetGinasResultFromString(message);
             UpdateCallback updateCallback = Callbacks[resultsKey] as UpdateCallback;
             updateCallback.Execute(result.message);
@@ -433,9 +440,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.Count == 0)
             {
                 statusMessage = "Processing complete at " + DateTime.Now.ToShortTimeString();
-                _timer.Close();
-                _timer.Stop();
-                _timer.Enabled = false;
+                if (_timer != null)
+                {
+                    _timer.Close();
+                    _timer.Stop();
+                    _timer.Enabled = false;
+                }
                 KeepCheckingCallbacks = false;
                 StatusUpdater.UpdateStatus(statusMessage);
                 EndProcessNotification();
@@ -447,6 +457,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 StartFirstUpdateCallback();
             }
             return "true";
+        }
+
+        public Dictionary<string, Callback> GetCallbacksForUnitTests()
+        {
+            if (Callbacks == null) Callbacks = new Dictionary<string, Callback>();
+            return Callbacks;
         }
 
         private void EndProcessNotification()
@@ -483,10 +499,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private void RunUpdateCallback(UpdateCallback updateCallback)
         {
             log.DebugFormat("RunUpdateCallback handling key {0}", updateCallback.getKey());
-            string tempScriptName = "scriptObject";
-            ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + updateCallback.LoadScriptName + "');");
+            //string tempScriptName = "scriptObject";
+            //ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + updateCallback.LoadScriptName + "');");
             string runnerName = "tmpRunner";
-            ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
+            //ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
             foreach (string key in updateCallback.ParameterValues.Keys)
             {
@@ -543,8 +559,19 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.Values.First() is UpdateCallback)
             {
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
-                RunUpdateCallback(updateCallback);
-                updateCallback.Start();
+                if(! updateCallback.getKey().Equals(_currentKey))
+                {
+                    _currentKey = updateCallback.getKey();
+                    DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
+                        updateCallback.RunnerNumber * _secondsPerScript);
+                    updateCallback.SetExpiration(newExpirationDate);
+                    RunUpdateCallback(updateCallback);
+                    updateCallback.Start();                    
+                }
+                else
+                {
+                    log.Debug("Skipped first update callback because it appears to be running already");
+                }
             }
         }
     }

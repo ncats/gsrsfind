@@ -8,7 +8,7 @@ function handleReady() {
     var test = $("#fetcherTemplate");
 
     _.chain(FetcherRegistry.getFetcherTags())
-        .filter(function (t) { return (t !== "Tests") })
+        .filter(function (t) { return t !== "Tests"; })
         .forEach(function (tag) {
             var n = 1;
             var fetchers = FetcherRegistry.getFetchersWithTag(tag);
@@ -88,15 +88,15 @@ function runCommandForCSharp(stuffToRun) {
         return null;
     }
     var debugOutput = true;
-    if (stuffToRun.indexOf("auth") >= 0) {
+    /*if (stuffToRun.indexOf("auth") >= 0) {
         debugOutput = false;
-    }
+    }*/
     if (debugOutput) {
         console.log('runCommandForCSharp about to eval ' + stuffToRun);
     }
     var result = eval(stuffToRun);
     if (result) {
-        if (typeof (result) === 'string') {
+        if (typeof result === 'string') {
             if (debugOutput) {
                 console.log('result was string: ' + result);
             }

@@ -41,7 +41,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             List<string> cleanedValues = new List<string>();
             foreach (string value in inputValues)
             {
-                cleanedValues.Add("'" + value + "'");
+                cleanedValues.Add("'" + value.Replace("'", "\\'") + "'");
             }
             outputBuilder.Append(string.Join(",", cleanedValues));
             outputBuilder.Append("]");

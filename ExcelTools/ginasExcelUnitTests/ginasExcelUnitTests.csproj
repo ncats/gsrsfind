@@ -64,6 +64,7 @@
     <Compile Include="SerializationTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="ModelTests.cs" />
+    <Compile Include="DataLoaderTest.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>

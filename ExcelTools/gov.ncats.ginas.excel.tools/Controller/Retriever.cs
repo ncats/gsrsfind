@@ -25,12 +25,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callbacks = new Dictionary<string, Callback>();
         }
 
-
-        
         private bool _notified = false;
 
         private bool _resolveToNewSheet = false;
-        
+        private static object LOCK_OBJECT = new object();
+
         //for unit tests
         public void SetSelection(Excel.Range selection)
         {
@@ -47,7 +46,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             CallbackFactory factory = new CallbackFactory();
             Excel.Worksheet activeWorksheet = ((Excel.Worksheet)ExcelWindow.Application.ActiveSheet);
-            ExcelSelection = (Excel.Range) ExcelWindow.Application.Selection;
+            ExcelSelection = (Excel.Range)ExcelWindow.Application.Selection;
             if (ExcelSelection == null)
             {
                 UIUtils.ShowMessageToUser("Error obtaining access to Excel!");
@@ -88,11 +87,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             foreach (string key in returnedValue.Keys)
             {
-                if( ToolsConfiguration.DebugMode)
+                if (ToolsConfiguration.DebugMode)
                 {
                     log.DebugFormat("Handling result for key {0}", key);
                 }
-                
+
                 string keyResult = "OK";
                 try
                 {
@@ -123,12 +122,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         {
                             currentCell.NumberFormat = "@";//prevent cas numbers from being interpreted as dates
                         }
-                        catch( Exception ex)
+                        catch (Exception ex)
                         {
                             log.WarnFormat("Error setting format for call {0}. Error: {1} ",
                                 cellId, ex.Message);
                         }
-                        
+
                         currentCell.Value = key;
                     }
                     for (int part = 1; part < messageParts.Length; part++)
@@ -189,7 +188,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public bool StartResolution(bool newSheet)
         {
             _resolveToNewSheet = newSheet;
-            Callbacks = new Dictionary<string, Callback>();
+            lock (LOCK_OBJECT)
+            {
+                Callbacks = new Dictionary<string, Callback>();
+            }
             ScriptQueue = new Queue<string>();
             Excel.Range r = null;
             try
@@ -225,7 +227,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     currItemWithinBatch++;
                     currItem++;
-                    string cellText = (string) cell.Text;
+                    string cellText = (string)cell.Text;
                     log.DebugFormat("   processing input cell text {0}", cellText);
                     preSubmit.Add(cellText.Replace("'", "\'"));
                     Callback rcb;
@@ -277,7 +279,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 System.Threading.Thread.Sleep(1);
                 cb.setKey(JSTools.RandomIdentifier());
             }
-            Callbacks.Add(cb.getKey(), cb);
+            lock (LOCK_OBJECT)
+            {
+                Callbacks.Add(cb.getKey(), cb);
+            }
             log.Debug("preparing callback with key " + cb.getKey() + " at " + DateTime.Now);
             string script = MakeSearch(cb.getKey(), submittable);
             log.Debug("script: " + script);
@@ -291,7 +296,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (Excel.Range row in selection.Rows)
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
-                string cellValue = (string) selection.Worksheet.get_Range(cellName).Value;
+                string cellValue = (string)selection.Worksheet.get_Range(cellName).Value;
                 //log.Debug(string.Format("cell {0} = value: {1}",
                 //    cellName, cellValue));
                 searchValues.Add(cellValue);
@@ -305,7 +310,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             foreach (Excel.Range row in selection.Rows)
             {
                 string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
-                string cellValue = (string) selection.Worksheet.get_Range(cellName).Value;
+                string cellValue = (string)selection.Worksheet.get_Range(cellName).Value;
                 log.Debug(string.Format("cell {0} = value: {1}",
                     cellName, cellValue));
                 searchValues.Add(new SearchValue(cellValue, row.Row));
@@ -386,41 +391,45 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 message = "callbacks null or empty";
                 log.Debug(message);
+                if (_timer == null) return;
                 _timer.Close();
                 _timer.Stop();
                 _timer.Enabled = false;
+                _timer = null;
                 return;
             }
             message = "callback total: " + Callbacks.Count;
             List<string> callbackKeysToRemove = new List<string>();
             //'go through individual callbacks
-            foreach (string cbKey in this.Callbacks.Keys)
+            lock (LOCK_OBJECT)
             {
-                Callback cb = Callbacks[cbKey];
-                if (cb.HasStarted())
+                foreach (string cbKey in Callbacks.Keys)
                 {
-                    if (cb is BatchCallback)
+                    Callback cb = Callbacks[cbKey];
+                    if (cb.HasStarted())
                     {
-                        BatchCallback batchCb = cb as BatchCallback;
-                        //'look for started items 
-                        if (batchCb.ContainsActiveCallback())
+                        if (cb is BatchCallback)
                         {
-                            haveActive = true;
-                            break;
-                        }
-                        else
-                        {
-                            callbackKeysToRemove.Add(cbKey);
+                            BatchCallback batchCb = cb as BatchCallback;
+                            //'look for started items 
+                            if (batchCb.ContainsActiveCallback())
+                            {
+                                haveActive = true;
+                                break;
+                            }
+                            else
+                            {
+                                callbackKeysToRemove.Add(cbKey);
+                            }
                         }
                     }
                 }
+                callbackKeysToRemove.ForEach(k =>
+                {
+                    Callbacks.Remove(k);
+                    log.Debug("just removed batchcallback with key " + k);
+                });
             }
-
-            callbackKeysToRemove.ForEach(k =>
-            {
-                Callbacks.Remove(k);
-                log.Debug("just removed batchcallback with key " + k);
-            });
             KeepCheckingCallbacks = haveActive;
             if (!haveActive)
             {
@@ -440,7 +449,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 if (!haveActive)
                 {
                     log.Debug("about to clear callbacks");
-                    Callbacks.Clear();
+                    lock (LOCK_OBJECT) Callbacks.Clear();
                 }
             }
 
@@ -486,7 +495,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             object checkedInput = ScriptExecutor.ExecuteScript("_.map($('div.checkop input:checked'), 'name').join('___');");
             headers = (checkedInput as string).Split("___".ToCharArray());
 
-            Excel.Worksheet nsheet = (Excel.Worksheet) ExcelWindow.Application.Sheets.Add();
+            Excel.Worksheet nsheet = (Excel.Worksheet)ExcelWindow.Application.Sheets.Add();
             SheetUtils sheetUtils = new SheetUtils();
             nsheet.Name = sheetUtils.GetNewSheetName(ExcelSelection.Application.ActiveWorkbook,
                 "Resolved");
@@ -509,7 +518,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         internal Dictionary<string, Callback> GetCallbacks()
         {
-            return this.Callbacks;
+            return Callbacks;
         }
 
         private int FindRowForKey(string key)
@@ -532,17 +541,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             log.DebugFormat("{0} called with key {1}",
                 System.Reflection.MethodBase.GetCurrentMethod().Name, callbackKey);
-            if( Callbacks.ContainsKey(callbackKey))
+            if (Callbacks.ContainsKey(callbackKey))
             {
-                Callback cb = Callbacks[callbackKey];
-                if( cb is BatchCallback)
+                lock (LOCK_OBJECT)
                 {
-                    log.Debug("Marking inner callbacks of BatchCallback");
-                    (cb as BatchCallback).SetInnerExecuted();
-                }
-                else
-                {
-                    cb.SetExecuted();
+                    Callback cb = Callbacks[callbackKey];
+                    if (cb is BatchCallback)
+                    {
+                        log.Debug("Marking inner callbacks of BatchCallback");
+                        (cb as BatchCallback).SetInnerExecuted();
+                    }
+                    else
+                    {
+                        cb.SetExecuted();
+                    }
                 }
             }
         }

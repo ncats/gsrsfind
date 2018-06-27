@@ -14,7 +14,7 @@ namespace ginasExcelUnitTests
         {
             string folder = FileUtils.GetUserFolder();
             Console.WriteLine("user folder: " + folder);
-            Assert.IsTrue(folder.Contains("ginas"));
+            Assert.IsTrue(folder.Contains("g-srs"));
         }
 
         [TestMethod]

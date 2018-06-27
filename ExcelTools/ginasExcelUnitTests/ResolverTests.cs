@@ -67,6 +67,17 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+        public void MakeSearchWithChar_Test()
+        {
+            string chemicalName1 = "BUTYROPHENONE, 4-(3-AZASPIRO(5.6)DODEC-3-YL)-4'-FLUORO-";
+            string[] testInput = { chemicalName1};
+            string expectedResult = string.Format("['{0}']",
+                chemicalName1.Replace("'", "\\'") );
+            string actualResult = JSTools.MakeSearchString(testInput);
+            Assert.AreEqual(expectedResult, actualResult);
+        }
+
+        [TestMethod]
         public void getDictionaryFromStringTest()
         {
             string input = "{\"aspirin\":[\"aspirin\thttps://tripod.nih.gov/ginas/app/img/a05ec20c-8fe2-4e02-ba7f-df69e5e30248.png?size=300\"]}";
@@ -105,13 +116,14 @@ namespace ginasExcelUnitTests
             Assert.IsNull(output.defaultValue);
         }
 
+        /* Thie input url is too temporary for this test to work
         [TestMethod]
         public void RemoteFileExistsTestTrue()
         {
             string url1 = "http://localhost:9000/ginas/app/img/3982bff1-da0a-49a5-be34-4adb8c7648af.png?size=300";
             Assert.IsTrue(ImageOps.RemoteFileExists(url1));
         }
-
+        */
 
         [TestMethod]
         public void RemoteFileExistsTestFalse()
