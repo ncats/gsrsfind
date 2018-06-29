@@ -561,6 +561,18 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
                 if(! updateCallback.getKey().Equals(_currentKey))
                 {
+                    if( updateCallback.RunnerNumber % 100 ==0)
+                    {
+                        if(GinasConfiguration.DebugMode)
+                        {
+                            SaveAndClearDebugInfo();
+                        }
+                        else
+                        {
+                            //merely clear out the old stuff
+                            ScriptExecutor.ExecuteScript("$('#console').val('')");//clear the old stuff
+                        }
+                    }
                     _currentKey = updateCallback.getKey();
                     DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
                         updateCallback.RunnerNumber * _secondsPerScript);
@@ -573,6 +585,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     log.Debug("Skipped first update callback because it appears to be running already");
                 }
             }
+        }
+
+        private void SaveAndClearDebugInfo()
+        {
+            log.Debug("Starting in SaveAndClearDebugInfo");
+            string fileName = FileUtils.GetUserFolder() + System.IO.Path.DirectorySeparatorChar + Guid.NewGuid()
+                + "debug.log";
+            string content = (string) ScriptExecutor.ExecuteScript("$('#console').val()");
+            FileUtils.WriteToFile(fileName, content);
+            ScriptExecutor.ExecuteScript("$('#console').val('')");//clear the old stuff
         }
     }
 }

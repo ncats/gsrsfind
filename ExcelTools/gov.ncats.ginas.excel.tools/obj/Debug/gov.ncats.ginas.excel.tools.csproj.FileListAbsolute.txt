@@ -28,3 +28,4 @@ C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-sr
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs-config.txt
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsoft.Office.Interop.Excel.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsoft.Vbe.Interop.dll
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache

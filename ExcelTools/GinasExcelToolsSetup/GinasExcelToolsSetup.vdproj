@@ -136,13 +136,13 @@
         "Entry"
         {
         "MsmKey" = "8:_D6BCCDBB1FD0B44A2456314BF4C7FD49"
-        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
+        "OwnerKey" = "8:_90A908452047C21A52C6495503B12035"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_D6BCCDBB1FD0B44A2456314BF4C7FD49"
-        "OwnerKey" = "8:_90A908452047C21A52C6495503B12035"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -166,37 +166,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_AC91D24C656DCB4B08195A7D71996CBF"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_CE852B12A297B8810C8C59352F7989AF"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_D6BCCDBB1FD0B44A2456314BF4C7FD49"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_8214781EEEF1891EDF05D4FA4E95569E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_4283BA4FADE8421D94ABDD50CEF3C5BD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_90A908452047C21A52C6495503B12035"
+        "OwnerKey" = "8:_AB72F7EDED85CA404495BB54FAFDF667"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -208,7 +178,37 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_AB72F7EDED85CA404495BB54FAFDF667"
+        "OwnerKey" = "8:_90A908452047C21A52C6495503B12035"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_4283BA4FADE8421D94ABDD50CEF3C5BD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_8214781EEEF1891EDF05D4FA4E95569E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_D6BCCDBB1FD0B44A2456314BF4C7FD49"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_CE852B12A297B8810C8C59352F7989AF"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_AC91D24C656DCB4B08195A7D71996CBF"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -927,7 +927,7 @@
                                                                     "Condition" = "8:"
                                                                     "Transitive" = "11:FALSE"
                                                                     "ValueTypes" = "3:1"
-                                                                    "Value" = "8:file:///[TARGETDIR]/g-srs Excel Tools.vsto"
+                                                                    "Value" = "8:file:///[TARGETDIR]/g-srs Excel Tools.vsto|vstolocal"
                                                                     }
                                                                 }
                                                             }
