@@ -1403,7 +1403,8 @@ var GSRSAPI = {
     addExtension: function (ext) {
         GSRSAPI.extensions.push(ext);
     },
-    extensions: []
+    extensions: [],
+    consoleStack: []
 };
 /*Global Helpers
 For use in legacy code (should refactor)

@@ -28,6 +28,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private int _NumTimesFoundNoActives = 0;
         private const int MAX_TIMES_NO_ACTIVE = 4;
         private string _currentKey = string.Empty;
+        private const int CONSOLE_CLEARANCE_INTERVAL = 50;
 
         internal static string STATUS_STARTED = "STARTED";
 
@@ -561,17 +562,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
                 if(! updateCallback.getKey().Equals(_currentKey))
                 {
-                    if( updateCallback.RunnerNumber % 100 ==0)
+                    if (updateCallback.RunnerNumber % CONSOLE_CLEARANCE_INTERVAL == 0
+                        && GinasConfiguration.DebugMode)
                     {
-                        if(GinasConfiguration.DebugMode)
-                        {
-                            SaveAndClearDebugInfo();
-                        }
-                        else
-                        {
-                            //merely clear out the old stuff
-                            ScriptExecutor.ExecuteScript("$('#console').val('')");//clear the old stuff
-                        }
+                        SaveAndClearDebugInfo();
                     }
                     _currentKey = updateCallback.getKey();
                     DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
@@ -590,11 +584,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private void SaveAndClearDebugInfo()
         {
             log.Debug("Starting in SaveAndClearDebugInfo");
-            string fileName = FileUtils.GetUserFolder() + System.IO.Path.DirectorySeparatorChar + Guid.NewGuid()
-                + "debug.log";
-            string content = (string) ScriptExecutor.ExecuteScript("$('#console').val()");
+            string fileName = FileUtils.GetTemporaryFilePath("gsrs.excel.log");
+            string content = (string) ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             FileUtils.WriteToFile(fileName, content);
-            ScriptExecutor.ExecuteScript("$('#console').val('')");//clear the old stuff
+            ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack=[]");//clear the old stuff
         }
     }
 }

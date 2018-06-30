@@ -76,7 +76,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             if( CurrentOperationType != OperationType.Resolution)
             {
                 HandleDebugInfoSave();
-                Close();
+                //Close();
             }
         }
 
@@ -96,7 +96,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             html = html.Replace("$GSRS_LIBRARY$", javascript);
             this._html = html;
             //temp:
-            FileUtils.WriteToFile(@"c:\temp\debug.html", html);
+            //FileUtils.WriteToFile(@"c:\temp\debug.html", html);
             _expectedTitle = "g-srs";
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
@@ -271,7 +271,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             if ((checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures )
                 && !_savedDebugInfo)
             {
-                string script = "$('#console').val()";
+                ExecuteScript("console.log('that is all folks!')");
+                string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
@@ -314,7 +315,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             webBrowser1.Document.Body.SetAttribute("className", string.Empty);
             webBrowser1.Document.Body.Style = "padding-top:10px";
             this.checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
-            //FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.Body.OuterHtml);
+            FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
+                //webBrowser1.Document.Body.OuterHtml);
             webBrowser1.Visible = true;
         }
 

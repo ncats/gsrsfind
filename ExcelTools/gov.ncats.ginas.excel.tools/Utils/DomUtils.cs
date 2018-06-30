@@ -204,6 +204,18 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement lastScript = document.CreateElement("script");
             lastScript.InnerHtml= FileUtils.GetLastJavaScript();
             bodyElement.AppendChild(lastScript);
+
+            HtmlElement consoleScript = document.CreateElement("script");
+            consoleScript.SetAttribute("type", "text/javascript");
+            if (makeDebugVisible)
+            {
+                consoleScript.InnerHtml = "window['console'] = {log: function (r){GSRSAPI_consoleStack.push(r);}}";
+            }
+            else
+            {
+                consoleScript.InnerHtml = "window['console'] = {log: function (r){/*do nothing*/}}";
+            }
+            bodyElement.AppendChild(consoleScript);
         }
 
         public static void BuildDocumentHead(HtmlDocument document)
@@ -253,11 +265,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             HtmlElement shimScript = document.CreateElement("script");
             shimScript.SetAttribute("type", "text/javascript");
-            shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; window['console'] = {log: function (r){var currValue = document.getElementById('console').value; document.getElementById('console').value = currValue + '\\r\\n' +r;}}"; 
+            shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; "; 
                // Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; 
             //shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; window['console'] = {log: function (r){var currValue = document.getElementById('console').value; document.getElementById('console').value = currValue + '\\r\\n' +r;}}";
             headElement.AppendChild(shimScript);
-            
+
             HtmlElement styleElement = document.CreateElement("style");
             styleElement.SetAttribute("type", "text/css");
             styleElement.InnerHtml = FileUtils.GetCss();

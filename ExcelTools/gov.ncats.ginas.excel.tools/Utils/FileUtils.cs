@@ -115,5 +115,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             return folder;
         }
+
+        public static string GetTemporaryFilePath(string extension)
+        {
+            string filePath = Path.GetTempPath() + Guid.NewGuid().ToString() + "."
+                + extension;
+            return filePath;
+        }
     }
 }

@@ -24,5 +24,19 @@ namespace ginasExcelUnitTests
             Assert.IsNotNull(ginasConfig);
             Console.WriteLine(ginasConfig.ToString());
         }
+
+        [TestMethod]
+        public void GetTemporaryFilePathTest()
+        {
+            string extension = "txt";
+            string fullPath = FileUtils.GetTemporaryFilePath(extension);
+            FileUtils.WriteToFile(fullPath, "Test Data");
+            Assert.IsTrue(System.IO.File.Exists(fullPath));
+            Console.WriteLine("fullPath: " + fullPath);
+            System.IO.File.Delete(fullPath);
+        }
+        
+
+        
     }
 }

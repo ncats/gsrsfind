@@ -1,4 +1,6 @@
-﻿var madeReady = false;
+﻿var GSRSAPI_consoleStack = [];
+
+var madeReady = false;
 $(document).ready(function () {
     handleReady();    
 });
@@ -103,6 +105,7 @@ function runCommandForCSharp(stuffToRun) {
             return result;
         }
         console.log('result: ' + JSON.stringify(result));
+        $('#console').val(GSRSAPI_consoleStack);
         return JSON.stringify(result);
     }
     else return result;
