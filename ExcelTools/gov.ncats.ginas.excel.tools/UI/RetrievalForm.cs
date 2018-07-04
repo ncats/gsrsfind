@@ -154,8 +154,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                         ExecuteScript(_scriptToRunUponCompletion);
                     }
                 }
-                buttonDebugDOM.Enabled = false;// _configuration.DebugMode;
-                buttonDebugDOM.Visible = false;// _configuration.DebugMode;
+                buttonDebugDOM.Enabled = _configuration.DebugMode;
+                buttonDebugDOM.Visible = _configuration.DebugMode;
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
             {
@@ -201,7 +201,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public object ExecuteScript(string script)
         {
-            webBrowser1.ScriptErrorsSuppressed = true;
+            //webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
             if( _configuration.DebugMode)
             {
@@ -271,9 +271,9 @@ namespace gov.ncats.ginas.excel.tools.UI
             if ((checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures )
                 && !_savedDebugInfo)
             {
-                ExecuteScript("console.log('that is all folks!')");
                 string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
+                debugInfo = debugInfo.Replace("|", Environment.NewLine);
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
                 saveFileDialog.Title = "Save diagnostic information?";
@@ -298,15 +298,21 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 log.Debug("busy (2)...");
                 System.Threading.Thread.Sleep(10);
-                if ((iter % 1000) == 0)
+                if ((iter % 100) == 0)
                 {
-                    if( !UIUtils.GetUserYesNo("Loading web page is slow. Continue waiting?"))
+                    DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?");
+                    switch( result)
                     {
-                        return;
+                        case DialogYesNoCancel.No:
+                            DomUtils.BuildDocumentHead(webBrowser1.Document);
+                            break;
+                        case DialogYesNoCancel.Cancel:
+                            return;
+                        default:
+                            continue;
                     }
                 }
-            }
-            
+            }            
 
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
@@ -343,7 +349,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonDebugDOM_Click(object sender, EventArgs e)
         {
-            string dom = (string)ExecuteScript("document.body.outerHTML");
+            string dom = (string)ExecuteScript("document.documentElement.outerHTML");
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
             saveFileDialog.Title = "Save DOM Dump?";

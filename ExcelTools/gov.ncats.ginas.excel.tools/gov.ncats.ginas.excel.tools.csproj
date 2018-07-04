@@ -135,9 +135,16 @@
       <HintPath>..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.6\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
@@ -208,6 +215,7 @@
     <Compile Include="Model\IStatusUpdater.cs" />
     <Compile Include="Model\ScriptParameter.cs" />
     <Compile Include="Model\SearchValue.cs" />
+    <Compile Include="Model\VocabItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -240,8 +248,10 @@
     <Compile Include="Utils\DomUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\JSTools.cs" />
+    <Compile Include="Utils\RestUtils.cs" />
     <Compile Include="Utils\SheetUtils.cs" />
     <Compile Include="Utils\UIUtils.cs" />
+    <Compile Include="Utils\VocabUtils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
@@ -263,6 +273,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
+    <Content Include="etc\bootstrap.min.js" />
     <Content Include="etc\g-srs-config.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

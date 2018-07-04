@@ -81,7 +81,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 HtmlElement selectElement = document.CreateElement("select");
                 selectElement.SetAttribute("id", "scriptlist");
                 selectElement.SetAttribute("size", "10");
-                //selectElement.Style = "visibility:hidden";
                 innerDiv.AppendChild(selectElement);
                 divElement.AppendChild(innerDiv);
 
@@ -236,26 +235,38 @@ namespace gov.ncats.ginas.excel.tools.Utils
             metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
             headElement.AppendChild(metaCharset);
 
+            HtmlElement brElement = document.CreateElement("br");
+
             HtmlElement metaCompat = document.CreateElement("meta");
             metaCompat.SetAttribute("http-equiv", "X-UA-Compatible");
             metaCompat.SetAttribute("content", "IE=Edge");
             headElement.AppendChild(metaCompat);
+            headElement.AppendChild(brElement);
 
             HtmlElement jQueryScript = document.CreateElement("script");
             jQueryScript.SetAttribute("type", "text/javascript");
-            jQueryScript.SetAttribute("scr", "https://code.jquery.com/jquery-1.12.4.js");
+            jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
             //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.min.js");
             headElement.AppendChild(jQueryScript);
+            headElement.AppendChild(brElement);
 
             HtmlElement lodashScript = document.CreateElement("script");
             lodashScript.SetAttribute("type", "text/javascript");
             lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
             headElement.AppendChild(lodashScript);
+            headElement.AppendChild(brElement);
 
             HtmlElement jsonPatchScript = document.CreateElement("script");
             jsonPatchScript.SetAttribute("type", "text/javascript");
             jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
             headElement.AppendChild(jsonPatchScript);
+            headElement.AppendChild(brElement);
+
+            HtmlElement bootstrapScript = document.CreateElement("script");
+            bootstrapScript.SetAttribute("type", "text/javascript");
+            bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
+            headElement.AppendChild(bootstrapScript);
+            headElement.AppendChild(brElement);
 
             HtmlElement mainGinasScript = document.CreateElement("script");
             mainGinasScript.SetAttribute("type", "text/javascript");

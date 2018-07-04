@@ -15,10 +15,21 @@ namespace gov.ncats.ginas.excel.tools.Model
         public string description;
         public bool required;
         public string defaultValue;
+        public string cvType;
+
+        private Dictionary<string, string> vocabulary;
+
+        public Dictionary<string, string> Vocabulary
+        {
+            get { return this.vocabulary; }
+            set { this.vocabulary = value; }
+        }
+
     }
 
     public class Promise
     {
         public bool _promise;
     }
+    
 }

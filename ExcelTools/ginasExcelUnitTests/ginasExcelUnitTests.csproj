@@ -66,6 +66,7 @@
     <Compile Include="ModelTests.cs" />
     <Compile Include="DataLoaderTest.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
+    <Compile Include="Utils\VocabUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

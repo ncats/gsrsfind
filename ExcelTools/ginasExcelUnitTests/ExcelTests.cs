@@ -147,6 +147,30 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+        public void TestFindColumn()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\search test file";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+            string searchTarget = "Value to find";
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+            Range searchRange = sheet.Range["A1", "L33"];
+            
+            searchTarget = "Something else";
+            int searchRow = 5;
+            int expectedColumn = 12;
+            int column  = SheetUtils.FindColumn(searchRange, searchTarget, searchRow);
+            Assert.AreEqual(expectedColumn, column);
+
+            searchTarget = "Something that does not exist!";
+            searchRow = 6;
+            expectedColumn = 0;
+            column= SheetUtils.FindRow(searchRange, searchTarget, searchRow);
+            Assert.AreEqual(expectedColumn, column);
+        }
+        
+        [TestMethod]
         public void DoesSheetExist()
         {
             string sheetThatExists = "SheetNumber2";
@@ -460,6 +484,103 @@ namespace ginasExcelUnitTests
             string testText = range.Text as string;
             Assert.AreEqual("Success", testText);
             Assert.AreEqual(0, loader.GetCallbacksForUnitTests().Count);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestGetVocabularySheetNew()
+        {
+            string filePath = @"..\..\..\Test_Files\No vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            int countBefore = workbook.Sheets.Count;
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            Assert.IsNotNull(vocabSheet);
+            int countAfter = workbook.Sheets.Count;
+            Assert.IsTrue(countAfter > countBefore);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestGetVocabularySheetExists()
+        {
+            string filePath = @"..\..\..\Test_Files\Has vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            int countBefore = workbook.Sheets.Count;
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            Assert.IsNotNull(vocabSheet);
+            int countAfter = workbook.Sheets.Count;
+            Assert.AreEqual(countAfter, countBefore);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestGetFirstEmptyColumn()
+        {
+            string filePath = @"..\..\..\Test_Files\Has vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+            int expectedColumn = 3;
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            int emptyColumn = SheetUtils.GetFirstEmptyColumn(vocabSheet, 1);
+            Assert.AreEqual(expectedColumn, emptyColumn);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestCreateVocabularyList()
+        {
+            string filePath = @"..\..\..\Test_Files\Has vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+            string vocabTypeName = "NAME_TYPE2";
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            List<string> vocab = new List<string>();
+            vocab.Add("Complete Name");
+            vocab.Add("Systematic Name");
+            vocab.Add("Common Name");
+            vocab.Add("Code");
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            string expectedVocabReference = "=_gsrs_vocabularies_!$C$2:$C$5";
+            string vocabReference = SheetUtils.CreateVocabularyList(workbook, vocabTypeName, vocab);
+            Assert.AreEqual(expectedVocabReference, vocabReference);
+
+            Range testRange = vocabSheet.Range["C1"];
+            string testText = (string) testRange.Text;
+            Assert.AreEqual(vocabTypeName, testText);
+
+            testRange = vocabSheet.Range["C2"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(vocab[0], testText);
+
+            testRange = vocabSheet.Range["C3"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(vocab[1], testText);
+
+            testRange = vocabSheet.Range["C4"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(vocab[2], testText);
+
+            testRange = vocabSheet.Range["C5"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(vocab[3], testText);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestGetVocabularySheetExistsHidden()
+        {
+            string filePath = @"..\..\..\Test_Files\Has hidden vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            int countBefore = workbook.Sheets.Count;
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            Assert.IsNotNull(vocabSheet);
+            int countAfter = workbook.Sheets.Count;
+            Assert.AreEqual(countAfter, countBefore);
             workbook.Close(false);
         }
 

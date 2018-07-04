@@ -37,3 +37,7 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Vbe.Interop.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\stdole.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Newtonsoft.Json.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\System.Net.Http.Formatting.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Newtonsoft.Json.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\System.Net.Http.Formatting.xml

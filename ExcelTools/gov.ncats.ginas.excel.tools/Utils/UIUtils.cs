@@ -19,5 +19,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 MessageBoxButtons.YesNoCancel);
             return (result == DialogResult.Yes);
         }
+
+        public static DialogYesNoCancel GetUserYesNoCancel(string message)
+        {
+            DialogResult result = MessageBox.Show(message, "Select 'Yes', 'No' or 'Cancel' ",
+                MessageBoxButtons.YesNoCancel);
+            if (result == DialogResult.Yes) return DialogYesNoCancel.Yes;
+            if (result == DialogResult.No) return DialogYesNoCancel.No;
+            return DialogYesNoCancel.Cancel;
+        }
     }
 }

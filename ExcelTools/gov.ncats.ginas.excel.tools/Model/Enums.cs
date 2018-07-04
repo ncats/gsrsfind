@@ -9,4 +9,11 @@
         GetStructures =4,
         Other = 5
     }
+
+    public enum DialogYesNoCancel
+    {
+        Yes =1,
+        No =2,
+        Cancel =3
+    }
 }

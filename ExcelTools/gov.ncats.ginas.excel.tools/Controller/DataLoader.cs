@@ -115,6 +115,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     return true;
                 }
                 SheetUtils sheetUtils = new SheetUtils();
+                sheetUtils.Configuration = GinasConfiguration;
                 sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, selectedScriptName,
                     ScriptExecutor);
             }
@@ -505,11 +506,35 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string runnerName = "tmpRunner";
             //ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
-            foreach (string key in updateCallback.ParameterValues.Keys)
+            try
             {
-                string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
-                            key, updateCallback.ParameterValues[key]);
-                ScriptExecutor.ExecuteScript(paramValueScript);
+
+
+                foreach (string key in updateCallback.ParameterValues.Keys)
+                {
+                    //see if there's a vocabulary translation
+                    string parameterValue = updateCallback.ParameterValues[key];
+                    if (_scriptParameters.ContainsKey(key.ToUpper()) 
+                        && _scriptParameters[key.ToUpper()].Vocabulary != null
+                        && _scriptParameters[key.ToUpper()].Vocabulary.Count > 0)
+                    {
+                        if (!_scriptParameters[key.ToUpper()].Vocabulary.ContainsValue(parameterValue)
+                            && _scriptParameters[key.ToUpper()].Vocabulary.ContainsKey(parameterValue))
+                        {
+                            string newParameterValue = _scriptParameters[key.ToUpper()].Vocabulary[parameterValue];
+                            log.DebugFormat("Used vocabulary to translate {0} to {1}",
+                                parameterValue, newParameterValue);
+                            parameterValue = newParameterValue;
+                        }
+                    }
+                    string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
+                                key, parameterValue);
+                    ScriptExecutor.ExecuteScript(paramValueScript);
+                }
+            }
+            catch(Exception ex)
+            {
+                log.Error(ex);
             }
             string executionScript = runnerName + ".execute()" +
                                                      ".get(function(b){cresults['" +
@@ -548,6 +573,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
                             ScriptExecutor.ExecuteScript(tempScriptName
                             + ".getArgumentByName('" + key + "')");
                         ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
+                        if(!string.IsNullOrWhiteSpace(parameter.cvType))
+                        {
+                            Dictionary<string, string> vocab = VocabUtils.BuildVocabularyDictionary(
+                                GinasConfiguration.SelectedServer.ServerUrl, parameter.cvType);
+                            parameter.Vocabulary = vocab;
+                            log.Debug("Attached vocabulary for parameter " + key);
+                        }
+
                         _scriptParameters.Add(key, parameter);
                     }
                 }
