@@ -20,48 +20,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             bodyElement.InnerHtml = string.Empty;
 
             HtmlElement newDiv = document.CreateElement("div");
-            //HtmlElement advancedDiv = document.CreateElement("div");
-            //advancedDiv.SetAttribute("className", "advanced");
-            //HtmlElement apiLabel = document.CreateElement("label");
-            //apiLabel.SetAttribute("for", "apiBase");
-            //apiLabel.InnerText = "Base API URL:";
-            //HtmlElement apiInput = document.CreateElement("input");
-            //apiInput.SetAttribute("id", "apiBase");
-            ////apiInput.SetAttribute("value", "https://tripod.nih.gov/dev/ginas/app/api/v1/");
-            //apiInput.SetAttribute("value", "http://localhost:9000/ginas/app/api/v1");            
-            //advancedDiv.AppendChild(apiLabel);
-            //advancedDiv.AppendChild(apiInput);
-            //newDiv.AppendChild(advancedDiv);
-
-            //HtmlElement manualDiv = document.CreateElement("div");
-            //manualDiv.SetAttribute("className", "manual");
-            //HtmlElement dataDiv = document.CreateElement("div");
-            //dataDiv.SetAttribute("className", "data");
-            //HtmlElement h1 = document.CreateElement("h1");
-            //h1.InnerText = "Input";
-            //dataDiv.AppendChild(h1);
-            //manualDiv.AppendChild(dataDiv);
-            //HtmlElement inputTextarea = document.CreateElement("textarea");
-            //inputTextarea.SetAttribute("id", "input");
-            //manualDiv.AppendChild(inputTextarea);
-            //newDiv.AppendChild(manualDiv);
-
-            //HtmlElement buttonDiv = document.CreateElement("div");
-            //buttonDiv.SetAttribute("className", "buttons");
-            //HtmlElement button = document.CreateElement("button");
-            //button.SetAttribute("onclick", "resolve()");
-            //button.InnerText = "Map->";
-            //buttonDiv.AppendChild(button);
-            //newDiv.AppendChild(buttonDiv);
-            //HtmlElement dataDiv2 = document.CreateElement("div");
-            //dataDiv2.SetAttribute("className", "data");
-            //HtmlElement h12 = document.CreateElement("h1");
-            //h12.InnerText = "Output";
-            //dataDiv2.AppendChild(h12);
-            //HtmlElement textarea = document.CreateElement("textarea");
-            //textarea.SetAttribute("id", "output");
-            //dataDiv2.AppendChild(textarea);
-            //newDiv.AppendChild(dataDiv2);
 
             HtmlElement outputForm = document.CreateElement("form");
             outputForm.SetAttribute("id", "outputSettings");
@@ -88,6 +46,19 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 innerDiv.SetAttribute("className", "scriptdetails");
                 innerDiv.SetAttribute("id", "scriptdetails");
                 divElement.AppendChild(innerDiv);
+                HtmlElement brElement2 = document.CreateElement("br");
+                divElement.AppendChild(brElement2);
+
+                HtmlElement label = document.CreateElement("span");
+                label.InnerText = "Number of rows:";
+                divElement.AppendChild(label);
+                HtmlElement textBoxRows = document.CreateElement("input");
+                textBoxRows.SetAttribute("type", "text");
+                textBoxRows.SetAttribute("id", "numberOfRows");
+                textBoxRows.SetAttribute("name", "numberOfRows");
+                textBoxRows.SetAttribute("value", "10");
+                divElement.AppendChild(textBoxRows);
+
                 bodyElement.AppendChild(divElement);
             }
 
@@ -159,20 +130,20 @@ namespace gov.ncats.ginas.excel.tools.Utils
             h3Element.SetAttribute("className", "consolehead");
             h3Element.SetAttribute("id", "consoleHeadWebOutput");
             h3Element.InnerText = "Web output:";
-            if (!makeDebugVisible)
-            {
+            //if (!makeDebugVisible)
+            //{
                 h3Element.Style = "visibility:hidden";
-            }
+            //}
             mainFormElement.AppendChild(h3Element);
 
             brElement = document.CreateElement("br");
             mainFormElement.AppendChild(brElement);
             textAreaElement = document.CreateElement("textarea");
             textAreaElement.SetAttribute("id", "console");
-            if (!makeDebugVisible)
-            {
+            //if (!makeDebugVisible)
+            //{
                 textAreaElement.Style = "visibility:hidden";
-            }
+            //}
             mainFormElement.AppendChild(textAreaElement);
 
             brElement = document.CreateElement("br");
@@ -233,6 +204,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement metaCharset = document.CreateElement("meta");
             metaCharset.SetAttribute("http-equiv", "content-type");
             metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
+            metaCharset.InnerHtml = metaCharset.InnerHtml + Environment.NewLine;
             headElement.AppendChild(metaCharset);
 
             HtmlElement brElement = document.CreateElement("br");
@@ -247,6 +219,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             jQueryScript.SetAttribute("type", "text/javascript");
             jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
             //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.min.js");
+            jQueryScript.InnerHtml = jQueryScript.InnerHtml + Environment.NewLine;
             headElement.AppendChild(jQueryScript);
             headElement.AppendChild(brElement);
 

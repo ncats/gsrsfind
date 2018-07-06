@@ -2296,10 +2296,19 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         "key": "code", name: "CODE", description: "Code text of the new code", required: true
     })
     .addArgument({
-        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system of the new code", required: true
+        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system of the new code",
+        required: true,
+        opPromise: CVHelper.getTermList("CODE_SYSTEM"),
+        type: "cv",
+        cvType: "CODE_SYSTEM"
     })
     .addArgument({
-        "key": "codeType", name: "CODE TYPE", description: "Code type of code. For instance, whether it's a primary code", defaultValue: "PRIMARY", required: false
+        "key": "codeType", name: "CODE TYPE",
+        description: "Code type of code. For instance, whether it's a primary code",
+        defaultValue: "PRIMARY", required: false,
+        opPromise: CVHelper.getTermList("CODE_TYPE"),
+        type: "cv",
+        cvType: "CODE_TYPE"
     })
     .addArgument({
         "key": "comments", name: "CODE TEXT", description: "Text for code", required: false
@@ -2325,16 +2334,20 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         description: "Citation text for reference", required: false
     })
     .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        description: "Text for the record change", required: false
     })
     .addArgument({
-        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
     })
     .addArgument({
-        "key": "allow multiple", name: "ALLOW MULTIPLES", description: "Allow the entry of multiple codes within the same code system",
+        "key": "allow multiples", name: "ALLOW MULTIPLES",
+        description: "Allow the entry of multiple codes within the same code system",
         defaultValue: false, required: false
     })
     .setExecutor(function (args) {
@@ -2350,7 +2363,7 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         var referenceUrl = args['reference url'].getValue();
         var reference = null;
         var referenceTags = args['reference tags'].getValue();
-        var allowMultipleInput = args['allow multiple'].getValue();
+        var allowMultipleInput = args['allow multiples'].getValue();
         var allowMultiple = false;
         if (allowMultipleInput &&
             (allowMultipleInput === true ||
@@ -2396,7 +2409,6 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
             code.setCodeComments(codeComments);
         }
 
-        /*eturn SubstanceFinder.get(uuid) */
         return GGlob.SubstanceFinder.searchByExactNameOrCode(pt)
             .andThen(function (resp) {
                 if (resp.content && resp.content.length >= 1) {
@@ -2457,19 +2469,34 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         "key": "code", name: "CODE", description: "Code text of the new code", required: true
     })
     .addArgument({
-        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system for the old and new codes", required: true
+        "key": "codeSystem", name: "CODE SYSTEM",
+        description: "Code system for the old and new codes", required: true,
+        opPromise: CVHelper.getTermList("CODE_SYSTEM"),
+        type: "cv",
+        cvType: "CODE_SYSTEM"
+
     })
     .addArgument({
-        "key": "codeType", name: "CODE TYPE", description: "Code type of code. For instance, primary", defaultValue: "PRIMARY", required: false
+        "key": "codeType", name: "CODE TYPE",
+        description: "Code type of code. For instance, primary", defaultValue: "PRIMARY",
+        required: false,
+        opPromise: CVHelper.getTermList("CODE_TYPE"),
+        type: "cv",
+        cvType: "CODE_TYPE"
     })
     .addArgument({
-        "key": "comments", name: "CODE TEXT", description: "Text for new/replacement code", required: false
+        "key": "comments", name: "CODE TEXT", description: "Description new/replacement code",
+        required: false
     })
     .addArgument({
-        "key": "url", name: "CODE URL", description: "URL to evaluate this code (this is distinct from the reference URL)", required: false
+        "key": "url", name: "CODE URL",
+        description: "URL to evaluate this code (this is distinct from the reference URL)",
+        required: false
     })
     .addArgument({
-        "key": "public", name: "PD", description: "Public Domain status of the code (sets access for reference as well)", defaultValue: false, required: false
+        "key": "public", name: "PD",
+        description: "Public Domain status of the code (sets access for reference as well)",
+        defaultValue: false, required: false
     })
     .addArgument({
         "key": "referenceType", name: "REFERENCE TYPE",
@@ -2695,7 +2722,10 @@ Script.builder().mix({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system to modify", required: true, defaultValue: "CAS"
+        /*deliberately NOT making this a controlled vocabulary because we want to allow for removal
+         of a code whose type might have been removed from the CV*/
+        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system to modify",
+        required: true, defaultValue: "CAS"
     })
     .addArgument({
         "key": "changeReason", name: "CHANGE REASON", defaultValue: "Fixing Code URLs", description: "Text for the record change", required: false
@@ -2762,10 +2792,12 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        "key": "json", name: "JSON STRING", description: "JSON version of record to replace", required: true
+        "key": "json", name: "JSON STRING", description: "JSON version of record to replace",
+        required: true
     })
     .addArgument({
-        "key": "changeReason", name: "CHANGE REASON", description: "Text for the record change", required: false
+        "key": "changeReason", name: "CHANGE REASON",
+        description: "Text for the record change", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -2811,16 +2843,10 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     })
 
     .setExecutor(function (args) {
-
         var ACCESS_NONE = '[NONE]';
-
         var uuid = args.uuid.getValue();
-
         var codeSystem = args['code system'].getValue();
-
         var access = args['new access'].getValue();
-
-
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
                 s0 = s;
@@ -2889,9 +2915,12 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         }
     })
     .addArgument({
-        "key": "pt lang", name: "PT LANGUAGE", description: "2-letter language abbreviation for Preferred Term",
-        required: true, defaultValue: "en"
-        /*todo: add validator to make sure value corresponds to one of the members of the list of known languages*/
+        "key": "pt language", name: "PT LANGUAGE",
+        description: "language for Preferred Term",
+        required: true, defaultValue: "English",
+        opPromise: CVHelper.getTermList("LANGUAGE"),
+        type: "cv",
+        cvType: "LANGUAGE"
     })
     .addArgument({
         "key": "pt name type", name: "PT NAME TYPE",
@@ -2944,6 +2973,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         defaultValue: false, required: false
     })
     .setExecutor(function (args) {
+        console.log('Starting in Create Substance executor');
         var pt = args.pt.getValue();
         var substanceClass = args['substance class'].getValue();
 
@@ -2955,7 +2985,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         var molfileText = args.molfile.getValue();
         var nameType = args['pt name type'].getValue();
         console.log('nameType: ' + nameType);
-        var nameLang = args['pt lang'].getValue();
+        var nameLang = args['pt language'].getValue();
 
         var refuuid = GSRSAPI.builder().UUID.randomUUID();
         var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
@@ -2974,13 +3004,14 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
 
         var langs = [];
         langs.push(nameLang);
+        console.log('pushed ' + nameLang + ' onto langs');
         var name = Name.builder().setName(pt)
             .setType(nameType)
             .setPublic(public)
             .setPreferred(true)
             .setLanguages(langs)
             .addReference(reference);
-
+        console.log('created name');
         var simpleSub = {
             substanceClass: substanceClass,
             access: ["protected"],

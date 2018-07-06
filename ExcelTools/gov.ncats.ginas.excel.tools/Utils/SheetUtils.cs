@@ -92,7 +92,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             scriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + scriptName + "');");
             scriptExecutor.ExecuteScript("tmpRunner=tmpScript.runner();");
-
+            int numberOfRows = GetNumberOfRows(scriptExecutor);
             Worksheet nsheet;
             int i;
 
@@ -137,32 +137,34 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 List<VocabItem> vocabItems = GetVocab(vocabularyName);
                 if (vocabItems.Count > 0)
                 {
-                    Range vocabCell = cell.Offset[1, 0];
-                    log.DebugFormat("Will add {0} total vocabulary items to {1}", vocabItems.Count,
-                        vocabCell.Address);
-                    vocabCell.Validation.Delete();
-                    //string vocabString = GetVocabDisplayString(vocabItems);
-                    //the string contains a reference to a range of cells in a hidden sheet
-                    // that contain the allowed values.
-                    string vocabString = CreateVocabularyList(workbook, vocabularyName, 
-                        vocabItems.Select(v=>v.Display).ToList());
-                    log.Debug("using vocabString: " + vocabString);
-                    try
+                    for (int row = 1; row <= numberOfRows; row++)
                     {
-                        vocabCell.Validation.Add(XlDVType.xlValidateList, 
-                            XlDVAlertStyle.xlValidAlertStop,
-                            XlFormatConditionOperator.xlEqual, vocabString);
+                        Range vocabCell = cell.Offset[row, 0];
+                        log.DebugFormat("Will add {0} total vocabulary items to {1}", vocabItems.Count,
+                            vocabCell.Address);
+                        vocabCell.Validation.Delete();
+                        //the string contains a reference to a range of cells in a hidden sheet
+                        // that contain the allowed values.
+                        string vocabString = CreateVocabularyList(workbook, vocabularyName,
+                            vocabItems.Select(v => v.Display).ToList());
+                        log.Debug("using vocabString: " + vocabString);
+                        try
+                        {
+                            vocabCell.Validation.Add(XlDVType.xlValidateList,
+                                XlDVAlertStyle.xlValidAlertStop,
+                                XlFormatConditionOperator.xlEqual, vocabString);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error(ex);
+                        }
+                        vocabCell.Validation.IgnoreBlank = true;
+                        vocabCell.Validation.InCellDropdown = true;
+                        vocabCell.Validation.InputTitle = "";
+                        vocabCell.Validation.ErrorMessage = "Please select one of the values listed and preserve text case!";
+                        vocabCell.Validation.ShowError = true;
+                        vocabCell.Validation.ShowInput = true;
                     }
-                    catch (Exception ex)
-                    {
-                        log.Error(ex);
-                    }
-                    vocabCell.Validation.IgnoreBlank = true;
-                    vocabCell.Validation.InCellDropdown = true;
-                    vocabCell.Validation.InputTitle = "";
-                    vocabCell.Validation.ErrorMessage = "Please select one of the values listed and preserve text case!";
-                    vocabCell.Validation.ShowError = true;
-                    vocabCell.Validation.ShowInput = true;
                 }
             }
 
@@ -305,6 +307,29 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             return string.Join(",", vocabItems.Where(v => !v.Deprecated).Select(vi => vi.Display).ToArray());
         }
+
+        private int GetNumberOfRows(IScriptExecutor scriptExecutor)
+        {
+            object numberOfRowsObj = scriptExecutor.ExecuteScript("$('#numberOfRows').val()");
+            log.DebugFormat("numberOfRowsObj : {0}", numberOfRowsObj);
+            if ( numberOfRowsObj != null )
+            {
+                try
+                {
+                    int numberOfRows = Convert.ToInt32(numberOfRowsObj);
+                    log.DebugFormat("Successful pars of numberOfRows: {0}", numberOfRows);
+                    return numberOfRows;
+                }
+                catch(FormatException ex)
+                {
+                    log.WarnFormat("Error parsing number from {0}", numberOfRowsObj);
+                }
+                catch (OverflowException ex)
+                {
+                    log.WarnFormat("Overflow error parsing number from {0}", numberOfRowsObj);
+                }
+            }
+            return 1;
+        }
     }
 }
-

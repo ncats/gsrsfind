@@ -154,8 +154,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                         ExecuteScript(_scriptToRunUponCompletion);
                     }
                 }
-                buttonDebugDOM.Enabled = _configuration.DebugMode;
-                buttonDebugDOM.Visible = _configuration.DebugMode;
+                buttonDebugDOM.Enabled = false; //_configuration.DebugMode;
+                buttonDebugDOM.Visible = false;//_configuration.DebugMode;
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
             {
@@ -201,7 +201,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public object ExecuteScript(string script)
         {
-            //webBrowser1.ScriptErrorsSuppressed = true;
+            webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
             if( _configuration.DebugMode)
             {
@@ -294,11 +294,11 @@ namespace gov.ncats.ginas.excel.tools.UI
 
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             int iter = 0;
-            while (webBrowser1.IsBusy && ++iter < 10000)
+            while (webBrowser1.IsBusy && ++iter < 5000)
             {
                 log.Debug("busy (2)...");
                 System.Threading.Thread.Sleep(10);
-                if ((iter % 100) == 0)
+                if ((iter % 500) == 0)
                 {
                     DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?");
                     switch( result)
@@ -307,12 +307,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                             DomUtils.BuildDocumentHead(webBrowser1.Document);
                             break;
                         case DialogYesNoCancel.Cancel:
+                            UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
                             return;
                         default:
+                            System.Threading.Thread.Sleep(10);
                             continue;
                     }
                 }
-            }            
+            }
 
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
