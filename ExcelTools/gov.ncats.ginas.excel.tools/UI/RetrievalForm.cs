@@ -201,7 +201,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public object ExecuteScript(string script)
         {
-            webBrowser1.ScriptErrorsSuppressed = true;
+            //webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
             if( _configuration.DebugMode)
             {
@@ -318,7 +318,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
-                _configuration.DebugMode);
+                (_configuration.DebugMode || checkBoxSaveDiagnostic.Checked));
             webBrowser1.Document.Title = "ginas Tools";
             webBrowser1.Document.Body.SetAttribute("className", string.Empty);
             webBrowser1.Document.Body.Style = "padding-top:10px";
@@ -347,6 +347,11 @@ namespace gov.ncats.ginas.excel.tools.UI
         public void HandleClick(object obj, EventArgs args)
         {
             MessageBox.Show(args.ToString());
+        }
+
+        public bool GetDebugSetting()
+        {
+            return checkBoxSaveDiagnostic.Checked;
         }
 
         private void buttonDebugDOM_Click(object sender, EventArgs e)

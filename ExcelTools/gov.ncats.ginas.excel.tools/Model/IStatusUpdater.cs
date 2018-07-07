@@ -11,5 +11,7 @@ namespace gov.ncats.ginas.excel.tools.Model
         void UpdateStatus(string message);
 
         void Complete();
+
+        bool GetDebugSetting();
     }
 }

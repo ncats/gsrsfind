@@ -58,6 +58,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 textBoxRows.SetAttribute("name", "numberOfRows");
                 textBoxRows.SetAttribute("value", "10");
                 divElement.AppendChild(textBoxRows);
+                HtmlElement label2 = document.CreateElement("span");
+                label2.InnerText = "(Extra rows do not cause a problem)";
+                label2.Style = "SmallerText";
+                divElement.AppendChild(label2);
 
                 bodyElement.AppendChild(divElement);
             }
@@ -258,8 +262,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
             styleElement.SetAttribute("type", "text/css");
             styleElement.InnerHtml = FileUtils.GetCss();
             headElement.AppendChild(styleElement);
-
+            log.Debug("completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
+
         public static HtmlElement GetFirstHead(HtmlDocument document)
         {
             foreach (HtmlElement elem in document.All)

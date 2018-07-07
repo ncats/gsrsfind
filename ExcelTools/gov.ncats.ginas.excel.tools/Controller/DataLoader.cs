@@ -595,7 +595,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
                 if(! updateCallback.getKey().Equals(_currentKey))
                 {
-                    if (GinasConfiguration.DebugMode
+                    if ((GinasConfiguration.DebugMode || StatusUpdater.GetDebugSetting())
                         && updateCallback.RunnerNumber % CONSOLE_CLEARANCE_INTERVAL == 0)
                     {
                         SaveAndClearDebugInfo();

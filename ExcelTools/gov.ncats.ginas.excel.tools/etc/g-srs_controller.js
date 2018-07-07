@@ -1112,6 +1112,28 @@ var GSRSAPI = {
                 return ref;
             }
         };
+        var Relationship = {
+            builder: function () {
+                var relationship = CommonData.builder();
+                relationship._type = "relationship";
+                relationship._path = "/relationships/-";
+                relationship.relatedSubstance = {};
+                relationship.type = "";
+                relationship.setType = function (type) {
+                    relationship.type = type;
+                    return relationship;
+                };
+                relationship.setRelatedSubstance = function (relatedSubstance) {
+                    
+                    relationship.relatedSubstance = {
+                        refuuid: relatedSubstance.uuid
+                    }
+                    return relationship;
+                };
+
+                return relationship;
+            }
+        };
 
         g_api.CommonData = CommonData;
         g_api.Name = Name;
@@ -1831,7 +1853,10 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         name: "LANGUAGE",
         description: "Language of the new name",
         defaultValue: "English",
-        required: false
+        required: false,
+        opPromise: CVHelper.getTermList("LANGUAGE"),
+        type: "cv",
+        cvType: "LANGUAGE"
     })
     .addArgument({
         "key": "pd", name: "PD", description: "Public Domain status of the name (sets access for reference as well)", defaultValue: false, required: false
@@ -1888,17 +1913,35 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         var name = Name.builder().setName(name)
             .setType(nameType)
             .setPublic(public)
-            .addReference(reference)
             .setLanguages(langs);
         
         console.log('name: ' + JSON.stringify(name));
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                return s.patch()
-                    .addData(name)
-                    .add("/changeReason", args['change reason'].getValue())
-                    .apply()
-                    .andThen(_.identity);
+                console.log('going to check references');
+                var substance = GGlob.SubstanceBuilder.fromSimple(s);
+                return substance.fetch("references")
+                    .andThen(function (refs) {
+                        console.log('retrieved refs');
+                        _.forEach(refs, function (ref) {
+                            if (ref.citation === referenceCitation
+                                && ref.docType === referenceType
+                                && ref.url === referenceUrl
+                                && ref.publicDomain === public) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                            }
+                        });
+                        name.addReference(reference);
+                    })
+                    .andThen(function (s2) {
+                        return s.patch()
+                            .addData(name)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
+
+                    });
             });
     })
     .useFor(function (s) {
@@ -1957,8 +2000,11 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         "key": "language",
         name: "LANGUAGE",
         description: "Language of the new name",
-        defaultValue: "English",
-        required: false
+        defaultValue: "en",
+        required: false,
+        opPromise: CVHelper.getTermList("LANGUAGE"),
+        type: "cv",
+        cvType: "LANGUAGE"
     })
     .addArgument({
         "key": "pd", name: "PD",
@@ -2029,11 +2075,30 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         console.log('name: ' + JSON.stringify(name));
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                return s.patch()
-                    .addData(name)
-                    .add("/changeReason", args["change reason"].getValue())
-                    .apply()
-                    .andThen(_.identity);
+                console.log('going to check references');
+                var substance = GGlob.SubstanceBuilder.fromSimple(s);
+                return substance.fetch("references")
+                    .andThen(function (refs) {
+                        console.log('retrieved refs');
+                        _.forEach(refs, function (ref) {
+                            if (ref.citation === referenceCitation
+                                && ref.docType === referenceType
+                                && ref.url === referenceUrl
+                                && ref.publicDomain === public) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                            }
+                        });
+                        name.addReference(reference);
+                    })
+                    .andThen(function (s2) {
+                        return s.patch()
+                            .addData(name)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
+
+                    });
             });
     })
     .useFor(function (s) {
@@ -2138,10 +2203,30 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                return s.patch().addData(code)
-                    .add("/changeReason", args['change reason'].getValue())
-                    .apply()
-                    .andThen(_.identity);
+                console.log('going to check references');
+                var substance = GGlob.SubstanceBuilder.fromSimple(s);
+                return substance.fetch("references")
+                    .andThen(function (refs) {
+                        console.log('retrieved refs');
+                        _.forEach(refs, function (ref) {
+                            if (ref.citation === referenceCitation
+                                && ref.docType === referenceType
+                                && ref.url === referenceUrl
+                                && ref.publicDomain === public) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                            }
+                        });
+                        name.addReference(reference);
+                    })
+                    .andThen(function (s2) {
+                        return s.patch()
+                            .addData(name)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
+
+                    });
             });
     })
     .useFor(Scripts.addScript);
@@ -2228,13 +2313,15 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var uuid2 = args.uuid2.getValue();
+        console.log('got uuid: ' + uuid + '; and uuid2 ' + uuid2);
         var relationshiptype = args['relationship type'].getValue();
-        var public = args.public.getValue();
+        console.log('got relationshiptype: ' + relationshiptype);
+        var public = args.pd.getValue();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
         var referenceTags = args['reference tags'].getValue();
-
+        console.log('got remaining parms ' );
         var reference = null;
         if (referenceType != null && referenceCitation != null) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
@@ -2260,8 +2347,10 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
 
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
+                console.log('in andThen');
                 return SubstanceFinder.get(uuid2)
                     .andThen(function (s2) {
+                        console.log('in andThen2. ');
                         /*construct the relationship object*/
                         var relationship = Relationship.builder()
                             .setRelatedSubstance(s2) /*make sure this works!*/
@@ -2296,14 +2385,14 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         "key": "code", name: "CODE", description: "Code text of the new code", required: true
     })
     .addArgument({
-        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system of the new code",
+        "key": "code system", name: "CODE SYSTEM", description: "Code system of the new code",
         required: true,
         opPromise: CVHelper.getTermList("CODE_SYSTEM"),
         type: "cv",
         cvType: "CODE_SYSTEM"
     })
     .addArgument({
-        "key": "codeType", name: "CODE TYPE",
+        "key": "code type", name: "CODE TYPE",
         description: "Code type of code. For instance, whether it's a primary code",
         defaultValue: "PRIMARY", required: false,
         opPromise: CVHelper.getTermList("CODE_TYPE"),
@@ -2311,10 +2400,10 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         cvType: "CODE_TYPE"
     })
     .addArgument({
-        "key": "comments", name: "CODE TEXT", description: "Text for code", required: false
+        "key": "comments", name: "COMMENTS", description: "Text for code", required: false
     })
     .addArgument({
-        "key": "url", name: "CODE URL", description: "URL to evaluate this code (this is distinct from the reference URL)", required: false
+        "key": "code url", name: "CODE URL", description: "URL to evaluate this code (this is distinct from the reference URL)", required: false
     })
     .addArgument({
         "key": "pd", name: "PD",
@@ -2356,7 +2445,7 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
-        var url = args.url.getValue();
+        var url = args['code url'].getValue();
         var public = args.pd.getValue();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
@@ -2469,15 +2558,14 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         "key": "code", name: "CODE", description: "Code text of the new code", required: true
     })
     .addArgument({
-        "key": "codeSystem", name: "CODE SYSTEM",
+        "key": "code system", name: "CODE SYSTEM",
         description: "Code system for the old and new codes", required: true,
         opPromise: CVHelper.getTermList("CODE_SYSTEM"),
         type: "cv",
         cvType: "CODE_SYSTEM"
-
     })
     .addArgument({
-        "key": "codeType", name: "CODE TYPE",
+        "key": "code type", name: "CODE TYPE",
         description: "Code type of code. For instance, primary", defaultValue: "PRIMARY",
         required: false,
         opPromise: CVHelper.getTermList("CODE_TYPE"),
@@ -2485,21 +2573,21 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         cvType: "CODE_TYPE"
     })
     .addArgument({
-        "key": "comments", name: "CODE TEXT", description: "Description new/replacement code",
+        "key": "comments", name: "COMMENTS", description: "Description new/replacement code",
         required: false
     })
     .addArgument({
-        "key": "url", name: "CODE URL",
+        "key": "code url", name: "CODE URL",
         description: "URL to evaluate this code (this is distinct from the reference URL)",
         required: false
     })
     .addArgument({
-        "key": "public", name: "PD",
+        "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
         defaultValue: false, required: false
     })
     .addArgument({
-        "key": "referenceType", name: "REFERENCE TYPE",
+        "key": "reference type", name: "REFERENCE TYPE",
         description: "Type of reference (must match a vocabulary)",
         defaultValue: "SYSTEM", required: false,
         opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
@@ -2507,7 +2595,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         cvType: "DOCUMENT_TYPE"
     })
     .addArgument({
-        "key": "referenceCitation", name: "REFERENCE CITATION",
+        "key": "reference citation", name: "REFERENCE CITATION",
         description: "Citation text for reference", required: false
     })
     .addArgument({
@@ -2517,21 +2605,21 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         "key": "changeReason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
     })
     .addArgument({
-        "key": "referenceTags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
     })
     .setExecutor(function (args) {
         var pt = args.pt.getValue();
         var codeValue = args.code.getValue();
-        var codeType = args.codeType.getValue();
-        var codeSystem = args.codeSystem.getValue();
+        var codeType = args['code type'].getValue();
+        var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
-        var url = args.url.getValue();
-        var public = args.public.getValue();
-        var referenceType = args.referenceType.getValue();
-        var referenceCitation = args.referenceCitation.getValue();
+        var url = args['code url'].getValue();
+        var public = args.pd.getValue();
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
         var reference = null;
-        var referenceTags = args.referenceTags.getValue();
+        var referenceTags = args['reference tags'].getValue();
 
         if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
@@ -2677,7 +2765,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         }
     })
     .addArgument({
-        "key": "changeReason", name: "CHANGE REASON", defaultValue: "Delete Name", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name", description: "Text for the record change", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -2724,22 +2812,24 @@ Script.builder().mix({
     .addArgument({
         /*deliberately NOT making this a controlled vocabulary because we want to allow for removal
          of a code whose type might have been removed from the CV*/
-        "key": "codeSystem", name: "CODE SYSTEM", description: "Code system to modify",
+        "key": "code system", name: "CODE SYSTEM", description: "Code system to modify",
         required: true, defaultValue: "CAS"
     })
     .addArgument({
-        "key": "changeReason", name: "CHANGE REASON", defaultValue: "Fixing Code URLs", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Fixing Code URLs", description: "Text for the record change", required: false
     })
 
     .addArgument({
-        "key": "urlBase", name: "URL BASE", defaultValue: "Stem for the formation of URLs, with Code to be appended", description: "Text for the record change", required: true
+        "key": "url base", name: "URL BASE",
+        defaultValue: "Stem for the formation of URLs, with Code to be appended",
+        description: "Text for the record change", required: true
     })
 
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
-        var codeSystem = args.codeSystem.getValue();
+        var codeSystem = args['code system'].getValue();
 
-        var urlBase = args.urlBase.getValue();
+        var urlBase = args['url base'].getValue();
 
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
@@ -3059,7 +3149,6 @@ Script.builder().mix({ name: "Touch Record", description: "Retrieve a substance 
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
-
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Trigger update processing", description: "Text for the record change", required: false
     })
@@ -3086,7 +3175,6 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
-
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: true,
         "validator": function (val, cargs) {
