@@ -1126,7 +1126,8 @@ var GSRSAPI = {
                 relationship.setRelatedSubstance = function (relatedSubstance) {
                     
                     relationship.relatedSubstance = {
-                        refuuid: relatedSubstance.uuid
+                        refuuid: relatedSubstance.uuid,
+                        refPname: relatedSubstance._name
                     }
                     return relationship;
                 };
