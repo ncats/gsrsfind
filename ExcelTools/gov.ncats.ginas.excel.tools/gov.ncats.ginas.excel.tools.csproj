@@ -313,9 +313,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="etc\BuildPage.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="etc\error page.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

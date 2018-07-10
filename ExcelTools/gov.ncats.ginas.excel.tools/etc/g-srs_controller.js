@@ -1916,7 +1916,6 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             .setPublic(public)
             .setLanguages(langs);
         
-        console.log('name: ' + JSON.stringify(name));
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
                 console.log('going to check references');
@@ -2073,7 +2072,6 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
             .addReference(reference)
             .setLanguages(langs);
 
-        console.log('name: ' + JSON.stringify(name));
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
                 console.log('going to check references');
@@ -2192,8 +2190,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             .setType(codeType)
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
-            .setPublic(public)
-            .addReference(reference);
+            .setPublic(public);
+            /*.addReference(reference);*/
 
         if (url) {
             code.setUrl(url);
@@ -2204,7 +2202,6 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                console.log('going to check references');
                 var substance = GGlob.SubstanceBuilder.fromSimple(s);
                 return substance.fetch("references")
                     .andThen(function (refs) {
@@ -2218,16 +2215,17 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                 reference = ref;
                             }
                         });
-                        name.addReference(reference);
+                        code.addReference(reference);
                     })
                     .andThen(function (s2) {
-                        return s.patch()
-                            .addData(name)
+                        /*use s for patch because s2 has a different structure*/
+                        return substance.patch()
+                            .addData(code)
                             .add("/changeReason", args['change reason'].getValue())
                             .apply()
                             .andThen(_.identity);
+                    })
 
-                    });
             });
     })
     .useFor(Scripts.addScript);
@@ -2600,10 +2598,10 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         description: "Citation text for reference", required: false
     })
     .addArgument({
-        "key": "referenceUrl", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
     })
     .addArgument({
-        "key": "changeReason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
     })
     .addArgument({
         "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
@@ -2684,16 +2682,27 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                                             indexReferencesToRemove.push(i);
                                         }
                                     }
-                                    if (indexCodeToRemove > -1 && indexReferenceToRemove > -1) {
-                                        console.log('going to remove reference ' +
-                                            referenceCollection[indexReferenceToRemove].url);
-                                        return rec.patch()
-                                            .remove("/codes/" + indexCodeToRemove)
-                                            .remove("/references/" + indexReferenceToRemove)
-                                            .addData(code)
-                                            .add("/changeReason", args['change reason'].getValue())
-                                            .apply()
-                                            .andThen(_.identity);
+                                    if (indexCodeToRemove > -1 ) {
+                                        /*console.log('going to remove reference ' +
+                                            referenceCollection[indexReferenceToRemove].url);*/
+                                        if (indexReferenceToRemove > -1) {
+                                            return rec.patch()
+                                                .remove("/codes/" + indexCodeToRemove)
+                                                .remove("/references/" + indexReferenceToRemove)
+                                                .addData(code)
+                                                .add("/changeReason", args['change reason'].getValue())
+                                                .apply()
+                                                .andThen(_.identity);
+                                        }
+                                        else {
+                                            return rec.patch()
+                                                .remove("/codes/" + indexCodeToRemove)
+                                                .addData(code)
+                                                .add("/changeReason", args['change reason'].getValue())
+                                                .apply()
+                                                .andThen(_.identity);
+                                        }
+                                        
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }
@@ -2752,7 +2761,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         }
     })
     .addArgument({
-        "key": "name", name: "NAME", description: "Name text of the name to delete", required: true,
+        "key": "name", name: "NAME", description: "Text of the name to delete", required: true,
         "validator": function (val) {
             /*todo: change this validator to search by UUID, then look for the name among the record's names*/
             return GGlob.SubstanceFinder.searchByExactName(val)
@@ -2766,7 +2775,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         }
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
+        description: "Text for the record change log", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -2791,7 +2801,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
                     return { valid: false, message: "Unable to locate name to delete: " + nameToRemove }
                 }
                 return s0.patch()
-                    .remove("/names/" + nameIndex, args['change reason'].getValue())
+                    .remove("/names/" + nameIndex) /*, args['change reason'].getValue())*/
+                    .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(function (s0) {
                         return s0;

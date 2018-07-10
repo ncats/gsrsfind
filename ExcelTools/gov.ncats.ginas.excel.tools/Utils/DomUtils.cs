@@ -212,10 +212,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             headElement.AppendChild(metaCharset);
 
             HtmlElement brElement = document.CreateElement("br");
+            brElement.InnerHtml += Environment.NewLine;
 
             HtmlElement metaCompat = document.CreateElement("meta");
             metaCompat.SetAttribute("http-equiv", "X-UA-Compatible");
             metaCompat.SetAttribute("content", "IE=Edge");
+            metaCompat.InnerHtml += Environment.NewLine;
             headElement.AppendChild(metaCompat);
             headElement.AppendChild(brElement);
 
@@ -230,6 +232,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement lodashScript = document.CreateElement("script");
             lodashScript.SetAttribute("type", "text/javascript");
             lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
+            lodashScript.InnerHtml = lodashScript.InnerHtml + Environment.NewLine;
             headElement.AppendChild(lodashScript);
             headElement.AppendChild(brElement);
 
@@ -242,6 +245,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement bootstrapScript = document.CreateElement("script");
             bootstrapScript.SetAttribute("type", "text/javascript");
             bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
+            bootstrapScript.InnerHtml += Environment.NewLine;
             headElement.AppendChild(bootstrapScript);
             headElement.AppendChild(brElement);
 
