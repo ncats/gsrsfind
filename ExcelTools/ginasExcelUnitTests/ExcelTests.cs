@@ -285,8 +285,6 @@ namespace ginasExcelUnitTests
         public void RetrieverStartOperationTest()
         {
             Retriever retriever = new Retriever();
-            
-
             string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
             filePath = Path.GetFullPath(filePath);
 
@@ -584,6 +582,39 @@ namespace ginasExcelUnitTests
             workbook.Close(false);
         }
 
+        [TestMethod]
+        public void TestJsonHandling()
+        {
+            string filePath = @"..\..\..\Test_Files\json data.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            string json = (string) ((Range)sheet.Cells[2, 3]).Value2;
+
+            string charToReplace = ((char)10).ToString();
+            string transformedJson = json.Replace(charToReplace, "\\n");
+
+            //byte[] asciiBytes = Encoding.ASCII.GetBytes(json);
+            //for ( int i = 0; i<120; i++)
+            //{
+            //    char curr =json.ToArray()[i];
+            //    int val = (int) curr;
+            //    Console.WriteLine(string.Format("pos {0}; char: {1}; value: {2} ",
+            //        i, curr, val));
+            //}
+            //string eol = Environment.NewLine;
+            //for (int i = 0; i < eol.Length; i++)
+            //{
+            //    char curr = eol.ToArray()[i];
+            //    int val = (int)curr;
+            //    Console.WriteLine(string.Format("eol pos {0}; char: {1}; value: {2} ",
+            //        i, curr, val));
+            //}
+            Console.WriteLine(transformedJson);
+            Assert.AreNotEqual(json, transformedJson);
+            
+        }
         private Workbook ReadDefaultExcelWorkbook()
         {
 

@@ -19,5 +19,10 @@ namespace ginasExcelUnitTests.Model
         {
             Console.WriteLine(message);
         }
+
+        public bool GetDebugSetting()
+        {
+            return true;
+        }
     }
 }

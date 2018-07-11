@@ -103,61 +103,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         SheetUtils.FindRow(ExcelSelection, key, currentColumn);
                     if (_resolveToNewSheet)
                     {
-                        //increase row by one to account for header
-                        int originalRowNum = FindRowForKey(key);
-                        if (originalRowNum < 0)
+                        if(!ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
                         {
-                            keyResult = "Unable to locate for for key " + key;
-                            log.Warn(keyResult);
                             continue;
                         }
-                        int rowForData = originalRowNum + 1;
-
-                        string cellId = SheetUtils.GetColumnName(currentColumn) + rowForData;
-                        log.DebugFormat("Located row {0} for key {1}. CellId: {2}",
-                            originalRowNum, key, cellId);
-                        dataRow = rowForData;
-                        Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                        try
-                        {
-                            currentCell.NumberFormat = "@";//prevent cas numbers from being interpreted as dates
-                        }
-                        catch (Exception ex)
-                        {
-                            log.WarnFormat("Error setting format for call {0}. Error: {1} ",
-                                cellId, ex.Message);
-                        }
-
-                        currentCell.Value = key;
                     }
-                    for (int part = 1; part < messageParts.Length; part++)
-                    {
-                        int column = currentColumn + part;
-                        string cellId = SheetUtils.GetColumnName(column) + dataRow;
-                        string result = messageParts[part];
-                        if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
-                        string imageFormat = Properties.Resources.ImageFormat;
-
-                        if (ImageOps.IsImageUrl(result))
-                        {
-                            if (ImageOps.RemoteFileExists(result))
-                            {
-                                log.Debug("(image)");
-                                cellId = SheetUtils.GetColumnName(column - 1) + dataRow;
-                                Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                                imageOps.AddImageCaption(currentCell, result, 240);
-                            }
-                            else
-                            {
-                                keyResult = "Invalid Image URL";
-                            }
-                        }
-                        else
-                        {
-                            Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                            currentCell.Value = result;
-                        }
-                    }
+                    TransferDataToRow(messageParts, currentColumn, dataRow, imageOps);
                     results.Add(key, keyResult);
                     System.Windows.Forms.Application.DoEvents();
                 }
@@ -185,6 +136,72 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return results;
         }
 
+        public bool ResolveRowToNewSheet(int currentColumn, string key, ref int dataRow,
+            ref string keyResult)
+        {
+            //string keyResult = string.Empty;
+            //increase row by one to account for header
+            int originalRowNum = FindRowForKey(key);
+            if (originalRowNum < 0)
+            {
+                keyResult = "Unable to locate for for key " + key;
+                log.Warn(keyResult);
+                return false;
+            }
+            int rowForData = originalRowNum + 1;
+
+            string cellId = SheetUtils.GetColumnName(currentColumn) + rowForData;
+            log.DebugFormat("Located row {0} for key {1}. CellId: {2}",
+                originalRowNum, key, cellId);
+            dataRow = rowForData;
+            Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+            try
+            {
+                currentCell.NumberFormat = "@";//prevent cas numbers from being interpreted as dates
+            }
+            catch (Exception ex)
+            {
+                log.WarnFormat("Error setting format for call {0}. Error: {1} ",
+                    cellId, ex.Message);
+            }
+
+            currentCell.Value = key;
+            return true;
+        }
+
+        public string TransferDataToRow(string[] data, int currentColumn, int dataRow,
+            ImageOps imageOps)
+        {
+            for (int part = 1; part < data.Length; part++)
+            {
+                int column = currentColumn + part;
+                string cellId = SheetUtils.GetColumnName(column) + dataRow;
+                string result = data[part];
+                if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
+                string imageFormat = Properties.Resources.ImageFormat;
+
+                if (ImageOps.IsImageUrl(result))
+                {
+                    if (ImageOps.RemoteFileExists(result))
+                    {
+                        log.Debug("(image)");
+                        cellId = SheetUtils.GetColumnName(column - 1) + dataRow;
+                        Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+                        imageOps.AddImageCaption(currentCell, result, 240);
+                    }
+                    else
+                    {
+                        return "Invalid Image URL";
+                    }
+                }
+                else
+                {
+                    Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
+                    currentCell.Value = result;
+                }
+            }
+            return string.Empty;
+        }
         public bool StartResolution(bool newSheet)
         {
             _resolveToNewSheet = newSheet;

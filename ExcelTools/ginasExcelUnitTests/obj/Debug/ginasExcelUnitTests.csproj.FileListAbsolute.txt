@@ -2,7 +2,6 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Visual
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.config
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\BuildPage.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\error page.html
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\LastScript.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.dll

@@ -106,7 +106,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             if (webBrowser1.DocumentTitle.Equals(_expectedTitle))
             {
-                int iter = 0;
+                /*int iter = 0;
                 while (webBrowser1.IsBusy && ++iter < 50)
                 {
                     log.DebugFormat("busy (1) {0}...", iter);
@@ -130,7 +130,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                         }
                     }
                 }
-
+                */
                 webBrowser1.DocumentCompleted -= WebBrowser1_DocumentCompleted;
                 BuildGinasToolsDocument();
             }
@@ -294,6 +294,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                             System.Threading.Thread.Sleep(10);
                             continue;
                     }
+                    Application.DoEvents();
                 }
             }
 

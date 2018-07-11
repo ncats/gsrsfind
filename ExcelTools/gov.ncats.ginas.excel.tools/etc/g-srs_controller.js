@@ -2455,7 +2455,8 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         var allowMultiple = false;
         if (allowMultipleInput &&
             (allowMultipleInput === true ||
-                allowMultipleInput.toUpperCase() === 'TRUE' || allowMultipleInput.toUpperCase().startsWith('Y'))) {
+                allowMultipleInput.toUpperCase() === 'TRUE'
+                || allowMultipleInput.toUpperCase().charAt(0) ==('Y'))) {
             allowMultiple = true;
         }
         console.log('allowMultiple: ' + allowMultiple);
@@ -2716,6 +2717,174 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
     })
     .useFor(Scripts.addScript);
 
+Script.builder().mix({ name: "Replace Code Text", description: "Replaces the text (comment) of one code for a substance record identified by preferred term" })
+    .addArgument({
+        "key": "pt", name: "PT", description: "PT of the substance record", required: true
+    })
+    .addArgument({
+        "key": "code", name: "CODE", description: "Existing code to match", required: true
+    })
+    .addArgument({
+        "key": "code system", name: "CODE SYSTEM",
+        description: "Code system to match", required: true,
+        opPromise: CVHelper.getTermList("CODE_SYSTEM"),
+        type: "cv",
+        cvType: "CODE_SYSTEM"
+    })
+    .addArgument({
+        "key": "code type", name: "CODE TYPE",
+        description: "Code type of code. For instance, primary", defaultValue: "PRIMARY",
+        required: false,
+        opPromise: CVHelper.getTermList("CODE_TYPE"),
+        type: "cv",
+        cvType: "CODE_TYPE"
+    })
+    .addArgument({
+        "key": "comments", name: "COMMENTS", description: "Updated description/comments for the code",
+        required: false
+    })
+    .addArgument({
+        "key": "code url", name: "CODE URL",
+        description: "URL to evaluate this code (this is distinct from the reference URL)",
+        required: false
+    })
+    .addArgument({
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the code (sets access for reference as well)",
+        defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "reference type", name: "REFERENCE TYPE",
+        description: "Type of reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        type: "cv",
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: false
+    })
+    .addArgument({
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+    })
+    .addArgument({
+        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+    })
+    .setExecutor(function (args) {
+        var pt = args.pt.getValue();
+        var codeValue = args.code.getValue();
+        var codeType = args['code type'].getValue();
+        var codeSystem = args['code system'].getValue();
+        var codeComments = args['comments'].getValue();
+        var url = args['code url'].getValue();
+        var public = args.pd.getValue();
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
+        var referenceUrl = args['reference url'].getValue();
+        var reference = null;
+        var referenceTags = args['reference tags'].getValue();
+
+        if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
+            reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
+            reference = reference.setUrl(referenceUrl);
+            if (public && public === "true" || public === true || public === "Y") {
+                reference.setPublic(true);
+                reference.setPublicDomain(true);
+            } else {
+                reference.setPublic(false);
+                reference.setPublicDomain(false);
+            }
+            if (referenceTags != null && referenceTags.length > 0) {
+                var tags = referenceTags.split("|");
+                var tagSet = [];
+                _.forEach(tags, function (tag) {
+                    tagSet.push(tag);
+                });
+                reference.tags = tagSet;
+            }
+        }
+
+        var code = Code.builder()
+            .setCode(codeValue)
+            .setType(codeType)
+            .setCodeSystem(codeSystem)
+            .setCodeComments(codeComments)
+            .setPublic(public);
+        if (reference)
+            code.addReference(reference);
+
+        if (url) {
+            code.setUrl(url);
+        }
+        if (codeComments) {
+            code.setCodeComments(codeComments);
+        }
+
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(pt)
+            .andThen(function (resp) {
+                if (resp.content && resp.content.length >= 1) {
+                    var rec = resp.content[0];
+                    var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                    console.log('Found a substance with PT: ' + pt);
+                    return substance.fetch("codes")
+                        .andThen(function (codeCollection) {
+                            return substance.fetch("references")
+                                .andThen(function (referenceCollection) {
+                                    var indexCodeToRemove = -1;
+                                    var indexReferenceToRemove = -1;
+                                    var indexReferencesToRemove = [];
+                                    for (var i = 0; i < codeCollection.length; i++) {
+                                        if (codeCollection[i].codeSystem == codeSystem
+                                            && codeCollection[i].code == codeValue) {
+                                            indexCodeToRemove = i;
+                                            break;
+                                        }
+                                    }
+
+                                    for (var i = 0; i < referenceCollection.length; i++) {
+                                        if (referenceCollection[i].docType == referenceType) {
+                                            indexReferenceToRemove = i;
+                                            indexReferencesToRemove.push(i);
+                                        }
+                                    }
+                                    if (indexCodeToRemove > -1) {
+                                        /*console.log('going to remove reference ' +
+                                            referenceCollection[indexReferenceToRemove].url);*/
+                                        if (indexReferenceToRemove > -1) {
+                                            return rec.patch()
+                                                .remove("/codes/" + indexCodeToRemove)
+                                                .remove("/references/" + indexReferenceToRemove)
+                                                .addData(code)
+                                                .add("/changeReason", args['change reason'].getValue())
+                                                .apply()
+                                                .andThen(_.identity);
+                                        }
+                                        else {
+                                            return rec.patch()
+                                                .remove("/codes/" + indexCodeToRemove)
+                                                .addData(code)
+                                                .add("/changeReason", args['change reason'].getValue())
+                                                .apply()
+                                                .andThen(_.identity);
+                                        }
+
+                                    } else {
+                                        return { "message": "Error locating code to replace", "valid": false };
+                                    }
+                                })
+                        })
+                } else {
+                    console.log('Did not locate substance based on ' + pt);
+                    return { "message": "Did not locate substance based on " + pt, "valid": false };
+                }
+            });
+    })
+    .useFor(Scripts.addScript);
+
 /*Remove Name*/
 Script.builder().mix({ name: "Remove Name", description: "Removes a name from a substance record" })
     .addArgument({
@@ -2817,12 +2986,12 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 Script.builder().mix({
     name: "Fix Code URLS",
     description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
-})
+    })
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        /*deliberately NOT making this a controlled vocabulary because we want to allow for removal
+        /*deliberately NOT making this a controlled vocabulary because we want to allow for handling
          of a code whose type might have been removed from the CV*/
         "key": "code system", name: "CODE SYSTEM", description: "Code system to modify",
         required: true, defaultValue: "CAS"
@@ -2830,7 +2999,6 @@ Script.builder().mix({
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Fixing Code URLs", description: "Text for the record change", required: false
     })
-
     .addArgument({
         "key": "url base", name: "URL BASE",
         defaultValue: "Stem for the formation of URLs, with Code to be appended",
@@ -2883,7 +3051,6 @@ Script.builder().mix({
                     });
             })
     })
-
     .useFor(function (s) {
         Scripts.addScript(s);
     });
@@ -2894,22 +3061,26 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        "key": "json", name: "JSON STRING", description: "JSON version of record to replace",
+        "key": "json", name: "JSON", description: "JSON (string) version of record to replace",
         required: true
     })
     .addArgument({
-        "key": "changeReason", name: "CHANGE REASON",
+        "key": "change reason", name: "CHANGE REASON",
         description: "Text for the record change", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var jsonString = args.json.getValue();
-
+        console.log('retrieved args');
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
+                console.log('in andThen');
                 var updatePatch = s.patch();
-                updatePatch = updatePatch.replace("", JSON.parse(jsonString));
-
+                console.log('called .patch');
+                var parsedJson = JSON.parse(jsonString);
+                console.log('parsed JSON');
+                updatePatch = updatePatch.replace("", parsedJson);
+                console.log('updated patch');
                 return updatePatch
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
@@ -2936,19 +3107,18 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
             description: "Code system to modify", required: true, defaultValue: "CAS"
     })
     .addArgument({
-        "key": "new access", name: "ACCESS", defaultValue: "protected",
+        "key": "access", name: "ACCESS", defaultValue: "protected",
         description: "Text for the access value of the code",
         required: true
     })
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Changing Code protection", description: "Text for the record change", required: false
     })
-
     .setExecutor(function (args) {
         var ACCESS_NONE = '[NONE]';
         var uuid = args.uuid.getValue();
         var codeSystem = args['code system'].getValue();
-        var access = args['new access'].getValue();
+        var access = args['access'].getValue();
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
                 s0 = s;

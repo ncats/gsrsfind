@@ -159,7 +159,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             log.Debug("total cells: " + r.Count);
             foreach (Excel.Range row in r.Rows)
             {
-                log.DebugFormat("Processing cells {0} with text {1}", row.Address, row.Text);
+                log.DebugFormat("Processing cells {0} with text {1}", row.Address, row.Value2);
                 string cellText = row.Text as string;
                 if (row.Cells.Count == 1 && string.IsNullOrWhiteSpace(cellText)) continue;
                 Callback cb = CreateUpdateCallbackForExecution(row);
@@ -222,10 +222,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     && _scriptParameters.ContainsKey(key))
                 {
                     ScriptParameter parameter = _scriptParameters[key];
-                    string parameterValue = (string)((keys[key].Text != null) ? keys[key].Text :
-                        string.Empty);
+                    string parameterValue = (string)(keys[key].Value2 ?? string.Empty);
+                    if( key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        log.DebugFormat("parameter value: {0}", parameterValue);
+                    }
                     //escape characters that causes errors in JavaScript interpreter
-                    parameterValue = parameterValue.Replace("'", "\\'").Replace("\n", "\\n");
+                    string newLine = ((char)10).ToString();
+                    parameterValue = parameterValue.Replace("'", "\\'").Replace("\n", "\\n").Replace(newLine, "\\n");
                     if (allowFinished)
                     {
                         string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
@@ -261,14 +265,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
             Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Text;
+            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
 
             foreach (Excel.Range hcell in headerRow)
             {
                 Excel.Range r = application.Intersect(crow, asheet.Range["A:A"].Offset[0, hcell.Column - 1]);
-                if (hcell.Text != null)
+                if (hcell.Value2 != null)
                 {
-                    string cellTextUpper = (hcell.Text as string).ToUpper();
+                    string cellTextUpper = (hcell.Value2 as string).ToUpper();
                     if (!keys.ContainsKey(cellTextUpper))
                     {
                         keys.Add(cellTextUpper, r);
@@ -287,7 +291,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
             Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Text;
+            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
             string[] tokens = f.Split(':');
             if (string.IsNullOrWhiteSpace(tokens[0]) && !tokens[0].Equals(LOAD_OPERATION))
             {
@@ -307,9 +311,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (dict.ContainsKey(key))
             {
                 Excel.Range range = dict[key];
-                if (range != null && range.Text != null && range.Text is string)
+                if (range != null && range.Value2 != null && range.Value2 is string)
                 {
-                    return (range.Text as string).ToUpper();
+                    return (range.Value2 as string).ToUpper();
                 }
             }
             return def;
@@ -335,20 +339,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public void CheckUpdateCallbacks(Object source, ElapsedEventArgs e)
         {
             log.Debug("Starting in checkUpdateCallbacks");
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
 
-            String message;
             bool haveActive = false;
 
             List<string> callbackKeysToRemove = new List<string>();
-            if (Callbacks == null || Callbacks.Count == 0)
-            {
-                log.Debug("callbacks collection is empty in CheckUpdateCallbacks");
-            }
-
             log.Debug("Total callbacks at start: " + Callbacks.Count);
-            message = "callback total: " + Callbacks.Count;
             //'go through individual callbacks
             foreach (string cbKey in Callbacks.Keys)
             {
@@ -378,7 +373,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             KeepCheckingCallbacks = haveActive;
             if (!haveActive)
             {
-                message = "No active callbacks detected";
+                log.Debug("No active callbacks detected");
             }
             if (callbackKeysToRemove.Count > 0)
             {
@@ -406,7 +401,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 // <N> runs of this check with no active callbacks mean it's ok to start a new callback
                 if (_NumTimesFoundNoActives < MAX_TIMES_NO_ACTIVE)
                 {
-                    message += "; will now call StartFirstUpdateCallback";
+                    log.Debug("; will now call StartFirstUpdateCallback");
                     StartFirstUpdateCallback();
                     _NumTimesFoundNoActives = 0;
                 }
@@ -416,10 +411,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 }
             }
 
-            log.Debug(message);
-
-            log.Debug("end of checkUpdateCallbacks which took " + sw.ElapsedMilliseconds);
-            sw.Stop();
+            log.Debug("end of checkUpdateCallbacks " );
         }
 
         public object HandleResults(string resultsKey, string message)
