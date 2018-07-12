@@ -218,18 +218,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string runnerName = "tmpRunner";
             foreach (string key in keys.Keys)
             {
-                if (!string.IsNullOrWhiteSpace(GetProperty(keys, key, ""))
+                string parameterValue = GetProperty(keys, key, "");
+                if (!string.IsNullOrWhiteSpace(parameterValue)
                     && _scriptParameters.ContainsKey(key))
                 {
                     ScriptParameter parameter = _scriptParameters[key];
-                    string parameterValue = (string)(keys[key].Value2 ?? string.Empty);
                     if( key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
                     {
                         log.DebugFormat("parameter value: {0}", parameterValue);
                     }
                     //escape characters that causes errors in JavaScript interpreter
+                    string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
+                    string replacement2 = "ꬷ";
                     string newLine = ((char)10).ToString();
-                    parameterValue = parameterValue.Replace("'", "\\'").Replace("\n", "\\n").Replace(newLine, "\\n");
+                    parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace,replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
                     if (allowFinished)
                     {
                         string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
@@ -311,9 +313,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (dict.ContainsKey(key))
             {
                 Excel.Range range = dict[key];
-                if (range != null && range.Value2 != null && range.Value2 is string)
+                if (range != null && range.Value2 != null )
                 {
-                    return (range.Value2 as string).ToUpper();
+                    if(range.Value2 is string) 
+                    {
+                        return range.Value2.ToString();//.ToUpper();
+                    }
+                    else if (range.Value2 is bool)
+                    {
+
+                    }
                 }
             }
             return def;
@@ -500,7 +509,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
             try
             {
-
 
                 foreach (string key in updateCallback.ParameterValues.Keys)
                 {

@@ -178,7 +178,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public object ExecuteScript(string script)
         {
-            //webBrowser1.ScriptErrorsSuppressed = true;
+            if(!_configuration.DebugMode) webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
             if( _configuration.DebugMode)
             {

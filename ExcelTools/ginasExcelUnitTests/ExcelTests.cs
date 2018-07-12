@@ -414,7 +414,8 @@ namespace ginasExcelUnitTests
             keys.Add("PT LANGUAGE", cell2);
             Range cell3 = sheet.Range["E2"];
             keys.Add("SUBSTANCE CLASS", cell3);
-
+            Range cell4 = sheet.Range["N2"];
+            keys.Add("FORCED", cell4);
             MethodInfo method = loader.GetType().GetMethod(methodName,
                     BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parms = new object[3];
@@ -423,10 +424,14 @@ namespace ginasExcelUnitTests
             parms[2] = "blah";
             object result = method.Invoke(loader, parms);
             string actualValue = (string)result;
-
             string expectedValue= "ENG";
-
             Assert.AreEqual(expectedValue, actualValue);
+
+            parms[1] = "FORCED";
+            object result2 = method.Invoke(loader, parms);
+            string actualValue2 = (string)result2;
+            string expectedValue2 = "TRUE";
+            Assert.AreEqual(expectedValue2, actualValue2);
         }
 
         /* 
@@ -592,14 +597,20 @@ namespace ginasExcelUnitTests
             Worksheet sheet = (Worksheet)workbook.Sheets[1];
             string json = (string) ((Range)sheet.Cells[2, 3]).Value2;
 
+            string replacement1 = "⑤";
+            string replacement0 = "ℓ";
+            string replacement2 = "ꬷ";
             string charToReplace = ((char)10).ToString();
-            string transformedJson = json.Replace(charToReplace, "\\n");
-
+            string stringToReplace = ((char)92).ToString() + ((char)110).ToString();
+            string stringToUse = ((char)92).ToString() + ((char)92).ToString() + ((char)110).ToString();
+            string transformedJson = json.Replace("\n", replacement0).Replace(charToReplace, replacement1).Replace(stringToReplace, replacement2);
+            transformedJson = transformedJson.Replace(replacement2, "\\\n");
+            transformedJson = transformedJson.Replace(replacement0, string.Empty);
             //byte[] asciiBytes = Encoding.ASCII.GetBytes(json);
-            //for ( int i = 0; i<120; i++)
+            //for (int i = 5200; i <5900; i++)
             //{
-            //    char curr =json.ToArray()[i];
-            //    int val = (int) curr;
+            //    char curr = transformedJson.ToArray()[i];
+            //    int val = (int)curr;
             //    Console.WriteLine(string.Format("pos {0}; char: {1}; value: {2} ",
             //        i, curr, val));
             //}
@@ -614,6 +625,36 @@ namespace ginasExcelUnitTests
             Console.WriteLine(transformedJson);
             Assert.AreNotEqual(json, transformedJson);
             
+        }
+
+        [TestMethod]
+        public void TestBooleans()
+        {
+
+            string filePath = @"..\..\..\Test_Files\sheet with booleans.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            Range f11Cell = (Range) sheet.Cells[11, 6];
+            Console.WriteLine(string.Format("f11Cell value: {0}; type: {1}",
+                f11Cell.Value2, f11Cell.Value2.GetType().Name));
+            Range f12Cell = (Range)sheet.Cells[12, 6];
+            Console.WriteLine(string.Format("f12Cell value: {0}; type: {1}",
+                f12Cell.Value2, f12Cell.Value2.GetType().Name));
+            Range G10Cell = (Range)sheet.Cells[10, 7];
+            Console.WriteLine(string.Format("G10Cell value: {0}; type: {1}",
+                G10Cell.Value2, G10Cell.Value2.GetType().Name));
+            Range G11Cell = (Range)sheet.Cells[11 , 7];
+            Console.WriteLine(string.Format("G11Cell value: {0}; type: {1}",
+                G11Cell.Value2, G11Cell.Value2.GetType().Name));
+            Range G12Cell = (Range)sheet.Cells[12, 7];
+            Console.WriteLine(string.Format("G12Cell value: {0}; type: {1}",
+                G12Cell.Value2, G12Cell.Value2.GetType().Name));
+            Range G13Cell = (Range)sheet.Cells[13, 7];
+            Console.WriteLine(string.Format("G13Cell value: {0}; type: {1}",
+                G13Cell.Value2, G13Cell.Value2.GetType().Name));
+            Assert.IsNotNull(G10Cell);
         }
         private Workbook ReadDefaultExcelWorkbook()
         {

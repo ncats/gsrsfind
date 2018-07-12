@@ -613,7 +613,7 @@ var GSRSAPI = {
                         op: "add",
                         path: path,
                         value: n
-                    });
+                    }); 
                 };
                 b.addData = function (data) {
                     return data.addToPatch(b);
@@ -1186,6 +1186,15 @@ var GSRSAPI = {
                 };
                 scr.mix = function (sc) {
                     _.merge(scr, sc);
+                    if (!_.find(scr.arguments, { key: 'FORCED' })) {
+                        /*Automatically include this one:*/
+                        scr.addArgument(                        
+                            {
+                                "key": "FORCED", name: "FORCED",
+                                description: "Override of normal validation", required: false,
+                                defaultValue: "FALSE"
+                            });
+                    }
                     _.forEach(scr.arguments, function (a) {
                         scr.argMap[a.getKey()] = a;
                     });
@@ -1235,7 +1244,8 @@ var GSRSAPI = {
                         args: {}
                     };
                     cargs.clearValues = function () {
-                        args: {}
+                        console.log('clearValues');
+                        this.args = {};
                     };
                     cargs.setValue = function (key, value) {
                         var darg = scr.getArgument(key);
@@ -1280,7 +1290,12 @@ var GSRSAPI = {
                     cargs.execute = function () {
                         return cargs.validate()
                             .andThen(function (v) {
-                                if (v.length == 0) {
+                                if (typeof v === 'object' ) {
+                                    console.log('andThen of cargs.validate. v: '
+                                        + JSON.stringify(v));
+                                }
+                                
+                                if (v.length == 0 || cargs.forced()) {
                                     return scr.execute(cargs.args)
                                         .andThen(function (r) {
                                             if (typeof r.valid === "undefined") {
@@ -1299,6 +1314,17 @@ var GSRSAPI = {
                                     return { "valid": false, "message": msg };
                                 };
                             });
+                    };
+                    cargs.forced = function () {
+                        console.log("cargs.args['FORCED'] " + JSON.stringify(cargs.args['FORCED']));
+                        if (cargs.args['FORCED'] && cargs.args['FORCED'].value &&
+                            (cargs.args['FORCED'].value.charAt(0).toUpperCase() === 'T'
+                            || cargs.args['FORCED'].value.charAt(0).toUpperCase() === 'Y')) {
+                            console.log('forced returning true');
+                            return true;
+                        }
+                        console.log('forced returning false');
+                        return false;
                     };
                     return cargs;
                 };
@@ -3074,11 +3100,11 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
         console.log('retrieved args');
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                console.log('in andThen');
                 var updatePatch = s.patch();
                 console.log('called .patch');
+                jsonString = jsonString.replace(/ꬷ/g, "\\n")
+                console.log('called .replace');
                 var parsedJson = JSON.parse(jsonString);
-                console.log('parsed JSON');
                 updatePatch = updatePatch.replace("", parsedJson);
                 console.log('updated patch');
                 return updatePatch
