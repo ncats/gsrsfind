@@ -16,6 +16,7 @@ namespace gov.ncats.ginas.excel.tools.Model
         public bool required;
         public string defaultValue;
         public string cvType;
+        public string type;
 
         private Dictionary<string, string> vocabulary;
 
@@ -25,6 +26,14 @@ namespace gov.ncats.ginas.excel.tools.Model
             set { this.vocabulary = value; }
         }
 
+        public bool IsBoolean()
+        {
+            if( !string.IsNullOrWhiteSpace(type) && type.Equals("boolean", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 
     public class Promise

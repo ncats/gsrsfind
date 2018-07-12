@@ -430,7 +430,7 @@ namespace ginasExcelUnitTests
             parms[1] = "FORCED";
             object result2 = method.Invoke(loader, parms);
             string actualValue2 = (string)result2;
-            string expectedValue2 = "TRUE";
+            string expectedValue2 = "True";
             Assert.AreEqual(expectedValue2, actualValue2);
         }
 
@@ -590,6 +590,7 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void TestJsonHandling()
         {
+            //this test provided confidence that handling of newlines within JSON will work.
             string filePath = @"..\..\..\Test_Files\json data.xlsx";
             filePath = Path.GetFullPath(filePath);
 
@@ -627,35 +628,6 @@ namespace ginasExcelUnitTests
             
         }
 
-        [TestMethod]
-        public void TestBooleans()
-        {
-
-            string filePath = @"..\..\..\Test_Files\sheet with booleans.xlsx";
-            filePath = Path.GetFullPath(filePath);
-
-            Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets[1];
-            Range f11Cell = (Range) sheet.Cells[11, 6];
-            Console.WriteLine(string.Format("f11Cell value: {0}; type: {1}",
-                f11Cell.Value2, f11Cell.Value2.GetType().Name));
-            Range f12Cell = (Range)sheet.Cells[12, 6];
-            Console.WriteLine(string.Format("f12Cell value: {0}; type: {1}",
-                f12Cell.Value2, f12Cell.Value2.GetType().Name));
-            Range G10Cell = (Range)sheet.Cells[10, 7];
-            Console.WriteLine(string.Format("G10Cell value: {0}; type: {1}",
-                G10Cell.Value2, G10Cell.Value2.GetType().Name));
-            Range G11Cell = (Range)sheet.Cells[11 , 7];
-            Console.WriteLine(string.Format("G11Cell value: {0}; type: {1}",
-                G11Cell.Value2, G11Cell.Value2.GetType().Name));
-            Range G12Cell = (Range)sheet.Cells[12, 7];
-            Console.WriteLine(string.Format("G12Cell value: {0}; type: {1}",
-                G12Cell.Value2, G12Cell.Value2.GetType().Name));
-            Range G13Cell = (Range)sheet.Cells[13, 7];
-            Console.WriteLine(string.Format("G13Cell value: {0}; type: {1}",
-                G13Cell.Value2, G13Cell.Value2.GetType().Name));
-            Assert.IsNotNull(G10Cell);
-        }
         private Workbook ReadDefaultExcelWorkbook()
         {
 

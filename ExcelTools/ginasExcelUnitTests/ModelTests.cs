@@ -51,5 +51,25 @@ namespace ginasExcelUnitTests
             Console.WriteLine(msg);
             Assert.IsTrue(newExpirationDate > DateTime.Now);
         }
+        [TestMethod]
+        public void IsBooleanTest()
+        {
+            ScriptParameter parm1 = new ScriptParameter();
+            parm1.name = "SUBSTANCE NAME";
+            parm1.key = "substance name";
+            parm1.cvType = "bool";
+            Assert.IsFalse(parm1.IsBoolean());
+        }
+
+        [TestMethod]
+        public void IsBooleanTest2()
+        {
+            ScriptParameter parm1 = new ScriptParameter();
+            parm1.name = "USE DEFAULT";
+            parm1.key = "use default";
+            parm1.type = "boolean";
+            Assert.IsTrue(parm1.IsBoolean());
+        }
+
     }
 }

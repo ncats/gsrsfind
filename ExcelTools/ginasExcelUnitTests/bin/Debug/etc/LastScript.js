@@ -96,18 +96,21 @@ function runCommandForCSharp(stuffToRun) {
     if (debugOutput) {
         console.log('runCommandForCSharp about to eval ' + stuffToRun);
     }
-    var result = eval(stuffToRun);
+    try {
+        var result = eval(stuffToRun);
+    }
+    catch (ex) {
+        console.log('error running script: ' + ex);
+    }
     if (result) {
         if (typeof result === 'string') {
-            if (debugOutput) {
-                console.log('result was string: ' + result);
-            }
             return result;
         }
         console.log('result: ' + JSON.stringify(result));
         return JSON.stringify(result);
     }
-    else return result;
+    //takes care of falsey returns
+    return result;
 }
 
 function checkReady() {

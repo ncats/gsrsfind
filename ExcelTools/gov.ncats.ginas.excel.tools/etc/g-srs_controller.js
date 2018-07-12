@@ -1186,15 +1186,6 @@ var GSRSAPI = {
                 };
                 scr.mix = function (sc) {
                     _.merge(scr, sc);
-                    if (!_.find(scr.arguments, { key: 'FORCED' })) {
-                        /*Automatically include this one:*/
-                        scr.addArgument(                        
-                            {
-                                "key": "FORCED", name: "FORCED",
-                                description: "Override of normal validation", required: false,
-                                defaultValue: "FALSE"
-                            });
-                    }
                     _.forEach(scr.arguments, function (a) {
                         scr.argMap[a.getKey()] = a;
                     });
@@ -1224,6 +1215,17 @@ var GSRSAPI = {
                     return scr;
                 };
                 scr.useFor = function (cb) {
+                    console.log("starting in useFor");
+                    if (!_.find(scr.arguments, { key: 'FORCED' })) {
+                        /*Automatically include this one:*/
+                        scr.addArgument(
+                            {
+                                "key": "FORCED", name: "FORCED",
+                                description: "Override of normal validation", required: false,
+                                defaultValue: "FALSE", type: "boolean"
+                            });
+                    }
+
                     cb(scr);
                 };
 
@@ -1245,7 +1247,9 @@ var GSRSAPI = {
                     };
                     cargs.clearValues = function () {
                         console.log('clearValues');
-                        this.args = {};
+                        _.forEach(this.args, function (val, key) {
+                            this.args[key].value = '';
+                        });
                     };
                     cargs.setValue = function (key, value) {
                         var darg = scr.getArgument(key);
@@ -1902,10 +1906,12 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         description: "Citation text for reference", required: true
     })
     .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL",
+        description: "URL for the reference", required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Name", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Name",
+        description: "Text for the record change", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -2283,10 +2289,12 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         }
     })
     .addArgument({
-        "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record", required: true
+        "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record",
+        required: true
     })
     .addArgument({
-        "key": "pt2", name: "PT2", description: "Preferred Term of the secondary record (used for validation)", required: true,
+        "key": "pt2", name: "PT2",
+        description: "Preferred Term of the secondary record (used for validation)", required: true,
         "validator": function (val, cargs) {
             return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
                 .andThen(function (resp) {
@@ -2307,7 +2315,8 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         }
     })
     .addArgument({
-        "key": "relationship type", name: "RELATIONSHIP TYPE", description: "Type of the new relationship",
+        "key": "relationship type", name: "RELATIONSHIP TYPE",
+        description: "Type of the new relationship",
         "type": "cv", required: true,
         opPromise: CVHelper.getTermList("RELATIONSHIP_TYPE"),
         cvType: "RELATIONSHIP_TYPE"
@@ -2321,19 +2330,26 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         cvType: "DOCUMENT_TYPE"
     })
     .addArgument({
-        "key": "reference citation", name: "REFERENCE CITATION", description: "Citation text for reference", required: false
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: false
     })
     .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL",
+        description: "URL for the reference", required: false
     })
     .addArgument({
-        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
     })
     .addArgument({
-        "key": "pd", name: "PD", description: "Public Domain status of the relationship (sets access for reference as well)", defaultValue: false, required: false
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the relationship (sets access for reference as well)",
+        defaultValue: false, required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON",
+        defaultValue: "Added Code",
+        description: "Text for the record change", required: false
     })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -2402,7 +2418,10 @@ function dumpObject(obj) {
 }
 
 /*add code via substance name MAM 15 June 2017*/
-Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a substance record when no code of that type already exists" })
+Script.builder().mix({
+    name: "Add Code by Name",
+    description: "Adds a code to a substance record when no code of that type already exists"
+})
     .addArgument({
         "key": "pt", name: "PT", description: "PT of the substance record", required: true
     })
@@ -2428,7 +2447,9 @@ Script.builder().mix({ name: "Add Code by Name", description: "Adds a code to a 
         "key": "comments", name: "COMMENTS", description: "Text for code", required: false
     })
     .addArgument({
-        "key": "code url", name: "CODE URL", description: "URL to evaluate this code (this is distinct from the reference URL)", required: false
+        "key": "code url", name: "CODE URL",
+        description: "URL to evaluate this code (this is distinct from the reference URL)",
+        required: false
     })
     .addArgument({
         "key": "pd", name: "PD",
@@ -2625,13 +2646,16 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         description: "Citation text for reference", required: false
     })
     .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        description: "Text for the record change", required: false
     })
     .addArgument({
-        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
     })
     .setExecutor(function (args) {
         var pt = args.pt.getValue();
@@ -2792,13 +2816,16 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         description: "Citation text for reference", required: false
     })
     .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference", required: false
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code", description: "Text for the record change", required: false
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        description: "Text for the record change", required: false
     })
     .addArgument({
-        "key": "reference tags", name: "REFERENCE TAGS", description: "pipe-delimited set of tags for the reference", required: false
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
     })
     .setExecutor(function (args) {
         var pt = args.pt.getValue();
@@ -2917,7 +2944,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: true,
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        required: true,
         "validator": function (val, cargs) {
             return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
                 .andThen(function (resp) {
@@ -3272,15 +3300,18 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
     })
     .setExecutor(function (args) {
         console.log('Starting in Create Substance executor');
+        
         var pt = args.pt.getValue();
+        console.log('got pt');
         var substanceClass = args['substance class'].getValue();
-
         var public = args.pd.getValue();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
         var smiles = args.smiles.getValue();
+        console.log('got smiles');
         var molfileText = args.molfile.getValue();
+        console.log('got molfile');
         var nameType = args['pt name type'].getValue();
         console.log('nameType: ' + nameType);
         var nameLang = args['pt language'].getValue();
@@ -3413,7 +3444,10 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
                         var rec = resp.content[0];
                         var uuid = rec.uuid;
                         if (uuid !== cargs.args.uuid.getValue()) {
-                            return { valid: false, message: "The BDNUM " + val + " and UUID do not point to the same record (" + uuid + " vs " + cargs.args.uuid.getValue() + ")" };
+                            return {
+                                valid: false, message: "The BDNUM " + val + " and UUID do not point to the same record (" + uuid + " vs "
+                                    + cargs.args.uuid.getValue() + ")"
+                            };
                         }
                         return { valid: true };
                     } else {

@@ -216,14 +216,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             Dictionary<string, string> paramValues = new Dictionary<string, string>();
             string runnerName = "tmpRunner";
-            foreach (string key in keys.Keys)
+            foreach (string key in _scriptParameters.Keys)
             {
-                string parameterValue = GetProperty(keys, key, "");
-                if (!string.IsNullOrWhiteSpace(parameterValue)
-                    && _scriptParameters.ContainsKey(key))
+                string defaultValue = string.Empty;
+                if (_scriptParameters[key].IsBoolean()) defaultValue = "FALSE";
+                string parameterValue = GetProperty(keys, key, defaultValue);
+                if (!string.IsNullOrWhiteSpace(parameterValue))
                 {
                     ScriptParameter parameter = _scriptParameters[key];
-                    if( key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
+                    if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
                     {
                         log.DebugFormat("parameter value: {0}", parameterValue);
                     }
@@ -231,7 +232,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
                     string replacement2 = "ꬷ";
                     string newLine = ((char)10).ToString();
-                    parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace,replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
+                    parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace, replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
                     if (allowFinished)
                     {
                         string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
@@ -239,6 +240,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         ScriptExecutor.ExecuteScript(paramValueScript);
                     }
                     paramValues.Add(parameter.key, parameterValue);
+                    log.DebugFormat("In {0}, setting parm {1} to {2}",
+                        MethodBase.GetCurrentMethod().Name,
+                        parameter.key, parameterValue);
                 }
             }
             string tempVal = JSTools.RandomIdentifier();
@@ -248,8 +252,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             UpdateCallback updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
             updateCallback.RunnerNumber = _scriptNumber;
-            DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset+ 
-                (Callbacks.Count* Callbacks.Count * _secondsPerScript));//trying a quadratic term
+            DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
+                (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
             updateCallback.SetExpiration(newExpirationDate);
             updateCallback.setKey(tempVal);
             updateCallback.ParameterValues = paramValues;
@@ -313,15 +317,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (dict.ContainsKey(key))
             {
                 Excel.Range range = dict[key];
-                if (range != null && range.Value2 != null )
+                if (range != null && range.Value2 != null)
                 {
-                    if(range.Value2 is string) 
+                    if (range.Value2 is string || range.Value2 is bool)
                     {
                         return range.Value2.ToString();//.ToUpper();
-                    }
-                    else if (range.Value2 is bool)
-                    {
-
                     }
                 }
             }
@@ -420,14 +420,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 }
             }
 
-            log.Debug("end of checkUpdateCallbacks " );
+            log.Debug("end of checkUpdateCallbacks ");
         }
 
         public object HandleResults(string resultsKey, string message)
         {
-           log.DebugFormat("HandleResults received message {0} for key {1}",
-                message, resultsKey);
-            if( resultsKey.Equals(_currentKey ))
+            log.DebugFormat("HandleResults received message {0} for key {1}",
+                 message, resultsKey);
+            if (resultsKey.Equals(_currentKey))
             {
                 _currentKey = string.Empty;
             }
@@ -509,17 +509,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
             try
             {
-
                 foreach (string key in updateCallback.ParameterValues.Keys)
                 {
                     //see if there's a vocabulary translation
                     string parameterValue = updateCallback.ParameterValues[key];
-                    if (_scriptParameters.ContainsKey(key.ToUpper()) 
-                        && _scriptParameters[key.ToUpper()].Vocabulary != null
-                        && _scriptParameters[key.ToUpper()].Vocabulary.Count > 0)
+                    if (_scriptParameters.ContainsKey(key)
+                        && _scriptParameters[key].Vocabulary != null
+                        && _scriptParameters[key].Vocabulary.Count > 0)
                     {
-                        if (!_scriptParameters[key.ToUpper()].Vocabulary.ContainsValue(parameterValue)
-                            && _scriptParameters[key.ToUpper()].Vocabulary.ContainsKey(parameterValue))
+                        if (!_scriptParameters[key].Vocabulary.ContainsValue(parameterValue)
+                            && _scriptParameters[key].Vocabulary.ContainsKey(parameterValue))
                         {
                             string newParameterValue = _scriptParameters[key.ToUpper()].Vocabulary[parameterValue];
                             log.DebugFormat("Used vocabulary to translate {0} to {1}",
@@ -532,7 +531,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     ScriptExecutor.ExecuteScript(paramValueScript);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error(ex);
             }
@@ -545,7 +544,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         private void SetScriptParameters(Excel.Range range)
         {
-            _scriptParameters = new Dictionary<string, ScriptParameter>();
+            _scriptParameters = new Dictionary<string, ScriptParameter>(StringComparer.CurrentCultureIgnoreCase);
             Excel.Application application = range.Application;
 
             Dictionary<string, Excel.Range> keys = GetKeys(range);
@@ -561,28 +560,25 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             foreach (string key in keys.Keys)
             {
-                if (!string.IsNullOrWhiteSpace(GetProperty(keys, key, "")))
+                string testScript = tempScriptName + ".hasArgumentByName('" + key + "')";
+                object testValue = ScriptExecutor.ExecuteScript(testScript);
+                Debug.WriteLine("value: " + testValue);
+                if (testValue is string && (testValue as string).Equals("true",
+                        StringComparison.CurrentCultureIgnoreCase))
                 {
-                    string testScript = tempScriptName + ".hasArgumentByName('" + key + "')";
-                    object testValue = ScriptExecutor.ExecuteScript(testScript);
-                    Debug.WriteLine("value: " + testValue);
-                    if (testValue is string && (testValue as string).Equals("true",
-                            StringComparison.CurrentCultureIgnoreCase))
+                    object param =
+                        ScriptExecutor.ExecuteScript(tempScriptName
+                        + ".getArgumentByName('" + key + "')");
+                    ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
+                    if (!string.IsNullOrWhiteSpace(parameter.cvType))
                     {
-                        object param =
-                            ScriptExecutor.ExecuteScript(tempScriptName
-                            + ".getArgumentByName('" + key + "')");
-                        ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
-                        if(!string.IsNullOrWhiteSpace(parameter.cvType))
-                        {
-                            Dictionary<string, string> vocab = VocabUtils.BuildVocabularyDictionary(
-                                GinasConfiguration.SelectedServer.ServerUrl, parameter.cvType);
-                            parameter.Vocabulary = vocab;
-                            log.Debug("Attached vocabulary for parameter " + key);
-                        }
-
-                        _scriptParameters.Add(key, parameter);
+                        Dictionary<string, string> vocab = VocabUtils.BuildVocabularyDictionary(
+                            GinasConfiguration.SelectedServer.ServerUrl, parameter.cvType);
+                        parameter.Vocabulary = vocab;
+                        log.Debug("Attached vocabulary for parameter " + key);
                     }
+
+                    _scriptParameters.Add(key, parameter);
                 }
             }
         }
@@ -593,7 +589,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.Values.First() is UpdateCallback)
             {
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
-                if(! updateCallback.getKey().Equals(_currentKey))
+                if (!updateCallback.getKey().Equals(_currentKey))
                 {
                     if ((GinasConfiguration.DebugMode || StatusUpdater.GetDebugSetting())
                         && updateCallback.RunnerNumber % CONSOLE_CLEARANCE_INTERVAL == 0)
@@ -605,7 +601,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         updateCallback.RunnerNumber * _secondsPerScript);
                     updateCallback.SetExpiration(newExpirationDate);
                     RunUpdateCallback(updateCallback);
-                    updateCallback.Start();                    
+                    updateCallback.Start();
                 }
                 else
                 {
@@ -618,7 +614,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             log.Debug("Starting in SaveAndClearDebugInfo");
             string fileName = FileUtils.GetTemporaryFilePath("gsrs.excel.log");
-            string content = (string) ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            string content = (string)ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             FileUtils.WriteToFile(fileName, content);
             ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack=[]");//clear the old stuff
         }

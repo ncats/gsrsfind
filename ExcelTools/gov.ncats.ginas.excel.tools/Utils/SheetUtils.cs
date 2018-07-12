@@ -170,7 +170,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             //nsheet.Range("A1").Offset(1, i + 1).FormulaR1C1 = WebBrowser1.Document.script.tmpScript.arguments.getItem(i).getValue("")
             topCorner.Offset[0, argListLength + 1].FormulaR1C1 = "IMPORT STATUS";
-            topCorner.Offset[0, argListLength + 2].FormulaR1C1 = "FORCED";
+            //topCorner.Offset[0, argListLength + 2].FormulaR1C1 = "FORCED";
 
             workbook.Application.ActiveWindow.SplitColumn = 0;
             workbook.Application.ActiveWindow.SplitRow = 1;
