@@ -54,142 +54,141 @@ var GSRSAPI = {
                 return GlobalSettings._errorMessage;
             }
         },
-        /*TODO: should be its own service*/
-        g_api.httpProcess = function (req) {
-            return g_api.JPromise.of(function (cb) {
-                var b = req._b;
-                if (b) {
-                    b = JSON.stringify(b);
-                } else {
-                    b = req._q;
-                };
-                if (req._url.match(/.*[?]/)) {
-                    req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
-                } else {
-                    req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
-                };
-                g_api.GlobalSettings.authenticate(req);
+            /*TODO: should be its own service*/
+            g_api.httpProcess = function (req) {
+                return g_api.JPromise.of(function (cb) {
+                    var b = req._b;
+                    if (b) {
+                        b = JSON.stringify(b);
+                    } else {
+                        b = req._q;
+                    };
+                    if (req._url.match(/.*[?]/)) {
+                        req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
+                    } else {
+                        req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
+                    };
+                    g_api.GlobalSettings.authenticate(req);
 
-                console.log("going to call url:" + req._url);
-                if (req._q && req._q.q) {
-                    console.log("   with query:" + req._q.q);
-                };
-                var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
-                window[cbackname] = function (response) {
-                    console.log('ajax call success ');
-                    console.log(' at ' + _.now());
-                    cb(response);
-                };
-                $.ajax({
-                    url: req._url,
-                    jsonp: cbackname,
-                    dataType: GlobalSettings.httpType(),
-                    contentType: 'application/json',
-                    type: req._method,
-                    data: b,
-                    beforeSend: function (request) {
-                        if (req.headers) {
-                            _.forEach(_.keys(req.headers), function (k) {
-                                request.setRequestHeader(k, req.headers[k]);
-                            });
-                        }
-                    },
-                    isJson: function (str) {
-                        try {
-                            JSON.parse(str);
-                        }
-                        catch (e) {
-                            console.log('	error in isJson: ' + e);
-                            return false;
-                        }
-                        return true;
-                    },
-                    success: function (response) {
+                    console.log("going to call url:" + req._url);
+                    if (req._q && req._q.q) {
+                        console.log("   with query:" + req._q.q);
+                    };
+                    var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
+                    window[cbackname] = function (response) {
                         console.log('ajax call success ');
-                        console.log('	at ' + _.now());
-                        console.log('	with response ' + (typeof (response) == 'string') ? response
-                            : JSON.stringify(response));
+                        console.log(' at ' + _.now());
                         cb(response);
-                    },
-                    error: function (response, error, t) {
-                        var msg = 'Error from server. response: '
-                            + JSON.stringify(response) + '; url: '
-                            + this.url;
-                        console.log(msg);
-                        if ((response.status >= 400 && response.status <= 600) || (response.status == 0)) {
-                            if (response.status == 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
-                                && response.readyState == 4) {
-                                /*not necessarily an error.
-                                 This message occurs when we attempt to retrieve a section from a substance 
-                                 that does not have that type of section (e.g., a protein does not have a molfile)*/
-                                console.log('500 error');
-                            } else {
-                                GlobalSettings.setStatus("ERROR " + response.status);
+                    };
+                    $.ajax({
+                        url: req._url,
+                        jsonp: cbackname,
+                        dataType: GlobalSettings.httpType(),
+                        contentType: 'application/json',
+                        type: req._method,
+                        data: b,
+                        beforeSend: function (request) {
+                            if (req.headers) {
+                                _.forEach(_.keys(req.headers), function (k) {
+                                    request.setRequestHeader(k, req.headers[k]);
+                                });
+                            }
+                        },
+                        isJson: function (str) {
+                            try {
+                                JSON.parse(str);
+                            }
+                            catch (e) {
+                                console.log('	error in isJson: ' + e);
+                                return false;
+                            }
+                            return true;
+                        },
+                        success: function (response) {
+                            console.log('ajax call success ');
+                            console.log('	at ' + _.now());
+                            console.log('	with response ' + (typeof (response) == 'string') ? response
+                                : JSON.stringify(response));
+                            cb(response);
+                        },
+                        error: function (response, error, t) {
+                            var msg = 'Error from server. response: '
+                                + JSON.stringify(response) + '; url: '
+                                + this.url;
+                            console.log(msg);
+                            if ((response.status >= 400 && response.status <= 600) || (response.status == 0)) {
+                                if (response.status == 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
+                                    && response.readyState == 4) {
+                                    /*not necessarily an error.
+                                     This message occurs when we attempt to retrieve a section from a substance 
+                                     that does not have that type of section (e.g., a protein does not have a molfile)*/
+                                    console.log('500 error');
+                                } else {
+                                    GlobalSettings.setStatus("ERROR " + response.status);
+                                };
                             };
-                        };
-                        GlobalSettings._errorMessage = error;
-                        /*figure out the message that will be displayed to the user in Excel*/
-                        if (response.responseText) {
-                            console.log('Noting error. ');
-                            GlobalSettings._errorMessage = response.responseText;
-                            console.log('	just set errorMessage');
-                            var retMsg = { valid: false };
-                            console.log('	initialized retMsg');
-                            /*detect a complex, nested error message*/
-                            if (typeof (response.responseText) == 'string' && this.isJson(response.responseText)) {
-                                var responseRestored = JSON.parse(response.responseText);
-                                console.log(' parsed JSON');
-                                if (responseRestored.validationMessages && responseRestored.validationMessages.length > 0) {
-                                    console.log('	error msg: ' + responseRestored.validationMessages[0].message);
-                                    retMsg.message = responseRestored.validationMessages[0].message;
-                                    GlobalSettings._errorMessage = responseRestored.validationMessages[0].message;
-                                    if (responseRestored.validationMessages.length > 1) {
-                                        retMsg.message = retMsg.message + ' + more';
-                                        GlobalSettings._errorMessage = GlobalSettings._errorMessage + '...';
+                            GlobalSettings._errorMessage = error;
+                            /*figure out the message that will be displayed to the user in Excel*/
+                            if (response.responseText) {
+                                console.log('Noting error. ');
+                                GlobalSettings._errorMessage = response.responseText;
+                                console.log('	just set errorMessage');
+                                var retMsg = { valid: false };
+                                console.log('	initialized retMsg');
+                                /*detect a complex, nested error message*/
+                                if (typeof (response.responseText) == 'string' && this.isJson(response.responseText)) {
+                                    var responseRestored = JSON.parse(response.responseText);
+                                    console.log(' parsed JSON');
+                                    if (responseRestored.validationMessages && responseRestored.validationMessages.length > 0) {
+                                        console.log('	error msg: ' + responseRestored.validationMessages[0].message);
+                                        retMsg.message = responseRestored.validationMessages[0].message;
+                                        GlobalSettings._errorMessage = responseRestored.validationMessages[0].message;
+                                        if (responseRestored.validationMessages.length > 1) {
+                                            retMsg.message = retMsg.message + ' + more';
+                                            GlobalSettings._errorMessage = GlobalSettings._errorMessage + '...';
+                                        }
+                                    }
+                                    else if (responseRestored.message) {
+                                        retMsg.message = responseRestored.message;
+                                        GlobalSettings._errorMessage = responseRestored.message;
+                                    }
+                                    else retMsg.message = "unparsed error";
+                                }
+                                else if (typeof (response.responseText) == 'object' && response.responseText.message) {
+                                    console.log(' object');
+                                    retMsg.message = response.responseText.message;
+                                    if (response.status == 502) {
+                                        console.log('502; proxy error');
+                                        retMsg.message = 'proxy error on server. Please report this to your administrator!';
                                     }
                                 }
-                                else if (responseRestored.message) {
-                                    retMsg.message = responseRestored.message;
-                                    GlobalSettings._errorMessage = responseRestored.message;
+                                else {
+                                    console.log(' simple message. response.status: ' + response.status);
+                                    /*simple message*/
+                                    retMsg.message = response.responseText;
+                                    if (response.status == 502) {
+                                        console.log('502; proxy error');
+                                        retMsg.message = 'proxy error on server. Please report this to your administrator!';
+                                    }
+                                };
+                                console.log('Calling cb with retMsg. cb: ' + JSON.stringify(cb));
+
+                                if (retMsg) {
+                                    cb(retMsg);
                                 }
-                                else retMsg.message = "unparsed error";
-                            }
-                            else if (typeof (response.responseText) == 'object' && response.responseText.message) {
-                                console.log(' object');
-                                retMsg.message = response.responseText.message;
-                                if (response.status == 502) {
-                                    console.log('502; proxy error');
-                                    retMsg.message = 'proxy error on server. Please report this to your administrator!';
+                                else {
+                                    cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
                                 }
+
                             }
                             else {
-                                console.log(' simple message. response.status: ' + response.status);
-                                /*simple message*/
-                                retMsg.message = response.responseText;
-                                if (response.status == 502) {
-                                    console.log('502; proxy error');
-                                    retMsg.message = 'proxy error on server. Please report this to your administrator!';
-                                }
+                                console.log('Error missing');
+                                cb(response);
                             };
-                            console.log('Calling cb with retMsg. cb: ' + JSON.stringify(cb));
-                            
-                            if (retMsg) {
-                                cb(retMsg);
-                            }
-                            else
-                            {
-                                cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
-                            }
-                            
                         }
-                        else {
-                            console.log('Error missing');
-                            cb(response);
-                        };
-                    }
+                    });
                 });
-            });
-        };
+            };
         /*Returns an object which will call
         the supplied callback after {{total}}
         number of calls to {{decrement}}*/
@@ -613,7 +612,7 @@ var GSRSAPI = {
                         op: "add",
                         path: path,
                         value: n
-                    }); 
+                    });
                 };
                 b.addData = function (data) {
                     return data.addToPatch(b);
@@ -919,18 +918,18 @@ var GSRSAPI = {
                     rq._url = url;
                     return rq;
                 },
-                rq.method = function (method) {
-                    rq._method = method;
-                    return rq;
-                },
-                rq.queryStringData = function (q) {
-                    rq._q = q;
-                    return rq;
-                },
-                rq.body = function (b) {
-                    rq._b = b;
-                    return rq;
-                };
+                    rq.method = function (method) {
+                        rq._method = method;
+                        return rq;
+                    },
+                    rq.queryStringData = function (q) {
+                        rq._q = q;
+                        return rq;
+                    },
+                    rq.body = function (b) {
+                        rq._b = b;
+                        return rq;
+                    };
                 return rq;
             }
         };
@@ -956,63 +955,63 @@ var GSRSAPI = {
                     g_api.gUtil.removeKeysLike(d, /^_/);
                     return d;
                 },
-                data.setAccess = function (list) {
-                    data.access = list;
-                    return data;
-                },
-                data.setProtected = function () {
-                    console.log('setProtected called');
-                    data.access = ["protected"];
-                    return data;
-                },
-                data.setPublic = function (pub) {
-                    if (pub) {
+                    data.setAccess = function (list) {
+                        data.access = list;
                         return data;
-                    }
-                    return data.setProtected();
-                },
-                data.setPreferred = function (preferred) {
-                    data.preferred = true;
-                    return data;
-                },
-                data.setDeprecated = function (d) {
-                    if (d) {
-                        data.deprecated = true;
-                    } else {
-                        data.deprecated = false;
-                    }
-                    return data;
-                },
-                data.addReference = function (r) {
-                    if (UUID.isUUID(r)) {
-                        data.addReferenceUUID(r);
-                    } else {
-                        if (r._type === "reference") {
-                            data._references.push(r);
-                            data.addReferenceUUID(r.uuid);
-                        } else {
-                            var ref = _.merge(Reference.builder(), r);
-                            data._references.push(ref);
-                            data.addReferenceUUID(ref.uuid);
+                    },
+                    data.setProtected = function () {
+                        console.log('setProtected called');
+                        data.access = ["protected"];
+                        return data;
+                    },
+                    data.setPublic = function (pub) {
+                        if (pub) {
+                            return data;
                         }
-                    }
-                    return data;
-                },
-                data.addReferenceUUID = function (ruuid) {
-                    data.references.push(ruuid);
-                    return data;
-                },
-                data.addToPatch = function (patch) {
-                    patch = patch.add(data._path, data.build());
-                    _.forEach(data._references, function (r) {
-                        patch = patch.add("/references/-", r.build());
-                    });
-                    return patch;
-                },
-                data.mix = function (source) {
-                    _.merge(data, source);
-                    return data;
-                };
+                        return data.setProtected();
+                    },
+                    data.setPreferred = function (preferred) {
+                        data.preferred = true;
+                        return data;
+                    },
+                    data.setDeprecated = function (d) {
+                        if (d) {
+                            data.deprecated = true;
+                        } else {
+                            data.deprecated = false;
+                        }
+                        return data;
+                    },
+                    data.addReference = function (r) {
+                        if (UUID.isUUID(r)) {
+                            data.addReferenceUUID(r);
+                        } else {
+                            if (r._type === "reference") {
+                                data._references.push(r);
+                                data.addReferenceUUID(r.uuid);
+                            } else {
+                                var ref = _.merge(Reference.builder(), r);
+                                data._references.push(ref);
+                                data.addReferenceUUID(ref.uuid);
+                            }
+                        }
+                        return data;
+                    },
+                    data.addReferenceUUID = function (ruuid) {
+                        data.references.push(ruuid);
+                        return data;
+                    },
+                    data.addToPatch = function (patch) {
+                        patch = patch.add(data._path, data.build());
+                        _.forEach(data._references, function (r) {
+                            patch = patch.add("/references/-", r.build());
+                        });
+                        return patch;
+                    },
+                    data.mix = function (source) {
+                        _.merge(data, source);
+                        return data;
+                    };
                 return data;
             }
         };
@@ -1124,7 +1123,7 @@ var GSRSAPI = {
                     return relationship;
                 };
                 relationship.setRelatedSubstance = function (relatedSubstance) {
-                    
+
                     relationship.relatedSubstance = {
                         refuuid: relatedSubstance.uuid,
                         refPname: relatedSubstance._name
@@ -1247,9 +1246,12 @@ var GSRSAPI = {
                     };
                     cargs.clearValues = function () {
                         console.log('clearValues');
+                        argSet = this.args;
                         _.forEach(this.args, function (val, key) {
-                            this.args[key].value = '';
+                            console.log('going to clear key ' + key);
+                            argSet[key].value = argSet[key].defaultValue;
                         });
+                        this.args = argSet;
                     };
                     cargs.setValue = function (key, value) {
                         var darg = scr.getArgument(key);
@@ -1294,11 +1296,11 @@ var GSRSAPI = {
                     cargs.execute = function () {
                         return cargs.validate()
                             .andThen(function (v) {
-                                if (typeof v === 'object' ) {
+                                if (typeof v === 'object') {
                                     console.log('andThen of cargs.validate. v: '
                                         + JSON.stringify(v));
                                 }
-                                
+
                                 if (v.length == 0 || cargs.forced()) {
                                     return scr.execute(cargs.args)
                                         .andThen(function (r) {
@@ -1323,7 +1325,7 @@ var GSRSAPI = {
                         console.log("cargs.args['FORCED'] " + JSON.stringify(cargs.args['FORCED']));
                         if (cargs.args['FORCED'] && cargs.args['FORCED'].value &&
                             (cargs.args['FORCED'].value.charAt(0).toUpperCase() === 'T'
-                            || cargs.args['FORCED'].value.charAt(0).toUpperCase() === 'Y')) {
+                                || cargs.args['FORCED'].value.charAt(0).toUpperCase() === 'Y')) {
                             console.log('forced returning true');
                             return true;
                         }
@@ -1584,7 +1586,7 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Image URL", function (simpleSub) {
-        return simpleSub.fetch("structure/smiles") 
+        return simpleSub.fetch("structure/smiles")
             .andThen(function (s) {
                 /*console.log("Result of retrieval of structure/smiles for " + JSON.stringify(s));*/
                 if (s && s.valid === false) {
@@ -1593,11 +1595,11 @@ FetcherRegistry.addFetcher(
                 }
                 var base = GlobalSettings.getBaseURL().replace(/api.*/g, "");
                 var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300";
-                
+
                 return imgurl;
             });
-    }    
-));
+    }
+    ));
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Protein Sequence", function (simpleSub) {
@@ -1947,7 +1949,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             .setType(nameType)
             .setPublic(public)
             .setLanguages(langs);
-        
+
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
                 console.log('going to check references');
@@ -2223,7 +2225,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-            /*.addReference(reference);*/
+        /*.addReference(reference);*/
 
         if (url) {
             code.setUrl(url);
@@ -2362,7 +2364,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
         var referenceTags = args['reference tags'].getValue();
-        console.log('got remaining parms ' );
+        console.log('got remaining parms ');
         var reference = null;
         if (referenceType != null && referenceCitation != null) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
@@ -2380,7 +2382,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
-                    tagSet.push(tag); 
+                    tagSet.push(tag);
                 });
                 reference.tags = tagSet;
             }
@@ -2503,7 +2505,7 @@ Script.builder().mix({
         if (allowMultipleInput &&
             (allowMultipleInput === true ||
                 allowMultipleInput.toUpperCase() === 'TRUE'
-                || allowMultipleInput.toUpperCase().charAt(0) ==('Y'))) {
+                || allowMultipleInput.toUpperCase().charAt(0) == ('Y'))) {
             allowMultiple = true;
         }
         console.log('allowMultiple: ' + allowMultiple);
@@ -2685,7 +2687,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
-                    tagSet.push(tag); 
+                    tagSet.push(tag);
                 });
                 reference.tags = tagSet;
             }
@@ -2733,7 +2735,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                                             indexReferencesToRemove.push(i);
                                         }
                                     }
-                                    if (indexCodeToRemove > -1 ) {
+                                    if (indexCodeToRemove > -1) {
                                         /*console.log('going to remove reference ' +
                                             referenceCollection[indexReferenceToRemove].url);*/
                                         if (indexReferenceToRemove > -1) {
@@ -2753,7 +2755,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                                                 .apply()
                                                 .andThen(_.identity);
                                         }
-                                        
+
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }
@@ -2776,7 +2778,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM",
-        description: "Code system to match", required: true,
+        description: "Code system to match", 
         opPromise: CVHelper.getTermList("CODE_SYSTEM"),
         type: "cv",
         cvType: "CODE_SYSTEM"
@@ -2820,7 +2822,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Updated Code text ",
         description: "Text for the record change", required: false
     })
     .addArgument({
@@ -2890,24 +2892,37 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                     var indexCodeToRemove = -1;
                                     var indexReferenceToRemove = -1;
                                     var indexReferencesToRemove = [];
+                                    for (var i = 0; i < referenceCollection.length; i++) {
+                                        if (referenceCollection[i].docType == referenceType
+                                            && referenceCollection[i].citation === referenceCitation) {
+                                            indexReferenceToRemove = i;
+                                            console.log('Located matching reference at index ' + indexReferenceToRemove);
+                                            /*indexReferencesToRemove.push(i);*/
+                                            code.references.length = 0;
+                                            code.references.push(referenceCollection[i].uuid);
+                                            reference = null;
+                                        }
+                                    }
+
+
                                     for (var i = 0; i < codeCollection.length; i++) {
                                         if (codeCollection[i].codeSystem == codeSystem
                                             && codeCollection[i].code == codeValue) {
+                                            /*see if sufficient reference input was not provided*/
+                                            if (!referenceCitation || referenceCitation.length == 0) {
+                                                console.log('Copying ref ' + JSON.stringify(codeCollection[i].references));
+                                                code.references = codeCollection[i].references;
+                                            }
                                             indexCodeToRemove = i;
                                             break;
                                         }
                                     }
 
-                                    for (var i = 0; i < referenceCollection.length; i++) {
-                                        if (referenceCollection[i].docType == referenceType) {
-                                            indexReferenceToRemove = i;
-                                            indexReferencesToRemove.push(i);
-                                        }
-                                    }
                                     if (indexCodeToRemove > -1) {
                                         /*console.log('going to remove reference ' +
                                             referenceCollection[indexReferenceToRemove].url);*/
-                                        if (indexReferenceToRemove > -1) {
+                                        if (reference && (indexReferenceToRemove > -1)) {
+                                            console.log('replacing reference');
                                             return rec.patch()
                                                 .remove("/codes/" + indexCodeToRemove)
                                                 .remove("/references/" + indexReferenceToRemove)
@@ -2917,6 +2932,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                                 .andThen(_.identity);
                                         }
                                         else {
+                                            console.log('creating code with ref ' + code.references);
                                             return rec.patch()
                                                 .remove("/codes/" + indexCodeToRemove)
                                                 .addData(code)
@@ -2924,7 +2940,6 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                                 .apply()
                                                 .andThen(_.identity);
                                         }
-
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }
@@ -3040,7 +3055,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 Script.builder().mix({
     name: "Fix Code URLS",
     description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
-    })
+})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
@@ -3158,7 +3173,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM",
-            description: "Code system to modify", required: true, defaultValue: "CAS"
+        description: "Code system to modify", required: true, defaultValue: "CAS"
     })
     .addArgument({
         "key": "access", name: "ACCESS", defaultValue: "protected",
@@ -3300,7 +3315,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
     })
     .setExecutor(function (args) {
         console.log('Starting in Create Substance executor');
-        
+
         var pt = args.pt.getValue();
         console.log('got pt');
         var substanceClass = args['substance class'].getValue();
