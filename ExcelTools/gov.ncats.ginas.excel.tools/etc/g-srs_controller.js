@@ -68,15 +68,16 @@ var GSRSAPI = {
                     } else {
                         req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
                     };
+         
                     g_api.GlobalSettings.authenticate(req);
 
-                    console.log("going to call url:" + req._url);
+                    console.log("going to call url: " + req._url);
                     if (req._q && req._q.q) {
-                        console.log("   with query:" + req._q.q);
+                        console.log("   with query: " + req._q.q);
                     };
                     var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
                     window[cbackname] = function (response) {
-                        console.log('ajax call success ');
+                        console.log('ajax call success (1)');
                         console.log(' at ' + _.now());
                         cb(response);
                     };
@@ -112,6 +113,7 @@ var GSRSAPI = {
                             cb(response);
                         },
                         error: function (response, error, t) {
+                            console.log('ajax call error ');
                             var msg = 'Error from server. response: '
                                 + JSON.stringify(response) + '; url: '
                                 + this.url;
@@ -1248,7 +1250,6 @@ var GSRSAPI = {
                         console.log('clearValues');
                         argSet = this.args;
                         _.forEach(this.args, function (val, key) {
-                            console.log('going to clear key ' + key);
                             argSet[key].value = argSet[key].defaultValue;
                         });
                         this.args = argSet;
@@ -1804,6 +1805,16 @@ var CVHelper = {
                 });
             }).get(cb);
         });
+    },
+    getDictionary: function (domain) {
+        console.log('getDictionary called with domain: ' + domain);
+        return GGlob.CVFinder.searchByDomain(domain).andThen(function (r) {
+            console.log(' getDictionary andThen, r: '+ JSON.stringify(r));
+            return _.map(r.content[0].terms, function (o) {
+                return o.value + '|' + o.display;
+            });
+        });
+
     }
 };
 
@@ -1902,7 +1913,6 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
         cvType: "DOCUMENT_TYPE"
     })
-
     .addArgument({
         "key": "reference citation", name: "REFERENCE CITATION",
         description: "Citation text for reference", required: true
@@ -2778,7 +2788,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM",
-        description: "Code system to match", 
+        description: "Code system to match",
         opPromise: CVHelper.getTermList("CODE_SYSTEM"),
         type: "cv",
         cvType: "CODE_SYSTEM"
@@ -2862,6 +2872,12 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                 reference.tags = tagSet;
             }
         }
+        if (reference) {
+            console.log('Created reference object based on input. ' + JSON.stringify(reference));
+        }
+        else {
+            console.log('skipped creation of reference');
+        }
 
         var code = Code.builder()
             .setCode(codeValue)
@@ -2869,9 +2885,9 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-        if (reference)
+        if (reference) {
             code.addReference(reference);
-
+        }
         if (url) {
             code.setUrl(url);
         }
@@ -2896,14 +2912,13 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                         if (referenceCollection[i].docType == referenceType
                                             && referenceCollection[i].citation === referenceCitation) {
                                             indexReferenceToRemove = i;
-                                            console.log('Located matching reference at index ' + indexReferenceToRemove);
+                                            console.log('Located matching reference at index ' + i);
                                             /*indexReferencesToRemove.push(i);*/
                                             code.references.length = 0;
                                             code.references.push(referenceCollection[i].uuid);
                                             reference = null;
                                         }
                                     }
-
 
                                     for (var i = 0; i < codeCollection.length; i++) {
                                         if (codeCollection[i].codeSystem == codeSystem
@@ -2919,27 +2934,17 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                     }
 
                                     if (indexCodeToRemove > -1) {
-                                        /*console.log('going to remove reference ' +
-                                            referenceCollection[indexReferenceToRemove].url);*/
-                                        if (reference && (indexReferenceToRemove > -1)) {
-                                            console.log('replacing reference');
-                                            return rec.patch()
-                                                .remove("/codes/" + indexCodeToRemove)
-                                                .remove("/references/" + indexReferenceToRemove)
-                                                .addData(code)
-                                                .add("/changeReason", args['change reason'].getValue())
-                                                .apply()
-                                                .andThen(_.identity);
+                                        console.log('creating code with ref ' + code.references);
+                                        var p = rec.patch()
+                                            .remove("/codes/" + indexCodeToRemove)
+                                            .addData(code);
+                                        if (reference) {
+                                            console.log('Adding reference to patch');
+                                            p.addData(reference);
                                         }
-                                        else {
-                                            console.log('creating code with ref ' + code.references);
-                                            return rec.patch()
-                                                .remove("/codes/" + indexCodeToRemove)
-                                                .addData(code)
-                                                .add("/changeReason", args['change reason'].getValue())
-                                                .apply()
-                                                .andThen(_.identity);
-                                        }
+                                        return p.add("/changeReason", args['change reason'].getValue())
+                                            .apply()
+                                            .andThen(_.identity);
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }

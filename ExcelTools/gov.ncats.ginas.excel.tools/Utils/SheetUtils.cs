@@ -137,6 +137,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 List<VocabItem> vocabItems = GetVocab(vocabularyName);
                 if (vocabItems.Count > 0)
                 {
+                    //temporary test
+                    string vocabScript = "CVHelper.getDictionary('" + vocabularyName +"').get(function(s) {console.log('got our s: ' + s); return s}).get();";
+                    var dictObj = scriptExecutor.ExecuteScript(vocabScript);
+                    log.DebugFormat("Got dictionary {0}", dictObj);
                     for (int row = 1; row <= numberOfRows; row++)
                     {
                         Range vocabCell = cell.Offset[row, 0];
@@ -221,6 +225,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
         private List<VocabItem> GetVocab(string cvType)
         {
+            log.DebugFormat("In GetVocab with cvType: {0}", cvType);
             if (!string.IsNullOrWhiteSpace(cvType))
             {
                 return VocabUtils.GetVocabularyItems(Configuration.SelectedServer.ServerUrl,
@@ -317,7 +322,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 try
                 {
                     int numberOfRows = Convert.ToInt32(numberOfRowsObj);
-                    log.DebugFormat("Successful pars of numberOfRows: {0}", numberOfRows);
                     return numberOfRows;
                 }
                 catch(FormatException ex)
