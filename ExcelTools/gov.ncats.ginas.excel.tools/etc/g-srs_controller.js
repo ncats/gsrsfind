@@ -68,7 +68,7 @@ var GSRSAPI = {
                     } else {
                         req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
                     };
-         
+
                     g_api.GlobalSettings.authenticate(req);
 
                     console.log("going to call url: " + req._url);
@@ -1810,7 +1810,7 @@ var CVHelper = {
         console.log('getDictionary called with domain: ' + domain);
         return GGlob.CVFinder.searchByDomain(domain).andThen(function (r) {
             /*console.log('getDictionary andThen, r: '+ JSON.stringify(r));*/
-            return "vocabulary:" + domain + ":" + JSON.stringify( r);
+            return "vocabulary:" + domain + ":" + JSON.stringify(r);
         });
 
     }
@@ -2607,7 +2607,7 @@ Script.builder().mix({
     .useFor(Scripts.addScript);
 
 /*replace code via substance name MAM 26 June 2017*/
-Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one code with another of the same type for a substance record identified by preferred term" })
+Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one code with another of the same type for a substance record identified by preferred term. Matches code ONLY by code system!" })
     .addArgument({
         "key": "pt", name: "PT", description: "PT of the substance record", required: true
     })
@@ -3386,8 +3386,11 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
 
         var sub = SubstanceBuilder.fromSimple(simpleSub);
 
-        return sub.patch()
-            .apply()
+        var p = sub.patch();
+        if (args['change reason'] && args['change reason'].getValue()) {
+            p.add("/changeReason", args['change reason'].getValue())
+        }
+        return p.apply()
             .andThen(function (resp) {
                 if (typeof (resp) == 'object')
                     console.log(JSON.stringify(resp));

@@ -345,7 +345,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 buttonAddStructure.Enabled = false;
                 buttonAddStructure.Visible = false;
                 buttonCancel.Enabled = true;
-                this.Visible = true;
+                Visible = true;
                 Text = "Script Selection";
             }
             else if (CurrentOperationType == OperationType.GetStructures)
@@ -359,8 +359,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             buttonDebugDOM.Enabled = false; //_configuration.DebugMode;
             buttonDebugDOM.Visible = false;//_configuration.DebugMode;
 
-            FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
-            //webBrowser1.Document.Body.OuterHtml);
+            if( _configuration.DebugMode)
+            {
+                FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
+            }            
             webBrowser1.Visible = true;
         }
 
