@@ -23,8 +23,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private static int _scriptNumber = 0;
         private string _scriptName;
         private float _secondsPerScript = 10;
-        private Dictionary<string, ScriptParameter> _scriptParameters;
-        private bool _foundNoActivesLastTime = false;
         private int _NumTimesFoundNoActives = 0;
         private const int MAX_TIMES_NO_ACTIVE = 4;
         private string _currentKey = string.Empty;
@@ -40,6 +38,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             set;
         }
 
+        private ScriptUtils scriptUtils;
+
+
+        /// <summary>
+        /// First method to call for outside classes
+        /// </summary>
         public void StartOperation()
         {
             GinasConfiguration = FileUtils.GetGinasConfiguration();
@@ -54,6 +58,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             form.Visible = false;
             SetStatusUpdater(form);
             ScriptExecutor = form;
+            scriptUtils = new ScriptUtils();
+            scriptUtils.ScriptExecutor = ScriptExecutor;
+
             form.ShowDialog();
 
             Excel.Range arange = GetExecutingRange();
@@ -64,7 +71,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             else
             {
                 StatusUpdater.UpdateStatus("(" + arange.Count + ") records to execute");
-                //arange.EntireRow.Select();
             }
             _notified = false;
         }
@@ -91,11 +97,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
         /// </summary>
         public void ContinueSetup()
         {
+            log.Debug("Starting in ContinueSetup");
             Callbacks = new Dictionary<string, Callback>();
             string msg = "";
             //grab values from the first selected row
 
             _scriptName = GetScriptName(ExcelSelection.Application.ActiveCell);
+            scriptUtils.ScriptName = _scriptName;
             SetScriptParameters(ExcelSelection.Application.ActiveCell);
 
             Callback cb = CreateInitialUpdateCallback(ExcelSelection.Application.ActiveCell,
@@ -106,6 +114,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public bool StartResolution(bool newSheet)
         {
+            
             if (CurrentOperationType == OperationType.ShowScripts)
             {
                 string selectedScriptName = (string)ScriptExecutor.ExecuteScript("$('#scriptlist').val()");
@@ -114,10 +123,23 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     UIUtils.ShowMessageToUser("Please select a script for your new sheet");
                     return true;
                 }
-                SheetUtils sheetUtils = new SheetUtils();
-                sheetUtils.Configuration = GinasConfiguration;
-                sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, selectedScriptName,
-                    ScriptExecutor);
+                if(scriptUtils == null)
+                {
+                    scriptUtils = new ScriptUtils();
+                }
+                scriptUtils.ScriptName = selectedScriptName;
+                scriptUtils.ScriptExecutor = ScriptExecutor;
+                log.DebugFormat("{0} setting script name to {1}", MethodBase.GetCurrentMethod().Name,
+                    selectedScriptName);
+                scriptUtils.StartVocabularyRetrievals();
+                //when there are no vocabularies to retrieve, move to the next step immediately
+                if(scriptUtils.ExpectedVocabularies.Count==0)
+                {
+                    SheetUtils sheetUtils = new SheetUtils();
+                    sheetUtils.Configuration = GinasConfiguration;
+                    sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
+                        ScriptExecutor);
+                }
             }
             else
             {
@@ -165,9 +187,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 Callback cb = CreateUpdateCallbackForExecution(row);
                 //cb.Wait();
             }
+            _scriptName = GetScriptName(ExcelSelection.Application.ActiveCell);
+            log.DebugFormat("{0} setting script name to {1}", MethodBase.GetCurrentMethod().Name,
+                _scriptName);
 
-            StartFirstUpdateCallback();
-            LaunchCheckJob();
+            scriptUtils.ScriptName = _scriptName;
+            scriptUtils.StartVocabularyRetrievals();
+            if(scriptUtils.ExpectedVocabularies.Count == 0)
+            {
+                StartFirstUpdateCallback();
+                LaunchCheckJob();
+            }
         }
 
 
@@ -210,20 +240,22 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (!string.IsNullOrWhiteSpace(statusValue))
             {
                 message = "(will not execute row, because " + STATUS_KEY + " is not empty)";
+                log.Debug(message);
+                UIUtils.ShowMessageToUser(message);
                 if (!allowFinished) return null;
             }
             _scriptNumber++;
 
             Dictionary<string, string> paramValues = new Dictionary<string, string>();
             string runnerName = "tmpRunner";
-            foreach (string key in _scriptParameters.Keys)
+            foreach (string key in scriptUtils.ScriptParameters.Keys)
             {
                 string defaultValue = string.Empty;
-                if (_scriptParameters[key].IsBoolean()) defaultValue = "FALSE";
+                if (scriptUtils.ScriptParameters[key].IsBoolean()) defaultValue = "FALSE";
                 string parameterValue = GetProperty(keys, key, defaultValue);
                 if (!string.IsNullOrWhiteSpace(parameterValue))
                 {
-                    ScriptParameter parameter = _scriptParameters[key];
+                    ScriptParameter parameter = scriptUtils.ScriptParameters[key];
                     if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
                     {
                         log.DebugFormat("parameter value: {0}", parameterValue);
@@ -259,6 +291,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             updateCallback.ParameterValues = paramValues;
             updateCallback.LoadScriptName = _scriptName;
             message = "Total selected rows: " + (application.Selection as Excel.Range).Rows.Count;
+            log.Debug(message);
             return updateCallback;
         }
 
@@ -284,7 +317,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         keys.Add(cellTextUpper, r);
                     }
                 }
-
             }
             return keys;
         }
@@ -305,6 +337,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 return null;
             }
             string tempScriptName = "tmpScript";
+            log.DebugFormat("{0} determined script name {1} ",
+                MethodBase.GetCurrentMethod().Name, tokens[1]);
             ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + tokens[1] + "');");
             string runnerName = "tmpRunner";
             ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
@@ -328,11 +362,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return def;
         }
 
-
-        private void DecremementTotalScripts()
-        {
-            if (_totalScripts > 0) _totalScripts--;
-        }
 
         public void LaunchCheckJob()
         {
@@ -468,6 +497,38 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return Callbacks;
         }
 
+        public new void ReceiveVocabulary(string rawVocab)
+        {
+            log.DebugFormat("ReceiveVocabulary will handle vocabulary ");
+            int delim1 = rawVocab.IndexOf(":");
+            int delim2 = rawVocab.IndexOf(":", delim1 + 1);
+            if (delim1 < 0 || delim2 < 0) return;
+            string vocabName = rawVocab.Substring(delim1 + 1, (delim2 - delim1 - 1));
+            rawVocab = rawVocab.Substring(delim2 + 1);
+            Vocab vocab = JSTools.GetVocabFromString(rawVocab);
+
+            scriptUtils.Vocabularies.Add(vocabName, vocab);
+            scriptUtils.MarkVocabArrived(vocabName);
+            log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
+                vocabName, scriptUtils.ExpectedVocabularies.Count);
+            if (scriptUtils.ExpectedVocabularies.Count == 0)
+            {
+                if (CurrentOperationType == OperationType.ShowScripts)
+                {
+                    SheetUtils sheetUtils = new SheetUtils();
+                    sheetUtils.Configuration = GinasConfiguration;
+                    sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
+                        ScriptExecutor);
+                }
+                else
+                {
+                    //start data loading
+                    StartFirstUpdateCallback();
+                    LaunchCheckJob();
+                }
+            }
+        }
+
         private void EndProcessNotification()
         {
             if (!_notified)
@@ -487,7 +548,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Worksheet activeSheet = (Excel.Worksheet)r.Application.ActiveSheet;
             r = r.Application.Intersect(ActiveRange(),
                 r.Application.Intersect(activeSheet.UsedRange,
-                activeSheet.Range["2:" + r.Application.Intersect(activeSheet.UsedRange, activeSheet.Range["A:A"]).Cells.Count]));
+                activeSheet.Range["2:" + r.Application.Intersect(activeSheet.UsedRange, 
+                activeSheet.Range["A:A"]).Cells.Count]));
             r = (r.Application.Intersect(r, r.Cells[1] as Excel.Range).EntireColumn);
             return r;
         }
@@ -495,56 +557,19 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private Excel.Range ActiveRange()
         {
             Excel.Worksheet activeSheet = (Excel.Worksheet)ExcelSelection.Application.ActiveSheet;
-            Excel.Range r = ExcelSelection.Application.Intersect(activeSheet.UsedRange, ExcelSelection.Cells);
+            Excel.Range r = ExcelSelection.Application.Intersect(activeSheet.UsedRange, 
+                ExcelSelection.Cells);
             return r;
         }
 
         private void RunUpdateCallback(UpdateCallback updateCallback)
         {
             log.DebugFormat("RunUpdateCallback handling key {0}", updateCallback.getKey());
-            //string tempScriptName = "scriptObject";
-            //ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + updateCallback.LoadScriptName + "');");
-            string runnerName = "tmpRunner";
-            //ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
-            ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
-            try
-            {
-                foreach (string key in updateCallback.ParameterValues.Keys)
-                {
-                    //see if there's a vocabulary translation
-                    string parameterValue = updateCallback.ParameterValues[key];
-                    if (_scriptParameters.ContainsKey(key)
-                        && _scriptParameters[key].Vocabulary != null
-                        && _scriptParameters[key].Vocabulary.Count > 0)
-                    {
-                        if (!_scriptParameters[key].Vocabulary.ContainsValue(parameterValue)
-                            && _scriptParameters[key].Vocabulary.ContainsKey(parameterValue))
-                        {
-                            string newParameterValue = _scriptParameters[key.ToUpper()].Vocabulary[parameterValue];
-                            log.DebugFormat("Used vocabulary to translate {0} to {1}",
-                                parameterValue, newParameterValue);
-                            parameterValue = newParameterValue;
-                        }
-                    }
-                    string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
-                                key, parameterValue);
-                    ScriptExecutor.ExecuteScript(paramValueScript);
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
-            string executionScript = runnerName + ".execute()" +
-                                                     ".get(function(b){cresults['" +
-                                                    updateCallback.getKey() + "']=b;window.external.Notify('"
-                                                    + updateCallback.getKey() + "');})";
-            ScriptExecutor.ExecuteScript(executionScript);
+            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey());
         }
 
         private void SetScriptParameters(Excel.Range range)
         {
-            _scriptParameters = new Dictionary<string, ScriptParameter>(StringComparer.CurrentCultureIgnoreCase);
             Excel.Application application = range.Application;
 
             Dictionary<string, Excel.Range> keys = GetKeys(range);
@@ -554,33 +579,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Dictionary<string, string> paramValues = new Dictionary<string, string>();
 
             string tempScriptName = "tmpScript";
+            log.DebugFormat("{0} using script name {1} ",
+                MethodBase.GetCurrentMethod().Name, _scriptName);
             ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + _scriptName + "');");
             string runnerName = "tmpRunner";
             ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
 
-            foreach (string key in keys.Keys)
-            {
-                string testScript = tempScriptName + ".hasArgumentByName('" + key + "')";
-                object testValue = ScriptExecutor.ExecuteScript(testScript);
-                Debug.WriteLine("value: " + testValue);
-                if (testValue is string && (testValue as string).Equals("true",
-                        StringComparison.CurrentCultureIgnoreCase))
-                {
-                    object param =
-                        ScriptExecutor.ExecuteScript(tempScriptName
-                        + ".getArgumentByName('" + key + "')");
-                    ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
-                    if (!string.IsNullOrWhiteSpace(parameter.cvType))
-                    {
-                        Dictionary<string, string> vocab = VocabUtils.BuildVocabularyDictionary(
-                            GinasConfiguration.SelectedServer.ServerUrl, parameter.cvType);
-                        parameter.Vocabulary = vocab;
-                        log.Debug("Attached vocabulary for parameter " + key);
-                    }
-
-                    _scriptParameters.Add(key, parameter);
-                }
-            }
+            scriptUtils.BuildScriptParameters(keys.Keys);
         }
 
         private void StartFirstUpdateCallback()
@@ -588,6 +593,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.Count == 0) return;
             if (Callbacks.Values.First() is UpdateCallback)
             {
+                scriptUtils.AssignVocabularies();
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
                 if (!updateCallback.getKey().Equals(_currentKey))
                 {
@@ -618,5 +624,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             FileUtils.WriteToFile(fileName, content);
             ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack=[]");//clear the old stuff
         }
+
+        private void DecremementTotalScripts()
+        {
+            if (_totalScripts > 0) _totalScripts--;
+        }
+
     }
 }

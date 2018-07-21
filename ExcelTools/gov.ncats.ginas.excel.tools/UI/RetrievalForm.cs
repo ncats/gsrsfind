@@ -205,6 +205,12 @@ namespace gov.ncats.ginas.excel.tools.UI
                     Close();
                 }
             }
+            else if( message.StartsWith("vocabulary:"))
+            {
+                log.Debug("Got back " + message);
+                Controller.ReceiveVocabulary(message);
+            }
+                
         }
 
         public void Proceed(string message)
@@ -321,7 +327,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 checkBoxNewSheet.Visible = false;
                 ExecuteScript("setMode('update');");
                 Controller.ContinueSetup();
-                this.Visible = true;
+                Visible = true;
                 Text = "Data Loader";
             }
             else if (CurrentOperationType == OperationType.Resolution)
@@ -338,6 +344,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 buttonResolve.Text = "Add Sheet";
                 buttonAddStructure.Enabled = false;
                 buttonAddStructure.Visible = false;
+                buttonCancel.Enabled = true;
                 this.Visible = true;
                 Text = "Script Selection";
             }

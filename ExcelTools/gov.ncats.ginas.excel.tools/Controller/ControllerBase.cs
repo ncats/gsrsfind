@@ -157,5 +157,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return 120;
         }
 
+        public void ReceiveVocabulary(string rawVocab)
+        {
+
+        }
     }
 }

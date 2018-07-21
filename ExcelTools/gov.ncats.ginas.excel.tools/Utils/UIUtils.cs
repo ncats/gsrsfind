@@ -20,9 +20,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return (result == DialogResult.Yes);
         }
 
-        public static DialogYesNoCancel GetUserYesNoCancel(string message)
+        public static DialogYesNoCancel GetUserYesNoCancel(string message,
+            string title = "Select 'Yes', 'No' or 'Cancel'")
         {
-            DialogResult result = MessageBox.Show(message, "Select 'Yes', 'No' or 'Cancel' ",
+            DialogResult result = MessageBox.Show(message, title,
                 MessageBoxButtons.YesNoCancel);
             if (result == DialogResult.Yes) return DialogYesNoCancel.Yes;
             if (result == DialogResult.No) return DialogYesNoCancel.No;

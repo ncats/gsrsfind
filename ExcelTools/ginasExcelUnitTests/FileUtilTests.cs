@@ -34,8 +34,7 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(System.IO.File.Exists(fullPath));
             Console.WriteLine("fullPath: " + fullPath);
             System.IO.File.Delete(fullPath);
-        }
-        
+        }      
 
         
     }

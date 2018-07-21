@@ -64,8 +64,8 @@
     <Compile Include="SerializationTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="ModelTests.cs" />
-    <Compile Include="DataLoaderTest.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
+    <Compile Include="Utils\ScriptUtilsTests.cs" />
     <Compile Include="Utils\VocabUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>

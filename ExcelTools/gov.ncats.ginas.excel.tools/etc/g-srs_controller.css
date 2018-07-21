@@ -52,6 +52,7 @@ body {
 
 .consolehead {
     /*display: none;*/
+    width: 100%;
 }
 
 .data {

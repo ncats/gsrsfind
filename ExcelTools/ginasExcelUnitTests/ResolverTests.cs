@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
@@ -91,6 +92,15 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expectedValue, firstValues[0]);
         }
 
+        [TestMethod]
+        public void TestVocabDeserialization()
+        {
+            string vocabFilePath = @"..\..\..\Test_Files\ref type vocab.json";
+            vocabFilePath =  Path.GetFullPath(vocabFilePath);
+            string rawVocabContent = File.ReadAllText(vocabFilePath);
+            Vocab referenceTypeVocab = JSTools.GetVocabFromString(rawVocabContent);
+            Assert.IsTrue(referenceTypeVocab.Content[0].Terms.Length > 10);
+        }
         [TestMethod]
         public void IsImageUrlTest()
         {

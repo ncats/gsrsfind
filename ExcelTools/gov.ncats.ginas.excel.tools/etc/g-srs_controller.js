@@ -83,7 +83,7 @@ var GSRSAPI = {
                     };
                     $.ajax({
                         url: req._url,
-                        jsonp: cbackname,
+                        /*jsonp: cbackname,*/
                         dataType: GlobalSettings.httpType(),
                         contentType: 'application/json',
                         type: req._method,
@@ -1809,10 +1809,8 @@ var CVHelper = {
     getDictionary: function (domain) {
         console.log('getDictionary called with domain: ' + domain);
         return GGlob.CVFinder.searchByDomain(domain).andThen(function (r) {
-            console.log('getDictionary andThen, r: '+ JSON.stringify(r));
-            return _.map(r.content[0].terms, function (o) {
-                return o.value + '|' + o.display;
-            });
+            /*console.log('getDictionary andThen, r: '+ JSON.stringify(r));*/
+            return "vocabulary:" + domain + ":" + JSON.stringify( r);
         });
 
     }
