@@ -64,6 +64,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 divElement.AppendChild(label2);
 
                 bodyElement.AppendChild(divElement);
+
             }
 
             HtmlElement divElement2 = document.CreateElement("div");
@@ -178,6 +179,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement lastScript = document.CreateElement("script");
             lastScript.InnerHtml= FileUtils.GetLastJavaScript();
             bodyElement.AppendChild(lastScript);
+
+            HtmlElement refresherFrame = document.CreateElement("iframe");
+            refresherFrame.SetAttribute("id", "refresher");
+            refresherFrame.Style = "height:1px;opacity:0;display: none;" ;
+            bodyElement.AppendChild(refresherFrame);
 
             HtmlElement consoleScript = document.CreateElement("script");
             consoleScript.SetAttribute("type", "text/javascript");

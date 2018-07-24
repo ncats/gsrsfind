@@ -298,6 +298,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                         case DialogYesNoCancel.Cancel:
                             UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
                             buttonAddStructure.Enabled = false;
+                            buttonAddStructure.Visible = false;
                             buttonResolve.Enabled = false;
                             return;
                         default:
@@ -333,8 +334,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             else if (CurrentOperationType == OperationType.Resolution)
             {
                 ExecuteScript("setMode('resolver');");
-                buttonAddStructure.Enabled = true;
-                buttonAddStructure.Visible = true;
+                buttonAddStructure.Enabled = false;
+                buttonAddStructure.Visible = false;
                 this.Visible = true;
                 Text = "Data Retriever";
             }

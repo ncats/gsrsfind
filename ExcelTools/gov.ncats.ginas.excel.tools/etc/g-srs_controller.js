@@ -108,8 +108,8 @@ var GSRSAPI = {
                         success: function (response) {
                             console.log('ajax call success ');
                             console.log('	at ' + _.now());
-                            console.log('	with response ' + (typeof (response) == 'string') ? response
-                                : JSON.stringify(response));
+                            /*console.log('	with response ' + (typeof (response) == 'string') ? response
+                                : JSON.stringify(response));*/
                             cb(response);
                         },
                         error: function (response, error, t) {
@@ -1111,7 +1111,15 @@ var GSRSAPI = {
                     return d;
                 };
                 return ref;
+            },
+            isDuplicate: function (existingRef, newReferenceType, newReferenceCitation, newReferenceUrl) {
+                if (existingRef.docType === newReferenceType && existingRef.citation === newReferenceCitation
+                    && existingRef.url === newReferenceUrl) {
+                    return true;
+                }
+                return false;
             }
+
         };
         var Relationship = {
             builder: function () {
@@ -1297,10 +1305,6 @@ var GSRSAPI = {
                     cargs.execute = function () {
                         return cargs.validate()
                             .andThen(function (v) {
-                                if (typeof v === 'object') {
-                                    console.log('andThen of cargs.validate. v: '
-                                        + JSON.stringify(v));
-                                }
 
                                 if (v.length == 0 || cargs.forced()) {
                                     return scr.execute(cargs.args)
@@ -1440,6 +1444,20 @@ var GSRSAPI = {
                         return arg.defaultValue;
                     }
                 };
+                arg.isTruthy = function () {
+                    if (_.isUndefined(arg.value)) {
+                        return false;
+                    } else if (typeof arg.value === 'boolean') {
+                        return arg.value;
+                    } else if (typeof arg.value === 'string') {
+                        var upperValue = arg.value.toUpperCase();
+                        return (upperValue === 'YES' || upperValue === 'Y'
+                            || upperValue === 'TRUE' || upperValue === 'T');
+                    } else if (typeof arg.value === 'number') {
+                        return arg.value > 0;
+                    }
+                    return false;
+                };
                 return arg;
             }
         };
@@ -1549,7 +1567,6 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("InChIKey", function (simpleSub) {
         return simpleSub.fetch("structure!$inchikey()")
             .andThen(function (ik) {
-                /*console.log('inchikey andThen. ik: ' + (typeof ik));*/
                 if (!ik) return null;
                 if (typeof ik === 'object') {
                     if (ik.retMsg) {
@@ -1589,7 +1606,6 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("Image URL", function (simpleSub) {
         return simpleSub.fetch("structure/smiles")
             .andThen(function (s) {
-                /*console.log("Result of retrieval of structure/smiles for " + JSON.stringify(s));*/
                 if (s && s.valid === false) {
                     console.log("No structure found!");
                     return "";
@@ -1927,7 +1943,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         var uuid = args.uuid.getValue();
         var name = args.name.getValue();
         var nameType = args["name type"].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args["reference type"].getValue();
         var referenceCitation = args["reference citation"].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -1938,16 +1954,14 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             reference = reference.setUrl(referenceUrl);
         }
 
-        if ((public + "").toUpperCase() === "TRUE" || public === true || (public + "").toUpperCase() === "Y" || (public + "").toUpperCase() === "YES") {
-            console.log('perceived public name');
+        if (public) {
+            console.log('perceived public reference');
             reference.setPublic(true);
             reference.setPublicDomain(true);
-            public = true;
         } else {
-            console.log('perceived NON public name');
+            console.log('perceived NON public reference');
             reference.setPublic(false);
             reference.setPublicDomain(false);
-            public = false;
         }
 
         var langs = [];
@@ -1964,14 +1978,11 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
                 var substance = GGlob.SubstanceBuilder.fromSimple(s);
                 return substance.fetch("references")
                     .andThen(function (refs) {
-                        console.log('retrieved refs');
                         _.forEach(refs, function (ref) {
-                            if (ref.citation === referenceCitation
-                                && ref.docType === referenceType
-                                && ref.url === referenceUrl
-                                && ref.publicDomain === public) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                return false;
                             }
                         });
                         name.addReference(reference);
@@ -2077,8 +2088,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         var uuid = args.uuid.getValue();
         var name = args.name.getValue();
         var nameType = args['name type'].getValue();
-        console.log('got arg nameType: ' + nameType);
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         console.log('got arg public: ' + public);
         var nameLanguage = args.language.getValue();
         console.log('got arg nameLanguage: ' + nameLanguage);
@@ -2093,16 +2103,14 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
             reference = reference.setUrl(referenceUrl);
         }
 
-        if ((public + "").toUpperCase() === "TRUE" || public === true || (public + "").toUpperCase() === "Y" || (public + "").toUpperCase() === "YES") {
+        if (public) {
             console.log('perceived public name');
             reference.setPublic(true);
             reference.setPublicDomain(true);
-            public = true;
         } else {
             console.log('perceived NON public name');
             reference.setPublic(false);
             reference.setPublicDomain(false);
-            public = false;
         }
 
         var langs = [];
@@ -2122,12 +2130,10 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
                     .andThen(function (refs) {
                         console.log('retrieved refs');
                         _.forEach(refs, function (ref) {
-                            if (ref.citation === referenceCitation
-                                && ref.docType === referenceType
-                                && ref.url === referenceUrl
-                                && ref.publicDomain === public) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                return false;
                             }
                         });
                         name.addReference(reference);
@@ -2211,7 +2217,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var codeSystem = args['code system'].getValue();
         var codeComments = args['code text'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2220,7 +2226,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        if (public && public === "true" || public === true || public === "Y") {
+        if (public) {
             reference.setPublic(true);
             reference.setPublicDomain(true);
         } else {
@@ -2233,7 +2239,6 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-        /*.addReference(reference);*/
 
         if (url) {
             code.setUrl(url);
@@ -2249,12 +2254,10 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                     .andThen(function (refs) {
                         console.log('retrieved refs');
                         _.forEach(refs, function (ref) {
-                            if (ref.citation === referenceCitation
-                                && ref.docType === referenceType
-                                && ref.url === referenceUrl
-                                && ref.publicDomain === public) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                return false;
                             }
                         });
                         code.addReference(reference);
@@ -2364,10 +2367,9 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var uuid2 = args.uuid2.getValue();
-        console.log('got uuid: ' + uuid + '; and uuid2 ' + uuid2);
         var relationshiptype = args['relationship type'].getValue();
         console.log('got relationshiptype: ' + relationshiptype);
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2379,7 +2381,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             if (referenceUrl && referenceUrl.length > 0) {
                 reference = reference.setUrl(referenceUrl);
             }
-            if (public && public === "true" || public === true || public === "Y") {
+            if (public) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2396,22 +2398,39 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             }
         }
 
+        var substanceObject;
         return SubstanceFinder.get(uuid)
             .andThen(function (s) {
-                console.log('in andThen');
+                substanceObject = s;
+                console.log('going to check references');
+                var substance = GGlob.SubstanceBuilder.fromSimple(s);
+                return substance.fetch("references")
+                    .andThen(function (refs) {
+                        console.log('retrieved refs: ' + JSON.stringify(refs));
+                        _.forEach(refs, function (ref) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                                return false;
+                            }
+                        });
+                    })
+            })
+            .andThen(function (s1) {
+                console.log('in andThen 2');
                 return SubstanceFinder.get(uuid2)
+
                     .andThen(function (s2) {
-                        console.log('in andThen2. ');
+                        console.log('in andThen 2 inner ');
                         /*construct the relationship object*/
                         var relationship = Relationship.builder()
                             .setRelatedSubstance(s2) /*make sure this works!*/
                             .setType(relationshiptype);
-                        if (reference)
+                        if (reference) {
                             relationship.addReference(reference);
-                        else
-                            alert('reference for this relationship was null');
+                        }
 
-                        return s.patch().addData(relationship)
+                        return substanceObject.patch().addData(relationship)
                             .add("/changeReason", args['change reason'].getValue())
                             .apply()
                             .andThen(_.identity);
@@ -2419,13 +2438,6 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             });
     })
     .useFor(Scripts.addScript);
-
-function dumpObject(obj) {
-    var resp = Array();
-    for (prop in obj) {
-        resp.push(prop + ' = ' + obj[prop]);
-    }
-}
 
 /*add code via substance name MAM 15 June 2017*/
 Script.builder().mix({
@@ -2502,7 +2514,7 @@ Script.builder().mix({
         var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2522,7 +2534,7 @@ Script.builder().mix({
             && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public && public === "true" || public === true || public === "Y") {
+            if (public) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2545,8 +2557,6 @@ Script.builder().mix({
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-        if (reference)
-            code.addReference(reference);
 
         if (url) {
             code.setUrl(url);
@@ -2561,40 +2571,56 @@ Script.builder().mix({
                     var rec = resp.content[0];
                     var substance = GGlob.SubstanceBuilder.fromSimple(rec);
                     console.log('Found a substance with PT: ' + pt);
-                    return substance.fetch("codes")
-                        .andThen(function (codes) {
-                            var valuesOK = true;
-                            var valuesError = '';
-                            _.forEach(codes, function (cd) {
-                                if (cd.codeSystem == codeSystem) {
-                                    if (allowMultiple) {
-                                        /*use the double equal to allow coercion of values*/
-                                        if (cd.code == codeInput) {
-                                            console.log(' duplicate code detected');
-                                            valuesOK = false;
-                                            valuesError = 'This substance already has the code "'
-                                                + codeInput + '" for system ' + cd.codeSystem;
-                                            return false;
-                                        }
-                                    }
-                                    else {
-                                        valuesOK = false;
-                                        valuesError = 'This substance already has a code for system '
-                                            + cd.codeSystem;
-                                        return false;
-                                    }
+                    return substance.fetch("references")
+                        .andThen(function (refs) {
+                            console.log('retrieved refs: ' + JSON.stringify(refs));
+                            _.forEach(refs, function (ref) {
+                                if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                    console.log('Duplicate reference found! Will skip creation of new one.');
+                                    reference = ref;
+                                    return false;
                                 }
                             });
-                            if (valuesOK) {
-                                console.log('Add Code by Name is going to return patch ');
-                                return rec.patch().addData(code)
-                                    .add("/changeReason", args['change reason'].getValue())
-                                    .apply()
-                                    .andThen(_.identity);
-                            } else {
-                                console.log('Add Code by Name is going to return message ' + valuesError);
-                                return { "message": valuesError, "valid": false };
+                            if (reference) {
+                                code.addReference(reference);
                             }
+                        })
+                        .andThen(function (s) {
+                            return substance.fetch("codes")
+                                .andThen(function (codes) {
+                                    var valuesOK = true;
+                                    var valuesError = '';
+                                    _.forEach(codes, function (cd) {
+                                        if (cd.codeSystem == codeSystem) {
+                                            if (allowMultiple) {
+                                                /*use the double equal to allow coercion of values*/
+                                                if (cd.code == codeInput) {
+                                                    console.log(' duplicate code detected');
+                                                    valuesOK = false;
+                                                    valuesError = 'This substance already has the code "'
+                                                        + codeInput + '" for system ' + cd.codeSystem;
+                                                    return false;
+                                                }
+                                            }
+                                            else {
+                                                valuesOK = false;
+                                                valuesError = 'This substance already has a code for system '
+                                                    + cd.codeSystem;
+                                                return false;
+                                            }
+                                        }
+                                    });
+                                    if (valuesOK) {
+                                        console.log('Add Code by Name is going to return patch ');
+                                        return rec.patch().addData(code)
+                                            .add("/changeReason", args['change reason'].getValue())
+                                            .apply()
+                                            .andThen(_.identity);
+                                    } else {
+                                        console.log('Add Code by Name is going to return message ' + valuesError);
+                                        return { "message": valuesError, "valid": false };
+                                    }
+                                });
                         });
                 } else {
                     console.log('resp: ' + JSON.stringify(resp));
@@ -2674,7 +2700,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2684,7 +2710,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public && public === "true" || public === true || public === "Y") {
+            if (public) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2707,8 +2733,6 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-        if (reference)
-            code.addReference(reference);
 
         if (url) {
             code.setUrl(url);
@@ -2726,7 +2750,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                     return substance.fetch("codes")
                         .andThen(function (codeCollection) {
                             return substance.fetch("references")
-                                .andThen(function (referenceCollection) {
+                                .andThen(function (refs) {
                                     var indexCodeToRemove = -1;
                                     var indexReferenceToRemove = -1;
                                     var indexReferencesToRemove = [];
@@ -2737,33 +2761,23 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                                         }
                                     }
 
-                                    for (var i = 0; i < referenceCollection.length; i++) {
-                                        if (referenceCollection[i].docType == referenceType) {
-                                            indexReferenceToRemove = i;
-                                            indexReferencesToRemove.push(i);
+                                    _.forEach(refs, function (ref) {
+                                        if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                            console.log('Duplicate reference found! Will skip creation of new one.');
+                                            reference = ref;
+                                            return false;
                                         }
+                                    });
+                                    if (reference) {
+                                        code.addReference(reference);
                                     }
                                     if (indexCodeToRemove > -1) {
-                                        /*console.log('going to remove reference ' +
-                                            referenceCollection[indexReferenceToRemove].url);*/
-                                        if (indexReferenceToRemove > -1) {
-                                            return rec.patch()
-                                                .remove("/codes/" + indexCodeToRemove)
-                                                .remove("/references/" + indexReferenceToRemove)
-                                                .addData(code)
-                                                .add("/changeReason", args['change reason'].getValue())
-                                                .apply()
-                                                .andThen(_.identity);
-                                        }
-                                        else {
-                                            return rec.patch()
-                                                .remove("/codes/" + indexCodeToRemove)
-                                                .addData(code)
-                                                .add("/changeReason", args['change reason'].getValue())
-                                                .apply()
-                                                .andThen(_.identity);
-                                        }
-
+                                        return rec.patch()
+                                            .remove("/codes/" + indexCodeToRemove)
+                                            .addData(code)
+                                            .add("/changeReason", args['change reason'].getValue())
+                                            .apply()
+                                            .andThen(_.identity);
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }
@@ -2844,7 +2858,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         var codeSystem = args['code system'].getValue();
         var codeComments = args['comments'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2854,7 +2868,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public && public === "true" || public === true || public === "Y") {
+            if (public) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2870,12 +2884,6 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                 reference.tags = tagSet;
             }
         }
-        if (reference) {
-            console.log('Created reference object based on input. ' + JSON.stringify(reference));
-        }
-        else {
-            console.log('skipped creation of reference');
-        }
 
         var code = Code.builder()
             .setCode(codeValue)
@@ -2883,9 +2891,6 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
             .setPublic(public);
-        if (reference) {
-            code.addReference(reference);
-        }
         if (url) {
             code.setUrl(url);
         }
@@ -2902,20 +2907,19 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                     return substance.fetch("codes")
                         .andThen(function (codeCollection) {
                             return substance.fetch("references")
-                                .andThen(function (referenceCollection) {
+                                .andThen(function (refs) {
                                     var indexCodeToRemove = -1;
                                     var indexReferenceToRemove = -1;
                                     var indexReferencesToRemove = [];
-                                    for (var i = 0; i < referenceCollection.length; i++) {
-                                        if (referenceCollection[i].docType == referenceType
-                                            && referenceCollection[i].citation === referenceCitation) {
-                                            indexReferenceToRemove = i;
-                                            console.log('Located matching reference at index ' + i);
-                                            /*indexReferencesToRemove.push(i);*/
-                                            code.references.length = 0;
-                                            code.references.push(referenceCollection[i].uuid);
+                                    _.forEach(refs, function (ref) {
+                                        if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                            console.log('Duplicate reference found! Will skip creation of new one.');
                                             reference = null;
+                                            return false;
                                         }
+                                    });
+                                    if (reference) {
+                                        code.addReference(reference);
                                     }
 
                                     for (var i = 0; i < codeCollection.length; i++) {
@@ -3118,7 +3122,6 @@ Script.builder().mix({
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(function (arg) {
-                        console.log(arg);
                         return arg;
                     });
             })
@@ -3157,11 +3160,6 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(function (arg) {
-                        if (typeof (arg) == 'string')
-                            console.log(arg);
-                        else
-                            console.log(JSON.stringify(arg));
-                        return arg;
                     });
             })
     })
@@ -3235,7 +3233,6 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(function (arg) {
-                        console.log(arg);
                         return arg;
                     });
             })
@@ -3320,14 +3317,12 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         console.log('Starting in Create Substance executor');
 
         var pt = args.pt.getValue();
-        console.log('got pt');
         var substanceClass = args['substance class'].getValue();
-        var public = args.pd.getValue();
+        var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
         var smiles = args.smiles.getValue();
-        console.log('got smiles');
         var molfileText = args.molfile.getValue();
         console.log('got molfile');
         var nameType = args['pt name type'].getValue();
@@ -3339,8 +3334,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        if ((public + "").toUpperCase() === "TRUE" || public === true
-            || (public + "").toUpperCase() === "Y" || (public + "").toUpperCase() === "YES") {
+        if (public) {
             reference.setPublic(true);
             reference.setPublicDomain(true);
         } else {
@@ -3393,9 +3387,9 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         return p.apply()
             .andThen(function (resp) {
                 if (typeof (resp) == 'object')
-                    console.log(JSON.stringify(resp));
+                    console.log('response to patch: ' + JSON.stringify(resp));
                 else
-                    console.log(resp);
+                    console.log('response to patch: ' + resp);
                 return resp;
             });
     })

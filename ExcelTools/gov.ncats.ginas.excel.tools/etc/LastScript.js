@@ -106,10 +106,10 @@ function runCommandForCSharp(stuffToRun) {
         if (typeof result === 'string') {
             return result;
         }
-        console.log('result: ' + JSON.stringify(result));
+        /*console.log('result: ' + JSON.stringify(result));*/
         return JSON.stringify(result);
     }
-    //takes care of falsey returns
+    /*takes care of falsey returns*/
     return result;
 }
 
