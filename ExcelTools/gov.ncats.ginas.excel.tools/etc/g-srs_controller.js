@@ -1730,12 +1730,10 @@ FetcherRegistry.addFetcher(
     }).addTag("Protein")
 );
 
-
+/*corrected spelling of 'Equivalence' 24 July 2018 MAM*/
 FetcherRegistry.addFetcher(
-    FetcherMaker.make("Equivalance Factor", function (simpleSub) {
-
+    FetcherMaker.make("Equivalence Factor", function (simpleSub) {
         return simpleSub.fetch("structure/mwt").andThen(function (mwt) {
-
             return simpleSub.fetch("relationships")
                 .andThen(function (r) {
                     var amuuid = _.chain(r)
@@ -2119,7 +2117,6 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         var name = Name.builder().setName(name)
             .setType(nameType)
             .setPublic(public)
-            .addReference(reference)
             .setLanguages(langs);
 
         return SubstanceFinder.get(uuid)
@@ -2136,7 +2133,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
                                 return false;
                             }
                         });
-                        name.addReference(reference);
+                        if( reference) name.addReference(reference);
                     })
                     .andThen(function (s2) {
                         return s.patch()
@@ -2176,7 +2173,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         cvType: "CODE_TYPE"
     })
     .addArgument({
-        "key": "code text", name: "CODE TEXT",
+        "key": "comments", name: "COMMENTS",
         description: "Description for the new code (free text)", required: false
     })
     .addArgument({
@@ -2215,7 +2212,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var code = args.code.getValue();
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
-        var codeComments = args['code text'].getValue();
+        var codeComments = args['comments'].getValue();
         var url = args['code url'].getValue();
         var public = args.pd.isTruthy();
         var referenceType = args['reference type'].getValue();
