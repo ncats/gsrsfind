@@ -80,3 +80,7 @@ body {
 .SmallerText {
     font-size: smaller;
 }
+
+.FormDiv {
+    margin-left: 10px;
+}

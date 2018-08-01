@@ -27,6 +27,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(javascriptFilePath);
         }
 
+        public static string GetJsonPatchJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\json-patch.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
         public static string GetHtml()
         {
             String htmlFilePath = GetCurrentFolder() + @"\etc\g-srs_controller.html";

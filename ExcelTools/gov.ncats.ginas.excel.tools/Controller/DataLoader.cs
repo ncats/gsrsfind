@@ -100,9 +100,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
             log.Debug("Starting in ContinueSetup");
             Callbacks = new Dictionary<string, Callback>();
             string msg = "";
-            //grab values from the first selected row
 
+            //grab script name from the top row
             _scriptName = GetScriptName(ExcelSelection.Application.ActiveCell);
+            log.DebugFormat("   got script name: {0}", _scriptName);
+            if( string.IsNullOrWhiteSpace(_scriptName))
+            {
+                UIUtils.ShowMessageToUser(Properties.Resources.No_script_in_upper_corner);
+                return;
+            }
             scriptUtils.ScriptName = _scriptName;
             SetScriptParameters(ExcelSelection.Application.ActiveCell);
 
@@ -185,7 +191,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 string cellText = row.Text as string;
                 if (row.Cells.Count == 1 && string.IsNullOrWhiteSpace(cellText)) continue;
                 Callback cb = CreateUpdateCallbackForExecution(row);
-                //cb.Wait();
+                if( cb==null)
+                {
+                    log.Debug("Perceived cancellation");
+                    StatusUpdater.UpdateStatus("User has cancelled operation");
+                    EndProcessNotification();
+                    return;
+                }
             }
             _scriptName = GetScriptName(ExcelSelection.Application.ActiveCell);
             log.DebugFormat("{0} setting script name to {1}", MethodBase.GetCurrentMethod().Name,
@@ -210,6 +222,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 cb = CallbackFactory.CreateDummyCallback();
                 cb.Execute("");
                 DecremementTotalScripts();
+                if( msg.StartsWith("Will not execute row, because") && msg.EndsWith("cancel"))
+                {
+                    return null;
+                }
                 return cb;
             }
             else
@@ -239,9 +255,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string statusValue = GetProperty(keys, STATUS_KEY, "");
             if (!string.IsNullOrWhiteSpace(statusValue))
             {
-                message = "(will not execute row, because " + STATUS_KEY + " is not empty)";
+                message = "Will not execute row, because " + STATUS_KEY + " is not empty";
                 log.Debug(message);
-                UIUtils.ShowMessageToUser(message);
+                bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
+                if (!continuation) message += "; cancel";
                 if (!allowFinished) return null;
             }
             _scriptNumber++;
@@ -329,8 +346,18 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
             Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
-            string[] tokens = f.Split(':');
+            string upperCornerText = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
+            if (string.IsNullOrWhiteSpace(upperCornerText))
+            {
+                log.Warn("No script name found on sheet!");
+                return string.Empty;
+            }
+            string[] tokens = upperCornerText.Split(':');
+            if (tokens.Length < 2)
+            {
+                log.Warn("No script name found on sheet (tokens)");
+                return string.Empty;
+            }
             if (string.IsNullOrWhiteSpace(tokens[0]) && !tokens[0].Equals(LOAD_OPERATION))
             {
                 UIUtils.ShowMessageToUser("Header row must start with \"BATCH\"");
@@ -522,9 +549,18 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 }
                 else
                 {
-                    //start data loading
-                    StartFirstUpdateCallback();
-                    LaunchCheckJob();
+                    log.Debug("Going to start first callback");
+                    try
+                    {
+                        //start data loading
+                        StartFirstUpdateCallback();
+                        LaunchCheckJob();
+                    }
+                    catch(Exception ex)
+                    {
+                        log.ErrorFormat("Error starting loading process: {0}", ex.Message);
+                        log.Error(ex.StackTrace);
+                    }
                 }
             }
         }

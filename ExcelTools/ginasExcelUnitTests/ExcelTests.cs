@@ -50,17 +50,18 @@ namespace ginasExcelUnitTests
             Assert.IsFalse(imageOps.hascomment(cellWithoutComment));
         }
 
-        [TestMethod]
-        public void downloadTest()
-        {
-            String imageUrl = "https://tripod.nih.gov/dev/ginas/app/img/6721ef98-4e53-4500-82d7-31e4dbd8243c.png?size=150&context=bbhxaknghv";
-            String localPath = @"c:\temp\downloadedimage.png";
-            if (File.Exists(localPath)) File.Delete(localPath);
+        //This test was too 'brittle'-- the server removed the data to be downloaded.
+        //[TestMethod]
+        //public void downloadTest()
+        //{
+        //    String imageUrl = "https://tripod.nih.gov/dev/ginas/app/img/6721ef98-4e53-4500-82d7-31e4dbd8243c.png?size=150&context=bbhxaknghv";
+        //    String localPath = @"c:\temp\downloadedimage.png";
+        //    if (File.Exists(localPath)) File.Delete(localPath);
 
-            ImageOps imageOps = new ImageOps();
-            imageOps.Download_File(imageUrl, localPath);
-            Assert.IsTrue(File.Exists(localPath));
-        }
+        //    ImageOps imageOps = new ImageOps();
+        //    imageOps.Download_File(imageUrl, localPath);
+        //    Assert.IsTrue(File.Exists(localPath));
+        //}
 
         [TestMethod]
         public void GetColumnNameTest()
