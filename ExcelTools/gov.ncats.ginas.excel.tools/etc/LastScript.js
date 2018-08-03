@@ -32,6 +32,10 @@ function handleReady() {
             return htmltemplate.replace(/\$name\$/g, n);
         }).value().join("\n");
     $("#outputSettings").append("<div><h5>Others</h5>" + nhtml + "</div>");
+    $('#FormDiv').css('margin-left', '10px');
+    $('label').css({ 'font-weight': 'normal', 'margin-left': '4px' });
+    $('.checkop').css('margin-left', '5px');
+    $('h5').css('font-weight', 'bold');
     madeReady = true;
 }
 
@@ -97,19 +101,21 @@ function runCommandForCSharp(stuffToRun) {
         console.log('runCommandForCSharp about to eval ' + stuffToRun);
     }
     try {
+        /*assume C# validates */
         var result = eval(stuffToRun);
     }
     catch (ex) {
         console.log('error running script: ' + ex);
+        return 'error running script: ' + ex;
     }
     if (result) {
         if (typeof result === 'string') {
             return result;
         }
-        console.log('result: ' + JSON.stringify(result));
+        /*console.log('result: ' + JSON.stringify(result));*/
         return JSON.stringify(result);
     }
-    //takes care of falsey returns
+    /*takes care of falsey returns*/
     return result;
 }
 

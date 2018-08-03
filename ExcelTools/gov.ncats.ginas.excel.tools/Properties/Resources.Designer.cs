@@ -118,6 +118,15 @@ namespace gov.ncats.ginas.excel.tools.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To load data, please cancel out of the current run and then create a sheet with &apos;BATCH:&apos; + script name in the upper left-hand corner..
+        /// </summary>
+        internal static string No_script_in_upper_corner {
+            get {
+                return ResourceManager.GetString("No_script_in_upper_corner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap SearchIcon {

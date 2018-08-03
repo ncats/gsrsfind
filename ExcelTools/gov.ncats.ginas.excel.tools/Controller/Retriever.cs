@@ -286,8 +286,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-
-        private void QueueOneBatch(Callback cb, List<string> submittable)
+           private void QueueOneBatch(Callback cb, List<string> submittable)
         {
             cb.setKey(JSTools.RandomIdentifier());
             while (Callbacks.ContainsKey(cb.getKey()))
@@ -450,7 +449,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             KeepCheckingCallbacks = haveActive;
             if (!haveActive)
             {
-                message = "No active callbacks detected";
+                message = string.Format("No active callbacks detected. Total callbacks: {0}, ScriptQueue count: {2}",
+                    Callbacks.Count, ScriptQueue.Count);
             }
 
             log.Debug(message);

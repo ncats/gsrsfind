@@ -44,19 +44,18 @@
             this.webBrowser1.AllowWebBrowserDrop = false;
             this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Top;
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser1.Margin = new System.Windows.Forms.Padding(4);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(27, 25);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(791, 417);
+            this.webBrowser1.Size = new System.Drawing.Size(593, 339);
             this.webBrowser1.TabIndex = 0;
             this.webBrowser1.Visible = false;
             // 
             // buttonResolve
             // 
-            this.buttonResolve.Location = new System.Drawing.Point(167, 430);
-            this.buttonResolve.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonResolve.Location = new System.Drawing.Point(125, 349);
+            this.buttonResolve.Margin = new System.Windows.Forms.Padding(2);
             this.buttonResolve.Name = "buttonResolve";
-            this.buttonResolve.Size = new System.Drawing.Size(95, 23);
+            this.buttonResolve.Size = new System.Drawing.Size(71, 19);
             this.buttonResolve.TabIndex = 1;
             this.buttonResolve.Text = "Resolve";
             this.buttonResolve.UseVisualStyleBackColor = true;
@@ -64,21 +63,23 @@
             // 
             // buttonAddStructure
             // 
-            this.buttonAddStructure.Location = new System.Drawing.Point(333, 430);
-            this.buttonAddStructure.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonAddStructure.Enabled = false;
+            this.buttonAddStructure.Location = new System.Drawing.Point(250, 349);
+            this.buttonAddStructure.Margin = new System.Windows.Forms.Padding(2);
             this.buttonAddStructure.Name = "buttonAddStructure";
-            this.buttonAddStructure.Size = new System.Drawing.Size(124, 23);
+            this.buttonAddStructure.Size = new System.Drawing.Size(93, 19);
             this.buttonAddStructure.TabIndex = 2;
             this.buttonAddStructure.Text = "Add structure(s)";
             this.buttonAddStructure.UseVisualStyleBackColor = true;
+            this.buttonAddStructure.Visible = false;
             this.buttonAddStructure.Click += new System.EventHandler(this.buttonAddStructure_Click);
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(533, 430);
-            this.buttonCancel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonCancel.Location = new System.Drawing.Point(400, 349);
+            this.buttonCancel.Margin = new System.Windows.Forms.Padding(2);
             this.buttonCancel.Name = "buttonCancel";
-            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
+            this.buttonCancel.Size = new System.Drawing.Size(56, 19);
             this.buttonCancel.TabIndex = 3;
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
@@ -87,10 +88,10 @@
             // checkBoxSaveDiagnostic
             // 
             this.checkBoxSaveDiagnostic.AutoSize = true;
-            this.checkBoxSaveDiagnostic.Location = new System.Drawing.Point(141, 501);
-            this.checkBoxSaveDiagnostic.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.checkBoxSaveDiagnostic.Location = new System.Drawing.Point(106, 407);
+            this.checkBoxSaveDiagnostic.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxSaveDiagnostic.Name = "checkBoxSaveDiagnostic";
-            this.checkBoxSaveDiagnostic.Size = new System.Drawing.Size(255, 21);
+            this.checkBoxSaveDiagnostic.Size = new System.Drawing.Size(196, 17);
             this.checkBoxSaveDiagnostic.TabIndex = 4;
             this.checkBoxSaveDiagnostic.Text = "Save diagnostic info when finished?";
             this.checkBoxSaveDiagnostic.UseVisualStyleBackColor = true;
@@ -98,39 +99,41 @@
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(360, 469);
-            this.labelStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelStatus.Location = new System.Drawing.Point(270, 381);
             this.labelStatus.Name = "labelStatus";
-            this.labelStatus.Size = new System.Drawing.Size(92, 17);
+            this.labelStatus.Size = new System.Drawing.Size(69, 13);
             this.labelStatus.TabIndex = 5;
             this.labelStatus.Text = "Status: ready";
             // 
             // checkBoxNewSheet
             // 
             this.checkBoxNewSheet.AutoSize = true;
-            this.checkBoxNewSheet.Location = new System.Drawing.Point(476, 501);
-            this.checkBoxNewSheet.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.checkBoxNewSheet.Location = new System.Drawing.Point(357, 407);
+            this.checkBoxNewSheet.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxNewSheet.Name = "checkBoxNewSheet";
-            this.checkBoxNewSheet.Size = new System.Drawing.Size(173, 21);
+            this.checkBoxNewSheet.Size = new System.Drawing.Size(135, 17);
             this.checkBoxNewSheet.TabIndex = 6;
             this.checkBoxNewSheet.Text = "Resolve to new sheet?";
             this.checkBoxNewSheet.UseVisualStyleBackColor = true;
             // 
             // buttonDebugDOM
             // 
-            this.buttonDebugDOM.Location = new System.Drawing.Point(656, 469);
+            this.buttonDebugDOM.Enabled = false;
+            this.buttonDebugDOM.Location = new System.Drawing.Point(492, 381);
+            this.buttonDebugDOM.Margin = new System.Windows.Forms.Padding(2);
             this.buttonDebugDOM.Name = "buttonDebugDOM";
-            this.buttonDebugDOM.Size = new System.Drawing.Size(117, 23);
+            this.buttonDebugDOM.Size = new System.Drawing.Size(88, 19);
             this.buttonDebugDOM.TabIndex = 7;
             this.buttonDebugDOM.Text = "Debug DOM";
             this.buttonDebugDOM.UseVisualStyleBackColor = true;
+            this.buttonDebugDOM.Visible = false;
             this.buttonDebugDOM.Click += new System.EventHandler(this.buttonDebugDOM_Click);
             // 
             // RetrievalForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(791, 530);
+            this.ClientSize = new System.Drawing.Size(593, 431);
             this.Controls.Add(this.buttonDebugDOM);
             this.Controls.Add(this.checkBoxNewSheet);
             this.Controls.Add(this.labelStatus);
@@ -140,7 +143,6 @@
             this.Controls.Add(this.buttonResolve);
             this.Controls.Add(this.webBrowser1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "RetrievalForm";
             this.Text = "RetrievalForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RetrievalForm_FormClosing);

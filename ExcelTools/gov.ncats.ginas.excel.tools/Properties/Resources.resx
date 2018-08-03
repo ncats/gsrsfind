@@ -138,6 +138,9 @@
     <value>png</value>
     <comment>note: this is case-sensitive!</comment>
   </data>
+  <data name="No_script_in_upper_corner" xml:space="preserve">
+    <value>To load data, please cancel out of the current run and then create a sheet with 'BATCH:' + script name in the upper left-hand corner.</value>
+  </data>
   <data name="SearchIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\SearchIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

@@ -52,6 +52,7 @@ body {
 
 .consolehead {
     /*display: none;*/
+    width: 100%;
 }
 
 .data {
@@ -78,4 +79,8 @@ body {
 
 .SmallerText {
     font-size: smaller;
+}
+
+.FormDiv {
+    margin-left: 10px;
 }

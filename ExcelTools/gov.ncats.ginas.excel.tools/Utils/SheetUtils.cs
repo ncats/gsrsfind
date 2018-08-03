@@ -12,9 +12,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
     public class SheetUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string VOCABULARY_SHEET_NAME = "_gsrs_vocabularies_";
-        private static int MAX_COLUMNS = 16000;
-        private static int VOCABULARY_TEST_ROW = 1;
+        private static readonly string VOCABULARY_SHEET_NAME = "_gsrs_vocabularies_";
+        private static readonly int MAX_COLUMNS = 16000;
+        private static readonly int VOCABULARY_TEST_ROW = 1;
 
         public GinasToolsConfiguration Configuration
         {
@@ -80,9 +80,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return false;
         }
 
-        public void CreateSheet(Workbook workbook, string scriptName,
+        public void CreateSheet(Workbook workbook, ScriptUtils scriptUtils,
             IScriptExecutor scriptExecutor)
         {
+            string scriptName = scriptUtils.ScriptName;
             if (DoesSheetExist(workbook, scriptName))
             {
                 UIUtils.ShowMessageToUser("Sheet \"" + scriptName + "\" already exists");
@@ -133,14 +134,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 cell.Font.ThemeColor = XlThemeColor.xlThemeColorDark1;
                 cell.Font.TintAndShade = -4.99893185216834E-02;
                 //see about a controlled vocabulary
-                string vocabularyName = GetVocabName(scriptExecutor, i);
-                List<VocabItem> vocabItems = GetVocab(vocabularyName);
+                string vocabularyName = scriptUtils.GetVocabName( i);
+                List<VocabItem> vocabItems = scriptUtils.GetVocabItems(vocabularyName);
                 if (vocabItems.Count > 0)
                 {
-                    //temporary test
-                    string vocabScript = "CVHelper.getDictionary('" + vocabularyName +"').get(function(s) {console.log('got our s: ' + s); return s}).get();";
-                    var dictObj = scriptExecutor.ExecuteScript(vocabScript);
-                    log.DebugFormat("Got dictionary {0}", dictObj);
                     for (int row = 1; row <= numberOfRows; row++)
                     {
                         Range vocabCell = cell.Offset[row, 0];
@@ -174,7 +171,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             //nsheet.Range("A1").Offset(1, i + 1).FormulaR1C1 = WebBrowser1.Document.script.tmpScript.arguments.getItem(i).getValue("")
             topCorner.Offset[0, argListLength + 1].FormulaR1C1 = "IMPORT STATUS";
-            //topCorner.Offset[0, argListLength + 2].FormulaR1C1 = "FORCED";
+            topCorner.Offset[0, argListLength + 1].ColumnWidth = 21;
 
             workbook.Application.ActiveWindow.SplitColumn = 0;
             workbook.Application.ActiveWindow.SplitRow = 1;
@@ -199,30 +196,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return string.Empty;
         }
 
-        private string GetVocabName(IScriptExecutor scriptExecutor,
-            int itemNumber)
-        {
-            object argTypeRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem("
-                + itemNumber + ").type");
-            log.DebugFormat("GetVocab looking at argTypeRaw {0} for arg {1}",
-                argTypeRaw, itemNumber);
-            if (argTypeRaw != null && argTypeRaw is string && (argTypeRaw as string).Equals("cv",
-                StringComparison.CurrentCultureIgnoreCase))
-            {
-                object cvTypeRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem("
-                    + itemNumber + ").cvType");
-                if (cvTypeRaw != null && cvTypeRaw is string)
-                {
-                    string cvType = cvTypeRaw as string;
-
-                    if (!string.IsNullOrWhiteSpace(cvType))
-                    {
-                        return cvType;
-                    }
-                }
-            }
-            return string.Empty;
-        }
         private List<VocabItem> GetVocab(string cvType)
         {
             log.DebugFormat("In GetVocab with cvType: {0}", cvType);

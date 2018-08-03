@@ -57,6 +57,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return returnedValue;
         }
 
+        public static Vocab GetVocabFromString(string rawVocab)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Vocab returnedValue = serializer.Deserialize<Vocab>(rawVocab);
+            return returnedValue;
+        }
+
         public static ScriptParameter GetScriptParameterFromString(string scriptParamFromJS)
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();

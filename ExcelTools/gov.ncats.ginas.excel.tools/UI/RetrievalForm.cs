@@ -21,7 +21,7 @@ namespace gov.ncats.ginas.excel.tools.UI
     public partial class RetrievalForm : Form, IStatusUpdater, IScriptExecutor
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        string _expectedTitle;
+        List<string> _expectedTitles = new List<string>();
         string _baseUrl;
         const string COMPLETED_DOCUMENT_TITLE = "ginas Tools";
         const string NAVIGATION_CANCELED = "Navigation Canceled";
@@ -31,6 +31,8 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public RetrievalForm()
         {
+            _expectedTitles.Add("InXight API");
+            _expectedTitles.Add("g-srs");
             log.Debug("Starting in RetrievalForm");
             Visible = false;
             try
@@ -83,15 +85,14 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("Loaded configuration ");
             log.Debug(" selected url:" + _configuration.SelectedServer.ServerUrl);
             JSTools tools = new JSTools();
-            string initURL = _configuration.SelectedServer.ServerUrl;
-            _baseUrl = initURL;
-            _expectedTitle = "g-srs";
+            string initURL = _configuration.SelectedServer.ServerUrl + "cache";
+            _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
-
+            
+            webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
 
-            //webBrowser1.Navigate(initURL);
             log.Debug(" about to navigate to " + initURL);
             webBrowser1.Url = new Uri(initURL);
             _savedDebugInfo = false;
@@ -104,33 +105,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                 log.DebugFormat("webBrowser1.DocumentTitle: '{0}'; busy? {1}",
                     webBrowser1.DocumentTitle, webBrowser1.IsBusy);
             }
-            if (webBrowser1.DocumentTitle.Equals(_expectedTitle))
+            if (_expectedTitles.Contains( webBrowser1.DocumentTitle) || string.IsNullOrWhiteSpace(webBrowser1.DocumentTitle))
             {
-                /*int iter = 0;
-                while (webBrowser1.IsBusy && ++iter < 50)
-                {
-                    log.DebugFormat("busy (1) {0}...", iter);
-                    System.Threading.Thread.Sleep(200);
-                    if ((iter % 100) == 0)
-                    {
-                        DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?");
-                        switch (result)
-                        {
-                            case DialogYesNoCancel.No:
-                                webBrowser1.Stop();
-                                log.Debug(" about to re-navigate to " + _baseUrl);
-                                webBrowser1.Url = new Uri(_baseUrl);
-                                break;
-                            case DialogYesNoCancel.Cancel:
-                                UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
-                                return;
-                            default:
-                                System.Threading.Thread.Sleep(10);
-                                continue;
-                        }
-                    }
-                }
-                */
                 webBrowser1.DocumentCompleted -= WebBrowser1_DocumentCompleted;
                 BuildGinasToolsDocument();
             }
@@ -187,6 +163,10 @@ namespace gov.ncats.ginas.excel.tools.UI
                 log.Debug("Going to run script: " + script);
             }
             object returnedValue = webBrowser1.Document.InvokeScript(functionName, new object[] { script });
+            if (returnedValue is string && (returnedValue as string).StartsWith("'error running script: '"))
+            {
+                log.Warn(returnedValue);
+            }
             return returnedValue;
         }
 
@@ -205,6 +185,12 @@ namespace gov.ncats.ginas.excel.tools.UI
                     Close();
                 }
             }
+            else if( message.StartsWith("vocabulary:"))
+            {
+                log.Debug("Got back " + message);
+                Controller.ReceiveVocabulary(message);
+            }
+                
         }
 
         public void Proceed(string message)
@@ -270,7 +256,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             webBrowser1.Document.InvokeScript("eval", new object[] { "$('document').off()" });
             webBrowser1.Document.InvokeScript("eval", new object[] {
                 "$('script').remove(); " });
-
+                
             int iter = 0;
             while (webBrowser1.IsBusy && ++iter < 500)
             {
@@ -278,7 +264,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                 System.Threading.Thread.Sleep(100);
                 if ((iter % 100) == 0)
                 {
-                    DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?");
+                    DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?",
+                        "Yes=Continue waiting; No=Restart loading; Cancel=Start over");
                     switch (result)
                     {
                         case DialogYesNoCancel.No:
@@ -292,6 +279,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                         case DialogYesNoCancel.Cancel:
                             UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
                             buttonAddStructure.Enabled = false;
+                            buttonAddStructure.Visible = false;
                             buttonResolve.Enabled = false;
                             return;
                         default:
@@ -321,14 +309,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                 checkBoxNewSheet.Visible = false;
                 ExecuteScript("setMode('update');");
                 Controller.ContinueSetup();
-                this.Visible = true;
+                Visible = true;
                 Text = "Data Loader";
             }
             else if (CurrentOperationType == OperationType.Resolution)
             {
                 ExecuteScript("setMode('resolver');");
-                buttonAddStructure.Enabled = true;
-                buttonAddStructure.Visible = true;
+                buttonAddStructure.Enabled = false;
+                buttonAddStructure.Visible = false;
                 this.Visible = true;
                 Text = "Data Retriever";
             }
@@ -338,7 +326,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                 buttonResolve.Text = "Add Sheet";
                 buttonAddStructure.Enabled = false;
                 buttonAddStructure.Visible = false;
-                this.Visible = true;
+                buttonCancel.Enabled = true;
+                Visible = true;
                 Text = "Script Selection";
             }
             else if (CurrentOperationType == OperationType.GetStructures)
@@ -352,8 +341,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             buttonDebugDOM.Enabled = false; //_configuration.DebugMode;
             buttonDebugDOM.Visible = false;//_configuration.DebugMode;
 
-            FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
-            //webBrowser1.Document.Body.OuterHtml);
+            if( _configuration.DebugMode)
+            {
+                FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
+            }            
             webBrowser1.Visible = true;
         }
 

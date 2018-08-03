@@ -24,5 +24,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         void ContinueSetup();
 
         void Dispose();
+
+        void ReceiveVocabulary(string rawVocab);
     }
 }

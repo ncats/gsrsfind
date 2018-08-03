@@ -215,7 +215,10 @@
     <Compile Include="Model\IStatusUpdater.cs" />
     <Compile Include="Model\ScriptParameter.cs" />
     <Compile Include="Model\SearchValue.cs" />
+    <Compile Include="Model\Vocab.cs" />
+    <Compile Include="Model\VocabContent.cs" />
     <Compile Include="Model\VocabItem.cs" />
+    <Compile Include="Model\VocabTerm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -249,6 +252,7 @@
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\JSTools.cs" />
     <Compile Include="Utils\RestUtils.cs" />
+    <Compile Include="Utils\ScriptUtils.cs" />
     <Compile Include="Utils\SheetUtils.cs" />
     <Compile Include="Utils\UIUtils.cs" />
     <Compile Include="Utils\VocabUtils.cs" />
@@ -275,6 +279,9 @@
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
     <Content Include="etc\bootstrap.min.js" />
     <Content Include="etc\g-srs-config.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="etc\json-patch.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="log4net.config">
