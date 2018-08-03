@@ -1685,16 +1685,9 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/molfile", "Molfile").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
 
-FetcherRegistry.addFetcher(
-    FetcherMaker.make("Tags", function (simpleSub) {
-        return simpleSub.fetch("tags!(term)!distinct()!sort()!join(|)").andThen(function (n) {
-            return n.replace(/%7C/g, "|");
-        });
-    }).addTag("Record")
-);
 
 
-FetcherRegistry.addFetcher(
+/*FetcherRegistry.addFetcher(
     FetcherMaker.make("Structural Modifications", function (simpleSub) {
         return simpleSub.fetch("protein/subunits").andThen(function (subs) {
 
@@ -1737,7 +1730,7 @@ FetcherRegistry.addFetcher(
             });
         });
     }).addTag("Protein")
-);
+);*/
 
 /*corrected spelling of 'Equivalence' 24 July 2018 MAM*/
 FetcherRegistry.addFetcher(
@@ -1768,7 +1761,7 @@ FetcherRegistry.addFetcher(
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Latin Binomial", function (simpleSub) {
         return simpleSub.fetch("structurallyDiverse!$select(organismGenus,organismSpecies)!join(%20)").andThen(function (n) {
-            if (n && n.length > 0) {
+            if (n && n.length > 0 && n !== 'null%20null') {
                 return n.replace(/%20/g, " ");
             }
             return "";
