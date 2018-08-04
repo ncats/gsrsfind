@@ -1948,7 +1948,16 @@ function validate4Params(args) {
             });
 
     }
-    return { valid: true };
+    if (args.bdnum.getValue()) {
+        return GGlob.JPromise.of(function (cb) {
+            cb({ valid: true });
+        });
+
+    }
+    return GGlob.JPromise.of(function (cb) {
+        cb({ valid: false, message: 'Unexpected result in multiple parameter validator!'});
+    });
+
 }
 
 function validate3Params(args) {
@@ -2015,7 +2024,6 @@ function validate3Params(args) {
             });
 
     }
-    return { valid: true };
 }
 
 
@@ -3109,50 +3117,18 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
     })
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
-        required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        var pt = rec._name;
-                        if (uuid !== cargs.args.uuid.getValue()) {
-                            return { valid: false, message: "The PT and UUID do not point to the same record" };
-                        } else if (val !== pt) {
-                            return { valid: false, message: "The PT for this record does not match the one provided" };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with that PT" };
-                    }
-                });
-        }
+        required: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        if (uuid !== cargs.args.uuid.getValue()) {
-                            return { valid: false, message: "The BDNUM " + val + " and UUID do not point to the same record (" + uuid + " vs " + cargs.args.uuid.getValue() + ")" };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with that BDNUM" };
-                    }
-                });
-        }
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: true
     })
     .addArgument({
         "key": "name", name: "NAME", description: "Text of the name to delete", required: true,
         "validator": function (val) {
-            /*todo: change this validator to search by UUID, then look for the name among the record's names*/
+            console.log('starting in validator for arg name');
             return GGlob.SubstanceFinder.searchByExactName(val)
                 .andThen(function (resp) {
+                    console.log('in andThen for validator');
                     if (resp.content && resp.content.length < 1) {
                         return { valid: false, message: "The name '" + val + "' was not found in the database. " };
                     } else {
@@ -3165,15 +3141,34 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
         description: "Text for the record change log", required: false
     })
+    .addValidator(validate4Params)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
         var nameToRemove = args.name.getValue();
 
         var s0;
-        return SubstanceFinder.get(uuid)
-            .andThen(function (s) {
-                s0 = s;
-                return s.full();
+        var lookupCriterion = uuid;
+        if (uuid == null || uuid.length == 0) {
+            if (pt && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        console.log('lookupCriterion = ' + lookupCriterion);
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (resp) {
+                if (resp.content && resp.content.length >= 1) {
+                    console.log('looked up substance successfully');
+                    var rec = resp.content[0];
+                    substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                    s0 = substance;
+                    return substance.full();
+                }
+                return { valid: false, message: 'Error looking up substance' };
             })
             .andThen(function (s) {
                 var nameIndex = -1;
