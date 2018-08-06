@@ -1308,6 +1308,7 @@ var GSRSAPI = {
                                         return !v.valid;
                                     })
                                     .value();
+                                console.log('cargs.validate about to return ' + JSON.stringify(invalid));
                                 return invalid;
                             });
                     };
@@ -1315,7 +1316,9 @@ var GSRSAPI = {
                         return cargs.validate()
                             .andThen(function (v) {
 
-                                if (v.length == 0 || cargs.forced()) {
+                                if (v.length == 0 ||
+                                    (cargs.forced() &&
+                                        !_.filter(v, function (item) { return item.overall }).length > 0)) {
                                     return scr.execute(cargs.args)
                                         .andThen(function (r) {
                                             if (typeof r.valid === "undefined") {
@@ -1850,7 +1853,9 @@ function validate4Params(args) {
     if (!args.FORCED.isYessy() && (!args.uuid.getValue() || !args.pt.getValue() || !args.bdnum.getValue())) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
-            cb({ "valid": false, "message": "All of these arguments must have values: UUID, PT and BDNUM" });
+            cb({
+                "valid": false, "message": "All of these arguments must have values: UUID, PT and BDNUM",
+            "overall": true});
         });
     }
     if (args.uuid.getValue()) {
@@ -1860,7 +1865,7 @@ function validate4Params(args) {
             /*we do have a UUID but PT and BDNUM are empty and FORCED is on
              can forego any further checking!*/
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": true});
+                cb({ "valid": true, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.uuid.getValue())
@@ -1871,12 +1876,18 @@ function validate4Params(args) {
                     var uuid = rec.uuid;
                     if (uuid !== args.uuid.getValue()) {
                         /*is this even possible?*/
-                        return { valid: false, message: "The UUID for this record does not match the one provided" };
+                        return {
+                            "valid": false,
+                            "message": "The UUID for this record does not match the one provided",
+                            "overall": true
+                        };
                     }
                     var pt = rec._name;
                     if (args.pt.getValue() && pt !== args.pt.getValue()) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
-                        return { valid: false, message: "The PT does not match the value for this record" };
+                        return {
+                            "valid": false, "message": "The PT does not match the value for this record",
+                            "overall": true};
                     }
 
                     if (args.bdnum.getValue()) {
@@ -1894,7 +1905,11 @@ function validate4Params(args) {
                                     }
                                 });
                                 if (!hasBdNumMatch) {
-                                    return { "valid": false, "message": "BDNUM does not match value in database" }
+                                    return {
+                                        "valid": false,
+                                        "message": "BDNUM does not match value in database",
+                                        "overall": true
+                                    }
                                 }
                                 return { valid: true };
                             });
@@ -1903,7 +1918,9 @@ function validate4Params(args) {
                         return { valid: true };
                     }
                 } else {
-                    return { valid: false, message: "Could not find record with that UUID" };
+                    return {
+                        "valid": false, "message": "Could not find record with that UUID",
+                        "overall": true};
                 }
             });
     }
@@ -1914,7 +1931,11 @@ function validate4Params(args) {
                     var rec = resp.content[0];
                     var pt = rec._name;
                     if (pt !== args.pt.getValue()) {
-                        return { valid: false, message: "The PT of the record does not match the value provided" };
+                        return {
+                            "valid": false,
+                            "message": "The PT of the record does not match the value provided",
+                            "overall": true
+                        };
                     }
 
                     if (args.bdnum.getValue()) {
@@ -1933,7 +1954,11 @@ function validate4Params(args) {
                                     }
                                 });
                                 if (!hasBdNumMatch) {
-                                    return { "valid": false, "message": "BDNUM does not match value in database" }
+                                    return {
+                                        "valid": false,
+                                        "message": "BDNUM does not match value in database",
+                                        "overall": true
+                                    }
                                 }
                                 return { valid: true };
                             });
@@ -1943,7 +1968,9 @@ function validate4Params(args) {
                         return { valid: true };
                     }
                 } else {
-                    return { valid: false, message: "Could not find record with that PT" };
+                    return {
+                        "valid": false, "message": "Could not find record with that PT",
+                        "overall": true};
                 }
             });
 
@@ -1955,7 +1982,7 @@ function validate4Params(args) {
 
     }
     return GGlob.JPromise.of(function (cb) {
-        cb({ valid: false, message: 'Unexpected result in multiple parameter validator!'});
+        cb({ valid: false, message: 'Unexpected result in multiple parameter validator!' });
     });
 
 }
@@ -1970,17 +1997,21 @@ function validate3Params(args) {
     if (!args.FORCED.isYessy() && (!args.uuid.getValue() || !args.pt.getValue())) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
-            cb({ "valid": false, "message": "Both of these arguments must have values: UUID, PT " });
+            cb({
+                "valid": false,
+                "message": "Both of these arguments must have values: UUID, PT ",
+                "overall": true
+            });
         });
     }
     if (args.uuid.getValue()) {
         console.log('has UUID');
-        if (args.FORCED.isYessy() && !args.pt.getValue() ) {
+        if (args.FORCED.isYessy() && !args.pt.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": true });
+                cb({ "valid": true, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.uuid.getValue())
@@ -1991,39 +2022,69 @@ function validate3Params(args) {
                     var uuid = rec.uuid;
                     if (uuid !== args.uuid.getValue()) {
                         /*is this even possible?*/
-                        return { valid: false, message: "The UUID for this record does not match the one provided" };
+                        return {
+                            "valid": false,
+                            "message": "The UUID for this record does not match the one provided",
+                            "overall": true
+                        };
                     }
                     var pt = rec._name;
                     if (args.pt && args.pt.getValue() && pt !== args.pt.getValue()) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
-                        return { valid: false, message: "The PT does not match the value for this record" };
+                        return {
+                            "valid": false,
+                            "message": "The PT does not match the value for this record",
+                            "overall": true
+                        };
                     }
                     console.log(' about to retrun simple true');
                     return { valid: true };
                 } else {
-                    return { valid: false, message: "Could not find record with that UUID" };
+                    return {
+                        "valid": false,
+                        "message": "Could not find record with that UUID",
+                        "overall": true
+                    };
                     console.log(' about to retrun simple false');
                 }
             });
     }
     else if (args.pt.getValue()) {
+        console.log('has PT');
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.pt.getValue())
             .andThen(function (resp) {
                 if (resp.content && resp.content.length >= 1) {
                     var rec = resp.content[0];
                     var pt = rec._name;
                     if (pt !== args.pt.getValue()) {
-                        return { valid: false, message: "The PT of the record does not match the value provided" };
+                        return { 
+                            "valid": false,
+                            "message": "The PT of the record does not match the value provided",
+                            "overall": true
+                        };
                     }
                     console.log(' about to retrun simple true');
-                    return { valid: true };
+                    return { "valid": true, "overall": true };
                 } else {
                     console.log(' about to retrun simple false');
-                    return { valid: false, message: "Could not find record with that PT" };
+                    return {
+                        "valid": false,
+                        "message": "Could not find record with that PT",
+                        "overall": true
+                    };
                 }
             });
 
     }
+
+    console.log('neither UUID nor PT');
+    return GGlob.JPromise.of(function (cb) {
+        cb({
+            "valid": false,
+            "message": "One or both of these arguments must have a value: UUID, PT",
+            "overall": true
+        });
+    });
 }
 
 
@@ -2172,10 +2233,10 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
 
 Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a substance record that does not have a BDNum" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the existing substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the existing substance record"
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the existing record (used for validation)", required: true
+        "key": "pt", name: "PT", description: "Preferred Term of the existing record (used for validation)"
     })
     .addArgument({
         "key": "name", name: "NAME", description: "Name text of the new name (free text)", required: true
@@ -2266,13 +2327,17 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         var lookupCriterion = uuid;
         if (uuid == null || uuid.length == 0) {
             lookupCriterion = pt;
-            console.log('lookupCriterion = pt');
+            console.log('lookupCriterion: ' + lookupCriterion);
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
             .andThen(function (s) {
+                if (!s || !s.content || s.content.length == 0) {
+                    console.log('no results found for query of ' + lookupCriterion);
+                    return { valid: false, message: 'Error looking up record for ' + lookupCriterion };
+                }
                 var rec = s.content[0]; /*can be undefined... todo: handle*/
                 var substance = GGlob.SubstanceBuilder.fromSimple(rec);
-                console.log('going to check references' );
+                console.log('going to check references');
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         console.log('retrieved refs');
@@ -2287,7 +2352,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
                         return substance;
                     })
                     .andThen(function (s2) {
-                        
+
                         console.log('Building a patch for substance');
                         return substance.patch()
                             .addData(name)
@@ -3113,14 +3178,13 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
 /*Remove Name*/
 Script.builder().mix({ name: "Remove Name", description: "Removes a name from a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record"
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
-        required: true
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)"
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: true
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)"
     })
     .addArgument({
         "key": "name", name: "NAME", description: "Text of the name to delete", required: true,
@@ -3564,54 +3628,17 @@ Script.builder().mix({ name: "Touch Record", description: "Retrieve a substance 
 /*Replace one name with another*/
 Script.builder().mix({ name: "Replace Name", description: "Locates an existing name within a substance record and replaces it with a new name" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record"
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        var pt = rec._name;
-                        if (uuid !== cargs.args.uuid.getValue()) {
-                            return { valid: false, message: "The PT and UUID do not point to the same record" };
-                        } else if (val !== pt) {
-                            return { valid: false, message: "The PT for this record does not match the one provided" };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with that PT" };
-                    }
-                });
-        }
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)"
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        if (uuid !== cargs.args.uuid.getValue()) {
-                            return {
-                                valid: false, message: "The BDNUM " + val + " and UUID do not point to the same record (" + uuid + " vs "
-                                    + cargs.args.uuid.getValue() + ")"
-                            };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with that BDNUM" };
-                    }
-                });
-        }
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)"
     })
     .addArgument({
         "key": "current name", name: "CURRENT NAME", description: "Name text of the name to replace", required: true,
         "validator": function (val) {
-            /*todo: change this validator to search by UUID, then look for the name among the record's names*/
             return GGlob.SubstanceFinder.searchByExactName(val)
                 .andThen(function (resp) {
                     if (resp.content && resp.content.length < 1) {
@@ -3630,17 +3657,33 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Replace Name",
         description: "Text for the record change", required: false
     })
+    .addValidator(validate4Params)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
         var nameToReplace = args['current name'].getValue();
         var newName = args['new name'].getValue();
 
         var name = null;
         var s0;
-        return SubstanceFinder.get(uuid)
+
+        var lookupCriterion = uuid;
+        if (uuid == null || uuid.length == 0) {
+            if (pt != null && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
             .andThen(function (s) {
-                s0 = s;
-                return s.full();
+                var substance;
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                s0 = substance;
+                return substance.full();
             })
             .andThen(function (s) {
                 var nameIndex = -1;
