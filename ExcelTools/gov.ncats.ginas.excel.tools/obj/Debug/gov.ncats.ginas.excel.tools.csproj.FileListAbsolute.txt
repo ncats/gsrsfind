@@ -31,5 +31,5 @@ C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncat
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csproj.CopyComplete
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\g-srs Excel Tools.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\g-srs Excel Tools.pdb
-C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\json-patch.js
+C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache

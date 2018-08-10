@@ -1072,6 +1072,11 @@ var GSRSAPI = {
                     code.comments = cmt;
                     return code;
                 };
+                code.setCodeText = function (txt) {
+                    code.codeText = txt;
+                    console.log('setCodeText processing codeText ' + txt);
+                    return code;
+                };
                 code.setUrl = function (url) {
                     code.url = url;
                     return code;
@@ -2373,7 +2378,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
     })
     .addArgument({
-        "key": "code", name: "CODE", description: "Code text of the new code", required: true
+        "key": "code", name: "CODE", description: "Actual code for the new item", required: true
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM", description: "Code system of the new code",
@@ -2389,6 +2394,10 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         opPromise: CVHelper.getTermList("CODE_TYPE"),
         type: "cv",
         cvType: "CODE_TYPE"
+    })
+    .addArgument({
+        "key": "code text", name: "CODE TEXT",
+        description: "Free text", required: false
     })
     .addArgument({
         "key": "comments", name: "COMMENTS",
@@ -2431,6 +2440,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
         var codeComments = args['comments'].getValue();
+        var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
         var public = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
@@ -2449,17 +2459,19 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             reference.setPublicDomain(false);
         }
 
+        console.log('Creating code using codeText ' + codeText + '; and comments: ' + codeComments);
         var code = Code.builder().setCode(code)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setCodeComments(codeComments)
             .setPublic(public);
-
         if (url) {
             code.setUrl(url);
         }
         if (codeComments) {
-            code.setCodeComments(codeComments);
+            code.setCodeText(codeComments);
+        }
+        if (codeText) {
+            code.setCodeComments(codeText);
         }
 
         return SubstanceFinder.get(uuid)
@@ -2663,7 +2675,7 @@ Script.builder().mix({
         "key": "pt", name: "PT", description: "PT of the substance record", required: true
     })
     .addArgument({
-        "key": "code", name: "CODE", description: "Code text of the new code", required: true
+        "key": "code", name: "CODE", description: "Actual code for the new item", required: true
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM", description: "Code system of the new code",
@@ -2681,7 +2693,12 @@ Script.builder().mix({
         cvType: "CODE_TYPE"
     })
     .addArgument({
-        "key": "comments", name: "COMMENTS", description: "Text for code", required: false
+        "key": "comments", name: "COMMENTS", description: "Description for the new code (free text)",
+        required: false
+    })
+    .addArgument({
+        "key": "code text", name: "CODE TEXT", description: "free text",
+        required: false
     })
     .addArgument({
         "key": "code url", name: "CODE URL",
@@ -2728,6 +2745,7 @@ Script.builder().mix({
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
+        var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
         var public = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
@@ -2770,14 +2788,16 @@ Script.builder().mix({
             .setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setCodeComments(codeComments)
             .setPublic(public);
 
         if (url) {
             code.setUrl(url);
         }
         if (codeComments) {
-            code.setCodeComments(codeComments);
+            code.setCodeText(codeComments);
+        }
+        if (codeText) {
+            code.setCodeComments(codeText);
         }
 
         return GGlob.SubstanceFinder.searchByExactNameOrCode(pt)
@@ -2853,7 +2873,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         "key": "pt", name: "PT", description: "PT of the substance record", required: true
     })
     .addArgument({
-        "key": "code", name: "CODE", description: "Code text of the new code", required: true
+        "key": "code", name: "CODE", description: "Actual code for the new item", required: true
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM",
@@ -3059,7 +3079,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Updated Code text ",
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Updated Code",
         description: "Text for the record change", required: false
     })
     .addArgument({
