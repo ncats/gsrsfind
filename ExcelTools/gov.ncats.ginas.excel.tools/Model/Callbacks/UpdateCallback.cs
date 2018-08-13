@@ -11,6 +11,9 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
     public class UpdateCallback : Callback
     {
         private Range statusRange;
+        const XlRgbColor COLOR_STARTING = XlRgbColor.rgbGreen;
+        const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbYellow;
+        const XlRgbColor COLOR_ERROR = XlRgbColor.rgbRed;
 
         public UpdateCallback(Range status)
         {
@@ -34,6 +37,19 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         public void SetRangeText(string rangeText)
         {
             statusRange.FormulaR1C1 = rangeText;
+            if (rangeText.Equals("started", StringComparison.CurrentCultureIgnoreCase))
+            {
+                statusRange.Interior.Color = COLOR_STARTING;
+            }
+            else if ( rangeText.Equals("success", StringComparison.CurrentCultureIgnoreCase))
+            {
+                statusRange.EntireRow.Interior.Color = COLOR_SUCCESS;
+            }
+            else
+            {
+                statusRange.EntireRow.Interior.Color = COLOR_ERROR;
+            }
+            
         }
 
         public int RunnerNumber
