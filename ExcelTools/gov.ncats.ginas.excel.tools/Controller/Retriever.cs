@@ -182,7 +182,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
                 if (ImageOps.IsImageUrl(result))
                 {
-                    if (ImageOps.RemoteFileExists(result))
+                    if (ToolsConfiguration.SelectedServer.LooksLikeSingleSignon()
+                        || ImageOps.RemoteFileExists(result))
                     {
                         log.Debug("(image)");
                         cellId = SheetUtils.GetColumnName(column - 1) + dataRow;

@@ -89,6 +89,16 @@ namespace gov.ncats.ginas.excel.tools.Model
             set;
         }
 
+        public bool LooksLikeSingleSignon()
+        {
+            if( string.IsNullOrWhiteSpace(Token) && string.IsNullOrWhiteSpace(PrivateKey)
+                && string.IsNullOrWhiteSpace(Username))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();

@@ -71,5 +71,24 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(parm1.IsBoolean());
         }
 
+        [TestMethod]
+        public void LooksLikeSingleSignonTest()
+        {
+            GinasServer ginasServer = new GinasServer();
+            ginasServer.ServerUrl = "http://localhost:9000/ginas/app/";
+            ginasServer.ServerName = "localhost";
+            Assert.IsTrue(ginasServer.LooksLikeSingleSignon());
+        }
+
+        [TestMethod]
+        public void LooksLikeSingleSignonTest2()
+        {
+            GinasServer ginasServer = new GinasServer();
+            ginasServer.ServerUrl = "http://localhost:9000/ginas/app/";
+            ginasServer.ServerName = "localhost";
+            ginasServer.Username = "mitch";
+            ginasServer.PrivateKey = "blah";
+            Assert.IsFalse(ginasServer.LooksLikeSingleSignon());
+        }
     }
 }
