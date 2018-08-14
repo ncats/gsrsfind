@@ -23,6 +23,7 @@
     }
   ],
   "DebugMode": false,
+  "SortVocabsAlphabetically": true,
   "BatchSize": 50,
   "ExpirationOffset" :  200
 }

@@ -144,7 +144,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     SheetUtils sheetUtils = new SheetUtils();
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
-                        ScriptExecutor);
+                        ScriptExecutor, ToolsConfiguration.SortVocabsAlphabetically);
                 }
             }
             else
@@ -545,7 +545,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     SheetUtils sheetUtils = new SheetUtils();
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
-                        ScriptExecutor);
+                        ScriptExecutor, ToolsConfiguration.SortVocabsAlphabetically);
                 }
                 else
                 {

@@ -31,6 +31,12 @@ namespace gov.ncats.ginas.excel.tools.Model
             set;
         }
 
+        public bool SortVocabsAlphabetically
+        {
+            get;
+            set;
+        }
+
         public int BatchSize
         {
             get;

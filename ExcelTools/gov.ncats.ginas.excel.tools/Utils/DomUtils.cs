@@ -138,20 +138,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             h3Element.SetAttribute("className", "consolehead");
             h3Element.SetAttribute("id", "consoleHeadWebOutput");
             h3Element.InnerText = "Web output:";
-            //if (!makeDebugVisible)
-            //{
-                h3Element.Style = "visibility:hidden";
-            //}
+            h3Element.Style = "visibility:hidden";
             mainFormElement.AppendChild(h3Element);
 
             brElement = document.CreateElement("br");
             mainFormElement.AppendChild(brElement);
             textAreaElement = document.CreateElement("textarea");
             textAreaElement.SetAttribute("id", "console");
-            //if (!makeDebugVisible)
-            //{
-                textAreaElement.Style = "visibility:hidden";
-            //}
+            textAreaElement.Style = "visibility:hidden";
             mainFormElement.AppendChild(textAreaElement);
 
             brElement = document.CreateElement("br");
@@ -188,18 +182,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
             refresherFrame.Style = "height:1px;opacity:0;display: none;" ;
             bodyElement.AppendChild(refresherFrame);
 
-            HtmlElement consoleScript = document.CreateElement("script");
-            consoleScript.SetAttribute("type", "text/javascript");
             if (makeDebugVisible)
             {
+                HtmlElement consoleScript = document.CreateElement("script");
+                consoleScript.SetAttribute("type", "text/javascript");
+
                 //allow 'normal' logging as well as custom
                 consoleScript.InnerHtml = "window['oldconsole'] = window['console'];window['console'] = {log: function (r){ GSRSAPI_consoleStack.push(r);oldconsole.log(r);}}";
+                bodyElement.AppendChild(consoleScript);
             }
-            else
-            {
-                consoleScript.InnerHtml = "window['oldconsole'] = window['console'];window['console'] = {log: function (r){oldconsole.log(r);}}";
-            }
-            bodyElement.AppendChild(consoleScript);
         }
 
         public static void BuildDocumentHead(HtmlDocument document)
@@ -207,8 +198,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             try
             {
-
-
                 HtmlElement headElement = GetFirstHead(document);
                 if (headElement == null)
                 {
@@ -216,7 +205,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     headElement = document.Body;
                 }
                 string inner = headElement.InnerText;
-                //headElement.InnerHtml = string.Empty;
 
                 HtmlElement metaCharset = document.CreateElement("meta");
                 metaCharset.SetAttribute("http-equiv", "content-type");
@@ -284,7 +272,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 
                 MSHTML.HTMLStyleElement htmlStyleElement = (MSHTML.HTMLStyleElement)domStyleElement;
                 htmlStyleElement.styleSheet.cssText = FileUtils.GetCss();
-                log.Debug("assigned CSS " + htmlStyleElement.styleSheet.cssText);
+                //log.Debug("assigned CSS " + htmlStyleElement.styleSheet.cssText);
                 headElement.AppendChild(styleElement);
                 log.Debug("completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             }

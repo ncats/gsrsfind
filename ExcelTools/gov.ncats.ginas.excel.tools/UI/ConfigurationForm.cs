@@ -78,6 +78,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
             textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
             checkBoxDebugInfo.Checked = CurrentConfiguration.DebugMode;
+            checkBoxSortVocabs.Checked = CurrentConfiguration.SortVocabsAlphabetically;
             comboBoxURLs.SelectedIndexChanged += ComboBoxURLs_SelectedIndexChanged;
             comboBoxURLs.TextChanged += ComboBoxURLs_TextChanged;
             
@@ -108,6 +109,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 CurrentConfiguration.SelectedServer = newServer;
             }
             CurrentConfiguration.DebugMode = checkBoxDebugInfo.Checked;
+            CurrentConfiguration.SortVocabsAlphabetically = checkBoxSortVocabs.Checked;
             CurrentConfiguration.BatchSize = Convert.ToInt32(textBoxBatchSize.Text);
             float tempFloat;
             if (float.TryParse(textBoxExpirationOffset.Text, out tempFloat))

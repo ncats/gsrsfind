@@ -548,11 +548,56 @@ namespace ginasExcelUnitTests
             vocab.Add("Code");
             Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
             string expectedVocabReference = "=_gsrs_vocabularies_!$C$2:$C$5";
-            string vocabReference = SheetUtils.CreateVocabularyList(workbook, vocabTypeName, vocab);
+            
+            string vocabReference = SheetUtils.CreateVocabularyList(workbook, vocabTypeName, vocab,
+                true);
             Assert.AreEqual(expectedVocabReference, vocabReference);
 
             Range testRange = vocabSheet.Range["C1"];
             string testText = (string) testRange.Text;
+            Assert.AreEqual(vocabTypeName, testText);
+
+            List<string> sortedVocab = new List<string>(vocab);
+            sortedVocab.Sort(StringComparer.CurrentCultureIgnoreCase);
+            testRange = vocabSheet.Range["C2"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(sortedVocab[0], testText);
+
+            testRange = vocabSheet.Range["C3"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(sortedVocab[1], testText);
+
+            testRange = vocabSheet.Range["C4"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(sortedVocab[2], testText);
+
+            testRange = vocabSheet.Range["C5"];
+            testText = (string)testRange.Text;
+            Assert.AreEqual(sortedVocab[3], testText);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void TestCreateVocabularyListUnsorted()
+        {
+            string filePath = @"..\..\..\Test_Files\Has vocabulary sheet.xlsx";
+            filePath = Path.GetFullPath(filePath);
+            string vocabTypeName = "NAME_TYPE2";
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            List<string> vocab = new List<string>();
+            vocab.Add("Complete Name");
+            vocab.Add("Systematic Name");
+            vocab.Add("Common Name");
+            vocab.Add("Code");
+            Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
+            string expectedVocabReference = "=_gsrs_vocabularies_!$C$2:$C$5";
+
+            string vocabReference = SheetUtils.CreateVocabularyList(workbook, vocabTypeName, vocab,
+                false);
+            Assert.AreEqual(expectedVocabReference, vocabReference);
+
+            Range testRange = vocabSheet.Range["C1"];
+            string testText = (string)testRange.Text;
             Assert.AreEqual(vocabTypeName, testText);
 
             testRange = vocabSheet.Range["C2"];
@@ -572,7 +617,6 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(vocab[3], testText);
             workbook.Close(false);
         }
-
         [TestMethod]
         public void TestGetVocabularySheetExistsHidden()
         {

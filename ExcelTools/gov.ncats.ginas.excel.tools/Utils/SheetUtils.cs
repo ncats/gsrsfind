@@ -81,7 +81,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
 
         public void CreateSheet(Workbook workbook, ScriptUtils scriptUtils,
-            IScriptExecutor scriptExecutor)
+            IScriptExecutor scriptExecutor, bool sortAlpha)
         {
             string scriptName = scriptUtils.ScriptName;
             if (DoesSheetExist(workbook, scriptName))
@@ -147,7 +147,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         //the string contains a reference to a range of cells in a hidden sheet
                         // that contain the allowed values.
                         string vocabString = CreateVocabularyList(workbook, vocabularyName,
-                            vocabItems.Select(v => v.Display).ToList());
+                            vocabItems.Select(v => v.Display).ToList(), sortAlpha);
                         log.Debug("using vocabString: " + vocabString);
                         try
                         {
@@ -229,7 +229,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
 
         public static string CreateVocabularyList(Workbook workbook, string vocabularyName,
-            List<string> vocabularyItems)
+            List<string> vocabularyItems, bool sortAlpha)
         {
             Worksheet vocabSheet = GetVocabularySheet(workbook);
             int column = FindColumn(vocabSheet.Range["A1", "ZZ1"], vocabularyName, VOCABULARY_TEST_ROW);
@@ -240,6 +240,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string headerCellLabel = GetColumnName(column) + VOCABULARY_TEST_ROW;
             Range headerCell = vocabSheet.Range[headerCellLabel];//.Offset[(VOCABULARY_TEST_ROW - 1), (column - 1)];
             headerCell.FormulaR1C1 = vocabularyName;
+            if( sortAlpha)
+            {
+                vocabularyItems.Sort(StringComparer.CurrentCultureIgnoreCase);
+            }
             for (int item = 0; item < vocabularyItems.Count; item++)
             {
                 vocabSheet.Range["A1"].Offset[(item + 1), (column - 1)].FormulaR1C1 = 

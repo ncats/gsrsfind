@@ -75,7 +75,6 @@ namespace gov.ncats.ginas.excel.tools.UI
             if (CurrentOperationType != OperationType.Resolution)
             {
                 HandleDebugInfoSave();
-                //Close();
             }
         }
 
@@ -144,11 +143,6 @@ namespace gov.ncats.ginas.excel.tools.UI
             private get;
         }
 
-        public bool IsDebugOn()
-        {
-            return checkBoxSaveDiagnostic.Checked;
-        }
-
         public void StartSearch(string searchScript)
         {
             ExecuteScript(searchScript);
@@ -158,10 +152,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             if (!_configuration.DebugMode) webBrowser1.ScriptErrorsSuppressed = true;
             string functionName = "runCommandForCSharp";
-            if (_configuration.DebugMode)
-            {
-                log.Debug("Going to run script: " + script);
-            }
+            log.Debug("Going to run script: " + script);
             object returnedValue = webBrowser1.Document.InvokeScript(functionName, new object[] { script });
             if (returnedValue is string && (returnedValue as string).StartsWith("'error running script: '"))
             {
@@ -172,6 +163,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public void Notify(string message)
         {
+            log.DebugFormat("Notify processing message: {0}", message);
             if (message.StartsWith("gsrs_"))
             {
                 string followupCommand = "cresults.popItem('" + message + "')";
@@ -230,11 +222,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             if (!_savedDebugInfo) HandleDebugInfoSave();
         }
 
-        private void HandleDebugInfoSave()
+        private bool HandleDebugInfoSave()
         {
             log.Debug("at start of HandleDebugInfoSave, _savedDebugInfo: " + _savedDebugInfo);
-            if ((checkBoxSaveDiagnostic.Checked || CurrentOperationType == OperationType.GetStructures)
-                && !_savedDebugInfo)
+            if ((checkBoxSaveDiagnostic.Checked ) && !_savedDebugInfo)
             {
                 string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
@@ -246,9 +237,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                 {
                     FileUtils.WriteToFile(saveFileDialog.FileName, debugInfo);
                 }
+                _savedDebugInfo = true;
             }
-            _savedDebugInfo = true;
+            else if(CurrentOperationType == OperationType.ShowScripts)
+            {
+                UIUtils.ShowMessageToUser("Your sheet has been created!");
+            }
 
+            return true;
         }
         private void BuildGinasToolsDocument()
         {
@@ -293,13 +289,12 @@ namespace gov.ncats.ginas.excel.tools.UI
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
-                (_configuration.DebugMode || checkBoxSaveDiagnostic.Checked));
+                (_configuration.DebugMode ));
             webBrowser1.Document.Title = "ginas Tools";
             webBrowser1.Document.Body.SetAttribute("className", string.Empty);
             webBrowser1.Document.Body.Style = "padding-top:10px";
-            this.checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + "api/v1/');");
-
+            checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             if (CurrentOperationType == OperationType.Loading)
             {
                 buttonResolve.Text = "Execute";
@@ -340,6 +335,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             buttonDebugDOM.Enabled = false; //_configuration.DebugMode;
             buttonDebugDOM.Visible = false;//_configuration.DebugMode;
+            checkBoxSaveDiagnostic.Enabled = _configuration.DebugMode;
 
             if( _configuration.DebugMode)
             {
