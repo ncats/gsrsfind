@@ -1855,17 +1855,17 @@ function validate4Params(args) {
      Otherwise, any one is sufficient.
      When more than one is present, those present must agree
      */
-    if (!args.FORCED.isYessy() && (!args.uuid.getValue() || !args.pt.getValue() || !args.bdnum.getValue())) {
+    if  (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
             cb({
-                "valid": false, "message": "All of these arguments must have values: UUID, PT and BDNUM",
+                "valid": false, "message": "At least one of these arguments must have values: UUID, PT and BDNUM",
             "overall": true});
         });
     }
     if (args.uuid.getValue()) {
         console.log('has UUID');
-        if (args.FORCED.isYessy() && !args.pt.getValue() && !args.bdnum.getValue()) {
+        if (!args.pt.getValue() && !args.bdnum.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT and BDNUM are empty and FORCED is on
              can forego any further checking!*/
@@ -1999,19 +1999,19 @@ function validate3Params(args) {
      Otherwise, any one is sufficient.
      When more than one is present, those present must agree
      */
-    if (!args.FORCED.isYessy() && (!args.uuid.getValue() || !args.pt.getValue())) {
+    if ((!args.uuid.getValue() && !args.pt.getValue())) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
             cb({
                 "valid": false,
-                "message": "Both of these arguments must have values: UUID, PT ",
+                "message": "At least one of these arguments must have values: UUID, PT ",
                 "overall": true
             });
         });
     }
     if (args.uuid.getValue()) {
         console.log('has UUID');
-        if (args.FORCED.isYessy() && !args.pt.getValue()) {
+        if ( !args.pt.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
@@ -2042,7 +2042,7 @@ function validate3Params(args) {
                             "overall": true
                         };
                     }
-                    console.log(' about to retrun simple true');
+                    console.log(' about to return simple true');
                     return { valid: true };
                 } else {
                     return {
@@ -2050,7 +2050,7 @@ function validate3Params(args) {
                         "message": "Could not find record with that UUID",
                         "overall": true
                     };
-                    console.log(' about to retrun simple false');
+                    console.log(' about to return simple false');
                 }
             });
     }
@@ -2068,10 +2068,10 @@ function validate3Params(args) {
                             "overall": true
                         };
                     }
-                    console.log(' about to retrun simple true');
+                    console.log(' about to return simple true');
                     return { "valid": true, "overall": true };
                 } else {
-                    console.log(' about to retrun simple false');
+                    console.log(' about to return simple false');
                     return {
                         "valid": false,
                         "message": "Could not find record with that PT",

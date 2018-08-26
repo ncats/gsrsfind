@@ -86,6 +86,7 @@ namespace gov.ncats.ginas.excel.tools
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append("Some icons provided by ");
             stringBuilder.Append("https://www.flaticon.com/");
+            //<div>Icons made by <a href="https://www.flaticon.com/authors/vaadin" title="Split">Split</a> from <a href="https://www.flaticon.com/"     title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"     title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>")
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append(Environment.NewLine);
             String applicationName = Assembly.GetExecutingAssembly().FullName;
