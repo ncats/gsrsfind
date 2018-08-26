@@ -2375,7 +2375,15 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
 
 Script.builder().mix({ name: "Add Code", description: "Adds a code to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        required: false
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM",
+        description: "BDNUM of the record (used for validation)", required: false
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Actual code for the new item", required: true
@@ -2434,8 +2442,11 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         defaultValue: "Added Code",
         description: "Text for the record change", required: false
     })
+    .addValidator(validate4Params)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
         var code = args.code.getValue();
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
@@ -2474,9 +2485,25 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             code.setCodeComments(codeText);
         }
 
-        return SubstanceFinder.get(uuid)
+        var lookupCriterion = uuid;
+        if (uuid == null || uuid.length == 0) {
+            if (pt != null && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+        /*return SubstanceFinder.get(uuid)*/
             .andThen(function (s) {
-                var substance = GGlob.SubstanceBuilder.fromSimple(s);
+                if (!s || !s.content || s.content.length == 0) {
+                    console.log('no results found for query of ' + lookupCriterion);
+                    return { valid: false, message: 'Error looking up record for ' + lookupCriterion };
+                }
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                /*var substance = GGlob.SubstanceBuilder.fromSimple(s);*/
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         console.log('retrieved refs');
