@@ -58,6 +58,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 vocabDictionary.Add(item.Display, item.Term);
             }
+            
             return vocabDictionary;
         }
     }

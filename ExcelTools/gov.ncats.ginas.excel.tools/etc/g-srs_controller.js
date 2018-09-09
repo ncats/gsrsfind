@@ -1822,6 +1822,20 @@ FetcherRegistry.addFetcher(
 );
 
 
+/*FetcherRegistry.addFetcher(
+    FetcherMaker.make("Vapor Pressure", function (simpleSub) {
+        return simpleSub.fetch("properties")
+            .andThen(function (r) {
+                return _.chain(r)
+                    .filter({ name: "Vapor pressure" })
+                    .map(function (ro) {
+                        return ro.value.average + ro.value.units;
+                    })
+                    .value();
+            });
+    }).addTag("Properties")
+);*/
+
 /*******************
 CV helper (TODO:move to main library)
 *******************/
@@ -2092,6 +2106,114 @@ function validate3Params(args) {
     });
 }
 
+
+function validateOneSubstance(subUUIDArg, subNameArg) {
+    console.log('Starting in validateOneSubstance. ' );
+    if (subUUIDArg && subUUIDArg.getValue()) {
+        console.log('has UUID');
+        if (!subNameArg || !subNameArg.getValue()) {
+            console.log('   and no other arg');
+            /*we do have a UUID but PT is empty and FORCED is on
+             can forego any further checking!*/
+            return GGlob.JPromise.of(function (cb) {
+                cb({ "valid": true, "overall": true });
+            });
+        }
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(subUUIDArg.getValue())
+            .andThen(function (resp) {
+                if (resp.content && resp.content.length >= 1) {
+                    console.log('looked up substance by UUID');
+                    var rec = resp.content[0];
+                    var uuid = rec.uuid;
+                    if (uuid !== subUUIDArg.getValue()) {
+                        /*is this even possible?*/
+                        return {
+                            "valid": false,
+                            "message": "The UUID for this record does not match the one provided",
+                            "overall": true
+                        };
+                    }
+                    var pt = rec._name;
+                    if (subNameArg && subNameArg.getValue() && pt !== subNameArg.getValue()) {
+                        console.log('pt: ' + pt + '; pt from args: ' + subNameArg.getValue());
+                        return {
+                            "valid": false,
+                            "message": "The PT does not match the value for this record",
+                            "overall": true
+                        };
+                    }
+                    console.log(' about to return simple true');
+                    return { valid: true };
+                } else {
+                    return {
+                        "valid": false,
+                        "message": "Could not find record with UUID " + subUUIDArg.getValue(),
+                        "overall": true
+                    };
+                    console.log(' about to return simple false');
+                }
+            });
+    }
+    else if (subNameArg.getValue()) {
+        console.log('has PT');
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(subNameArg.getValue())
+            .andThen(function (resp) {
+                if (resp.content && resp.content.length >= 1) {
+                    var rec = resp.content[0];
+                    var pt = rec._name;
+                    if (pt !== subNameArg.getValue()) {
+                        return {
+                            "valid": false,
+                            "message": "The PT of the record does not match the value provided",
+                            "overall": true
+                        };
+                    }
+                    console.log(' about to return simple true');
+                    return { "valid": true, "overall": true };
+                } else {
+                    console.log(' about to return simple false');
+                    return {
+                        "valid": false,
+                        "message": "Could not find record PT "+ subNameArg.getValue(),
+                        "overall": true
+                    };
+                }
+            });
+
+    }
+    return GGlob.JPromise.of(function (cb) {
+        cb({
+            "valid": false,
+            "message": "One or both of these arguments must have a value: UUID, PT",
+            "overall": true
+        });
+    });
+
+}
+
+function validate2Substances(args) {
+    console.log('Starting in validate2Substances. ');
+
+    var proms = [];
+    proms.push(validateOneSubstance(args.uuid, args.pt));
+    proms.push(validateOneSubstance(args.uuid2, args.pt2));
+    return GGlob.JPromise.join(proms)
+        .andThen(function (plist) {
+            var valid = true;
+            var messages = [];
+            _.forEach(plist, function (p) {
+                valid = valid && p.valid;
+                if (!p.valid) {
+                    console.log('adding message ' + p.message);
+                    messages.push(p.message);
+                }
+            });
+            console.log('validate2Substances about to return ' + valid);
+            if (valid) return { "valid": true, "overall": true };
+            return { "valid": false, message: messages.join(',') };
+        });
+
+}
 
 /********************************
 Scripts
@@ -2431,7 +2553,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
     })
     .addArgument({
         "key": "reference citation", name: "REFERENCE CITATION",
-        description: "Citation text for reference", required: true
+        description: "Citation text for reference", required: false
     })
     .addArgument({
         "key": "reference url", name: "REFERENCE URL",
@@ -2532,54 +2654,18 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 /*Add relationship by MAM 14 June 2017*/
 Script.builder().mix({ name: "Add Relationship", description: "Adds a relationship to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the (primary) substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the (primary) substance record", required: false
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the primary record (used for validation)", required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        var pt = rec._name;
-                        if (uuid !== cargs.args.uuid.getValue()) {
-                            return { valid: false, message: "The PT and UUID (1) do not point to the same record" };
-                        } else if (val !== pt) {
-                            return { valid: false, message: "The PT for the first record does not match the one provided" };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with the first PT" };
-                    }
-                });
-        }
+        "key": "pt", name: "PT", description: "Preferred Term of the primary record (used for validation)", required: false
     })
     .addArgument({
         "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record",
-        required: true
+        required: false
     })
     .addArgument({
         "key": "pt2", name: "PT2",
-        description: "Preferred Term of the secondary record (used for validation)", required: true,
-        "validator": function (val, cargs) {
-            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-                .andThen(function (resp) {
-                    if (resp.content && resp.content.length >= 1) {
-                        var rec = resp.content[0];
-                        var uuid = rec.uuid;
-                        var pt = rec._name;
-                        if (uuid !== cargs.args.uuid2.getValue()) {
-                            return { valid: false, message: "The PT and UUID (2) do not point to the same record" };
-                        } else if (val !== pt) {
-                            return { valid: false, message: "The PT for the second record does not match the one provided" };
-                        }
-                        return { valid: true };
-                    } else {
-                        return { valid: false, message: "Could not find record with the second PT" };
-                    }
-                });
-        }
+        description: "Preferred Term of the secondary record (used for validation)", required: false
     })
     .addArgument({
         "key": "relationship type", name: "RELATIONSHIP TYPE",
@@ -2618,9 +2704,12 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         defaultValue: "Added Code",
         description: "Text for the record change", required: false
     })
+    .addValidator(validate2Substances)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var uuid2 = args.uuid2.getValue();
+        var pt = args.pt.getValue();
+        var pt2 = args.pt2.getValue();
         var relationshiptype = args['relationship type'].getValue();
         console.log('got relationshiptype: ' + relationshiptype);
         var public = args.pd.isYessy();
@@ -2652,13 +2741,15 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             }
         }
 
+        var searchCrit = (uuid) ? uuid: pt;
         var substanceObject;
-        return SubstanceFinder.get(uuid)
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
-                substanceObject = s;
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                substanceObject= GGlob.SubstanceBuilder.fromSimple(rec);
                 console.log('going to check references');
                 var substance = GGlob.SubstanceBuilder.fromSimple(s);
-                return substance.fetch("references")
+                return substanceObject.fetch("references")
                     .andThen(function (refs) {
                         console.log('retrieved refs: ' + JSON.stringify(refs));
                         _.forEach(refs, function (ref) {
@@ -2672,13 +2763,16 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             })
             .andThen(function (s1) {
                 console.log('in andThen 2');
-                return SubstanceFinder.get(uuid2)
-
+                var searchCrit2 = (uuid2) ? uuid2 : pt2;
+                return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit2)
                     .andThen(function (s2) {
                         console.log('in andThen 2 inner ');
+                        var rec2 = s2.content[0]; /*can be undefined... todo: handle*/
+                        var substanceObject2 = GGlob.SubstanceBuilder.fromSimple(rec2);
+
                         /*construct the relationship object*/
                         var relationship = Relationship.builder()
-                            .setRelatedSubstance(s2) /*make sure this works!*/
+                            .setRelatedSubstance(substanceObject2) /*make sure this works!*/
                             .setType(relationshiptype);
                         if (reference) {
                             relationship.addReference(reference);
@@ -2918,6 +3012,10 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         cvType: "CODE_TYPE"
     })
     .addArgument({
+        "key": "code text", name: "CODE TEXT",
+        description: "Free text", required: false
+    })
+    .addArgument({
         "key": "comments", name: "COMMENTS", description: "Description new/replacement code",
         required: false
     })
@@ -2961,6 +3059,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
         var codeComments = args.comments.getValue();
+        var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
         var public = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
@@ -2993,8 +3092,9 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
             .setCode(codeValue)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setCodeComments(codeComments)
             .setPublic(public);
+        if (codeText) code.setCodeComments(codeText);
+        if (codeComments) code.setCodeText(codeComments);
 
         if (url) {
             code.setUrl(url);
@@ -3312,7 +3412,10 @@ Script.builder().mix({
     description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
 })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the substance record", required: false
     })
     .addArgument({
         /*deliberately NOT making this a controlled vocabulary because we want to allow for handling
@@ -3328,18 +3431,24 @@ Script.builder().mix({
         defaultValue: "Stem for the formation of URLs, with Code to be appended",
         description: "Text for the record change", required: true
     })
-
+    .addValidator(validate3Params)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var codeSystem = args['code system'].getValue();
-
+        var pt = args.pt.getValue();
         var urlBase = args['url base'].getValue();
 
-        return SubstanceFinder.get(uuid)
+        var searchCrit = (uuid) ? uuid : pt;
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
-                s0 = s;
-                if (s)
-                    return s.full();
+                if (!s || !s.content || s.content.length == 0) {
+                    return { valid: false, message: 'search for ' + searchCrit + ' returned no records' };
+                }
+                var rec = s.content[0]; /*can be undefined... */
+
+                s0 = GGlob.SubstanceBuilder.fromSimple(rec);
+                if (s0)
+                    return s0.full();
                 else
                     return { valid: false, message: 'unexpected error' };
             })
@@ -3418,7 +3527,10 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
 /*Update the visibility of a given code via UUID MAM 14 October 2017*/
 Script.builder().mix({ name: "Set Code Access", description: "Sets the permission on a code for a given substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the substance record", required: false
     })
     .addArgument({
         "key": "code system", name: "CODE SYSTEM",
@@ -3432,18 +3544,27 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Changing Code protection", description: "Text for the record change", required: false
     })
+    .addValidator(validate3Params)
     .setExecutor(function (args) {
         var ACCESS_NONE = '[NONE]';
         var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
         var codeSystem = args['code system'].getValue();
         var access = args['access'].getValue();
-        return SubstanceFinder.get(uuid)
+        var searchCrit = (uuid) ? uuid : pt;
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
-                s0 = s;
-                if (s)
-                    return s.full();
+                if (!s || !s.content || s.content.length == 0) {
+                    return { valid: false, message: 'search for ' + searchCrit + ' returned no records' };
+                }
+                var rec = s.content[0]; /*can be undefined... */
+
+                s0 = GGlob.SubstanceBuilder.fromSimple(rec);
+                if (s0)
+                    return s0.full();
                 else
                     return { valid: false, message: 'unexpected error' };
+
             })
             .andThen(function (s) {
                 console.log('Starting in second andThen');
@@ -3488,7 +3609,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     .useFor(function (s) {
         Scripts.addScript(s);
     });
-/*new material 29 September 2017 MAM*/
+
 Script.builder().mix({ name: "Create Substance", description: "Creates a brand new substance record" })
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the new substance", required: true,
@@ -3675,13 +3796,13 @@ Script.builder().mix({ name: "Touch Record", description: "Retrieve a substance 
 /*Replace one name with another*/
 Script.builder().mix({ name: "Replace Name", description: "Locates an existing name within a substance record and replaces it with a new name" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record"
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)"
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)"
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false
     })
     .addArgument({
         "key": "current name", name: "CURRENT NAME", description: "Name text of the name to replace", required: true,
