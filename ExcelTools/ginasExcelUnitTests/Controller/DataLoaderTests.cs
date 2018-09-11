@@ -11,6 +11,9 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using ginasExcelUnitTests.Model;
+using gov.ncats.ginas.excel.tools.Utils;
+using gov.ncats.ginas.excel.tools.Model;
+
 using System.IO;
 
 namespace gov.ncats.ginas.excel.tools.Controller.Tests
@@ -31,6 +34,32 @@ namespace gov.ncats.ginas.excel.tools.Controller.Tests
             excel.Workbooks.Close();
             excel.Quit();
             Console.WriteLine("Closed Excel");
+        }
+
+        [TestMethod]
+        public void HandleResultsTest()
+        {
+            //HandleResults on DataLoader
+            DataLoader dataLoader = new DataLoader();
+            string filePath = @"..\..\..\Test_Files\Registration test.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            dataLoader.SetStatusUpdater(statusUpdater);
+            Range statusRange = sheet.Range["M2"];
+            string testKey = "unique key";
+            UpdateCallback updateCallback = new UpdateCallback(statusRange);
+            FieldInfo callbackInfo = dataLoader.GetType().GetField("Callbacks", BindingFlags.NonPublic | BindingFlags.Instance);
+            Dictionary<string, Callback> callbacks = new Dictionary<string, Callback>();
+            callbacks.Add(testKey, updateCallback);
+            callbackInfo.SetValue(dataLoader, callbacks);
+            string resultsMessage = "{valid: true, message: \"done!\"}";
+            dataLoader.HandleResults(testKey, resultsMessage);
+            string contents = (string)statusRange.FormulaR1C1;
+            Assert.AreEqual("done!", contents);
+            workbook.Close(false);
         }
 
         //[TestMethod()]
@@ -88,5 +117,31 @@ namespace gov.ncats.ginas.excel.tools.Controller.Tests
             return workbook;
         }
 
+        internal Workbook ReadExcelWorkbook(string filePath)
+        {
+            return excel.Workbooks.Open(filePath);
+        }
+
+        [TestMethod()]
+        public void ReceiveVocabularyTest()
+        {
+            string vocabFilePath = @"..\..\..\Test_Files\ref type vocab.json";
+            vocabFilePath = Path.GetFullPath(vocabFilePath);
+            string rawVocabContent = File.ReadAllText(vocabFilePath);
+            rawVocabContent = "vocabulary:DOCUMENT_TYPE:" + rawVocabContent;
+            DataLoader dataLoader = new DataLoader();
+            FieldInfo scriptUtilsInfo = dataLoader.GetType().GetField("scriptUtils", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            ScriptUtils scriptUtils = new ScriptUtils();
+            List<string> expectedVocabs = new List<string>();
+            expectedVocabs.Add("DOCUMENT_TYPE");
+            scriptUtils.ExpectedVocabularies = expectedVocabs;
+            //PropertyInfo expectedVocabInfo = scriptUtils.GetType().GetProperty("ExpectedVocabularies", 
+            //    BindingFlags.NonPublic | BindingFlags.Instance);
+            //expectedVocabInfo.SetValue(scriptUtils, expectedVocabs);
+            scriptUtilsInfo.SetValue(dataLoader, scriptUtils);
+            dataLoader.ReceiveVocabulary(rawVocabContent);
+            Assert.AreEqual(0, expectedVocabs.Count);
+        }
     }
 }

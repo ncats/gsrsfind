@@ -682,7 +682,7 @@ namespace ginasExcelUnitTests
             return workbook;
         }
 
-        private Workbook ReadExcelWorkbook(string filePath)
+        internal  Workbook ReadExcelWorkbook(string filePath)
         {
             return excel.Workbooks.Open(filePath);
         }

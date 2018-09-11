@@ -61,6 +61,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             Vocab returnedValue = serializer.Deserialize<Vocab>(rawVocab);
+            //returnedValue.Terms = from entry in returnedValue.Terms orderby entry.Display ascending;
             return returnedValue;
         }
 

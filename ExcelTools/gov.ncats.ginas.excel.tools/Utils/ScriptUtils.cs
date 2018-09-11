@@ -33,6 +33,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 return expectedVocabularies;
             }
+            set
+            {
+                expectedVocabularies = value;
+            }
         }
 
         public void MarkVocabArrived(string vocabName)
