@@ -2145,12 +2145,12 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     console.log(' about to return simple true');
                     return { valid: true };
                 } else {
+                    console.log(' about to return simple false');
                     return {
                         "valid": false,
                         "message": "Could not find record with UUID " + subUUIDArg.getValue(),
                         "overall": true
                     };
-                    console.log(' about to return simple false');
                 }
             });
     }
@@ -2188,7 +2188,6 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
             "overall": true
         });
     });
-
 }
 
 function validate2Substances(args) {
@@ -2212,7 +2211,6 @@ function validate2Substances(args) {
             if (valid) return { "valid": true, "overall": true };
             return { "valid": false, message: messages.join(',') };
         });
-
 }
 
 /********************************

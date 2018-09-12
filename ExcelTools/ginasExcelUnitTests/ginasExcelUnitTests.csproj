@@ -66,6 +66,7 @@
     <Compile Include="ModelTests.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
     <Compile Include="Utils\ScriptUtilsTests.cs" />
+    <Compile Include="Utils\SDFileUtilsTests.cs" />
     <Compile Include="Utils\VocabUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>

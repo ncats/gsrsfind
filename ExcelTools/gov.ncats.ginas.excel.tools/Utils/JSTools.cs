@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Reflection;
 
 using gov.ncats.ginas.excel.tools.Model;
 
@@ -11,6 +12,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 {
     public class JSTools
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         const int id_length = 10;
         const String id_prefix = "gsrs_";
 
@@ -61,7 +63,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             Vocab returnedValue = serializer.Deserialize<Vocab>(rawVocab);
-            //returnedValue.Terms = from entry in returnedValue.Terms orderby entry.Display ascending;
+            try
+            {
+                returnedValue.Content[0].Terms = returnedValue.Content[0].Terms.OrderBy(t => t.Display).ToArray();
+            }
+            catch(Exception ex)
+            {
+                log.ErrorFormat("Error sorting 2: {0}", ex.Message, ex);
+            }
+            
             return returnedValue;
         }
 

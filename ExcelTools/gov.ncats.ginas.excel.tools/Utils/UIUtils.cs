@@ -29,5 +29,18 @@ namespace gov.ncats.ginas.excel.tools.Utils
             if (result == DialogResult.No) return DialogYesNoCancel.No;
             return DialogYesNoCancel.Cancel;
         }
+
+        public static string GetUserFileSelection(string fileFilter, string header)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = fileFilter;
+            openFileDialog.Title = header;
+            openFileDialog.Multiselect = false;
+            if ( openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                return openFileDialog.FileName;
+            }
+            return string.Empty;
+        }
     }
 }

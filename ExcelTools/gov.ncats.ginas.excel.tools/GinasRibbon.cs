@@ -104,5 +104,17 @@ namespace gov.ncats.ginas.excel.tools
             DataLoader loader = new DataLoader();
             loader.StartSheetCreation(window);
         }
+
+        private void buttonSdFileImport_Click(object sender, RibbonControlEventArgs e)
+        {
+            string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
+                "Select one SD file");
+            
+            if (string.IsNullOrEmpty(sdFilePath)) return;
+
+            SDFileUtils sDFileUtils = new SDFileUtils();
+            Excel.Window window = e.Control.Context;
+            sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
+        }
     }
 }

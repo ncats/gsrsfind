@@ -214,6 +214,7 @@
     <Compile Include="Model\IScriptExecutor.cs" />
     <Compile Include="Model\IStatusUpdater.cs" />
     <Compile Include="Model\ScriptParameter.cs" />
+    <Compile Include="Model\SDFileRecord.cs" />
     <Compile Include="Model\SearchValue.cs" />
     <Compile Include="Model\Vocab.cs" />
     <Compile Include="Model\VocabContent.cs" />
@@ -253,6 +254,7 @@
     <Compile Include="Utils\JSTools.cs" />
     <Compile Include="Utils\RestUtils.cs" />
     <Compile Include="Utils\ScriptUtils.cs" />
+    <Compile Include="Utils\SDFileUtils.cs" />
     <Compile Include="Utils\SheetUtils.cs" />
     <Compile Include="Utils\UIUtils.cs" />
     <Compile Include="Utils\VocabUtils.cs" />

@@ -284,6 +284,65 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
 
 
+        public string TransferDataToRow(string[] data, int currentColumn, int dataRow,
+            ImageOps imageOps, Worksheet worksheet, int firstPart = 1)
+        {
+            for (int part = firstPart; part < data.Length; part++)
+            {
+                int column = currentColumn + part;
+                string cellId = GetColumnName(column) + dataRow;
+                string result = data[part];
+                if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
+                string imageFormat = Properties.Resources.ImageFormat;
+
+                if (ImageOps.IsImageUrl(result))
+                {
+                    if( Configuration.SelectedServer.LooksLikeSingleSignon()
+                        || ImageOps.RemoteFileExists(result))
+                    {
+                        log.Debug("(image)");
+                        cellId = GetColumnName(column - 1) + dataRow;
+                        Range currentCell = worksheet.Range[cellId];
+                        imageOps.AddImageCaption(currentCell, result, 240);
+                    }
+                    else
+                    {
+                        return "Invalid Image URL";
+                    }
+                }
+                else
+                {
+                    Range currentCell = worksheet.Range[cellId];
+                    currentCell.Value = result;
+                }
+            }
+            return string.Empty;
+        }
+
+        public string TransferSDDataToRow(Dictionary<string,string> data, Dictionary<string, int> columns, 
+            int dataRow,
+            ImageOps imageOps, Worksheet worksheet)
+        {
+            foreach(string fieldName in data.Keys)
+            {
+                int column = columns[fieldName];
+                string cellId = GetColumnName(column) + dataRow;
+                Range currentCell = worksheet.Range[cellId];
+                currentCell.FormulaR1C1 = data[fieldName];
+            }
+            return string.Empty;
+        }
+
+        public void SetColumnWidths(Worksheet sheet, List<int> columns, int width)
+        {
+            foreach(int column in columns)
+            {
+                string cellID = GetColumnName(column) + "1";
+                Range cell = sheet.Range[cellID];
+                cell.ColumnWidth = width;
+            }
+        }
+
         private string GetVocabDisplayString(List<VocabItem> vocabItems)
         {
             return string.Join(",", vocabItems.Where(v => !v.Deprecated).Select(vi => vi.Display).ToArray());

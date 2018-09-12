@@ -44,6 +44,7 @@
             this.configurationGroup = this.Factory.CreateRibbonGroup();
             this.buttonConfigure = this.Factory.CreateRibbonButton();
             this.buttonAbout = this.Factory.CreateRibbonButton();
+            this.buttonSdFileImport = this.Factory.CreateRibbonButton();
             this.ginasTab.SuspendLayout();
             this.retrievalgroup.SuspendLayout();
             this.updateGroup.SuspendLayout();
@@ -85,6 +86,7 @@
             // 
             this.updateGroup.Items.Add(this.button3);
             this.updateGroup.Items.Add(this.button4);
+            this.updateGroup.Items.Add(this.buttonSdFileImport);
             this.updateGroup.Label = "Update";
             this.updateGroup.Name = "updateGroup";
             // 
@@ -125,6 +127,15 @@
             this.buttonAbout.Name = "buttonAbout";
             this.buttonAbout.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAbout_Click);
             // 
+            // buttonSdFileImport
+            // 
+            this.buttonSdFileImport.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.StructureIcon;
+            this.buttonSdFileImport.Label = "Import SD File";
+            this.buttonSdFileImport.Name = "buttonSdFileImport";
+            this.buttonSdFileImport.ShowImage = true;
+            this.buttonSdFileImport.SuperTip = "Read a structure data format file into the current sheet";
+            this.buttonSdFileImport.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonSdFileImport_Click);
+            // 
             // GinasRibbon
             // 
             this.Name = "GinasRibbon";
@@ -155,6 +166,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonConfigure;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAbout;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonSdFileImport;
     }
 
     partial class ThisRibbonCollection

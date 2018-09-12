@@ -85,6 +85,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
             ImageOps imageOps = new ImageOps();
 
+            SheetUtils sheetUtils = new SheetUtils();
             foreach (string key in returnedValue.Keys)
             {
                 if (ToolsConfiguration.DebugMode)
@@ -108,7 +109,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                             continue;
                         }
                     }
-                    TransferDataToRow(messageParts, currentColumn, dataRow, imageOps);
+                    sheetUtils.TransferDataToRow(messageParts, currentColumn, dataRow, imageOps,
+                        ExcelSelection.Worksheet);
                     results.Add(key, keyResult);
                     System.Windows.Forms.Application.DoEvents();
                 }
@@ -169,40 +171,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-        public string TransferDataToRow(string[] data, int currentColumn, int dataRow,
-            ImageOps imageOps)
-        {
-            for (int part = 1; part < data.Length; part++)
-            {
-                int column = currentColumn + part;
-                string cellId = SheetUtils.GetColumnName(column) + dataRow;
-                string result = data[part];
-                if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
-                string imageFormat = Properties.Resources.ImageFormat;
-
-                if (ImageOps.IsImageUrl(result))
-                {
-                    if (ToolsConfiguration.SelectedServer.LooksLikeSingleSignon()
-                        || ImageOps.RemoteFileExists(result))
-                    {
-                        log.Debug("(image)");
-                        cellId = SheetUtils.GetColumnName(column - 1) + dataRow;
-                        Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                        imageOps.AddImageCaption(currentCell, result, 240);
-                    }
-                    else
-                    {
-                        return "Invalid Image URL";
-                    }
-                }
-                else
-                {
-                    Excel.Range currentCell = ExcelSelection.Worksheet.Range[cellId];
-                    currentCell.Value = result;
-                }
-            }
-            return string.Empty;
-        }
         public bool StartResolution(bool newSheet)
         {
             _resolveToNewSheet = newSheet;
