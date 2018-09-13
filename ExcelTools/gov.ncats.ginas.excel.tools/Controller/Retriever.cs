@@ -86,6 +86,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ImageOps imageOps = new ImageOps();
 
             SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.Configuration = this.ToolsConfiguration;
             foreach (string key in returnedValue.Keys)
             {
                 if (ToolsConfiguration.DebugMode)

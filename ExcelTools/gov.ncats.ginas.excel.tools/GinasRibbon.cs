@@ -19,7 +19,7 @@ namespace gov.ncats.ginas.excel.tools
 
         private void ginas_Load(object sender, RibbonUIEventArgs e)
         {
-
+            
         }
 
         private void button1_Click(object sender, RibbonControlEventArgs e)
@@ -115,6 +115,18 @@ namespace gov.ncats.ginas.excel.tools
             SDFileUtils sDFileUtils = new SDFileUtils();
             Excel.Window window = e.Control.Context;
             sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
+        }
+
+        private void buttonSelectPT_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            SheetUtils.SetupPTColumn(window.ActiveCell);
+        }
+
+        private void buttonAssureColumns_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            SheetUtils.SetupRemainingColumns((Excel.Worksheet) window.ActiveSheet);
         }
     }
 }

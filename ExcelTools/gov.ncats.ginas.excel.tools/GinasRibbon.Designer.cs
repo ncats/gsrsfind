@@ -41,20 +41,25 @@
             this.updateGroup = this.Factory.CreateRibbonGroup();
             this.button3 = this.Factory.CreateRibbonButton();
             this.button4 = this.Factory.CreateRibbonButton();
+            this.buttonSdFileImport = this.Factory.CreateRibbonButton();
             this.configurationGroup = this.Factory.CreateRibbonGroup();
             this.buttonConfigure = this.Factory.CreateRibbonButton();
             this.buttonAbout = this.Factory.CreateRibbonButton();
-            this.buttonSdFileImport = this.Factory.CreateRibbonButton();
+            this.buttonSelectPT = this.Factory.CreateRibbonButton();
+            this.groupSDFile = this.Factory.CreateRibbonGroup();
+            this.buttonAssureColumns = this.Factory.CreateRibbonButton();
             this.ginasTab.SuspendLayout();
             this.retrievalgroup.SuspendLayout();
             this.updateGroup.SuspendLayout();
             this.configurationGroup.SuspendLayout();
+            this.groupSDFile.SuspendLayout();
             this.SuspendLayout();
             // 
             // ginasTab
             // 
             this.ginasTab.Groups.Add(this.retrievalgroup);
             this.ginasTab.Groups.Add(this.updateGroup);
+            this.ginasTab.Groups.Add(this.groupSDFile);
             this.ginasTab.Groups.Add(this.configurationGroup);
             this.ginasTab.Label = "g-srs";
             this.ginasTab.Name = "ginasTab";
@@ -86,7 +91,6 @@
             // 
             this.updateGroup.Items.Add(this.button3);
             this.updateGroup.Items.Add(this.button4);
-            this.updateGroup.Items.Add(this.buttonSdFileImport);
             this.updateGroup.Label = "Update";
             this.updateGroup.Name = "updateGroup";
             // 
@@ -105,6 +109,15 @@
             this.button4.Name = "button4";
             this.button4.ShowImage = true;
             this.button4.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button4_Click);
+            // 
+            // buttonSdFileImport
+            // 
+            this.buttonSdFileImport.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.StructureIcon;
+            this.buttonSdFileImport.Label = "Import SD File";
+            this.buttonSdFileImport.Name = "buttonSdFileImport";
+            this.buttonSdFileImport.ShowImage = true;
+            this.buttonSdFileImport.SuperTip = "Read a structure data format file into the current sheet";
+            this.buttonSdFileImport.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonSdFileImport_Click);
             // 
             // configurationGroup
             // 
@@ -127,14 +140,26 @@
             this.buttonAbout.Name = "buttonAbout";
             this.buttonAbout.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAbout_Click);
             // 
-            // buttonSdFileImport
+            // buttonSelectPT
             // 
-            this.buttonSdFileImport.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.StructureIcon;
-            this.buttonSdFileImport.Label = "Import SD File";
-            this.buttonSdFileImport.Name = "buttonSdFileImport";
-            this.buttonSdFileImport.ShowImage = true;
-            this.buttonSdFileImport.SuperTip = "Read a structure data format file into the current sheet";
-            this.buttonSdFileImport.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonSdFileImport_Click);
+            this.buttonSelectPT.Label = "Select PT";
+            this.buttonSelectPT.Name = "buttonSelectPT";
+            this.buttonSelectPT.SuperTip = "Mark a column as Preferred Term for substance creation";
+            this.buttonSelectPT.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonSelectPT_Click);
+            // 
+            // groupSDFile
+            // 
+            this.groupSDFile.Items.Add(this.buttonSdFileImport);
+            this.groupSDFile.Items.Add(this.buttonSelectPT);
+            this.groupSDFile.Items.Add(this.buttonAssureColumns);
+            this.groupSDFile.Label = "SD File";
+            this.groupSDFile.Name = "groupSDFile";
+            // 
+            // buttonAssureColumns
+            // 
+            this.buttonAssureColumns.Label = "Assure Required Columns";
+            this.buttonAssureColumns.Name = "buttonAssureColumns";
+            this.buttonAssureColumns.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAssureColumns_Click);
             // 
             // GinasRibbon
             // 
@@ -150,6 +175,8 @@
             this.updateGroup.PerformLayout();
             this.configurationGroup.ResumeLayout(false);
             this.configurationGroup.PerformLayout();
+            this.groupSDFile.ResumeLayout(false);
+            this.groupSDFile.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -167,6 +194,9 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAbout;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonSdFileImport;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonSelectPT;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup groupSDFile;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAssureColumns;
     }
 
     partial class ThisRibbonCollection

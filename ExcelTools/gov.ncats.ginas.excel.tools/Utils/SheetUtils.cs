@@ -343,6 +343,62 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
+        public static void SetupPTColumn(Range activeRange)
+        {
+            int column = activeRange.Column;
+            string columnName = GetColumnName(column);
+            string message = "Mark Column " + columnName + "(" + column + ") as the Preferred Term ?";
+
+            if ( UIUtils.GetUserYesNoCancel( message, "Yes=Continue; No,Cancel=forget about it")
+                == DialogYesNoCancel.Yes)
+            {
+                string selectionRangeAddress = GetColumnName(column + 2) + "1";
+                Range newSelectionRange = activeRange.Worksheet.Range[selectionRangeAddress];
+                newSelectionRange.Select();
+                string newRangeAddress = GetColumnName(column) + "1";
+                Range ptLangHeader = activeRange.Worksheet.Range[newRangeAddress];
+                ptLangHeader.FormulaR1C1 = "PT";
+                FormatCellForParameter(ptLangHeader);
+
+           
+
+            }
+        }
+
+        public static void SetupRemainingColumns(Worksheet worksheet)
+        {
+            List<string> columnHeaders = GetColumnHeaders(worksheet);
+            string[] requiredParms = {  "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS",
+                "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "FORCED", "IMPORT STATUS"};
+            foreach (string parmName in requiredParms)
+            {
+                if (!columnHeaders.Contains(parmName))
+                {
+                    Range lastCol = (Range) worksheet.UsedRange.Columns[worksheet.UsedRange.Columns.Count];
+                    string newRangeAddress = GetColumnName(lastCol.Column+1 ) + "1";
+                    Range headerItem = worksheet.Range[newRangeAddress];
+                    headerItem.FormulaR1C1 = parmName;
+                    FormatCellForParameter(headerItem);
+                    log.DebugFormat("Setting header {0} to {1}", newRangeAddress, parmName);
+                }
+            }
+            UIUtils.ShowMessageToUser("Your sheet now has the required columns for creating a new substance\nPlease fill in any values and use 'Load data' to complete the process");
+        }
+
+        private static List<string> GetColumnHeaders(Worksheet worksheet)
+        {
+            List<string> colHeaders = new List<string>();
+            foreach (Range col in worksheet.UsedRange.Columns)
+            {
+                string colheaderAddress = GetColumnName(col.Column) + "1";
+
+                Range colHeader = worksheet.Range[colheaderAddress];
+                log.DebugFormat("Looking at cell {0} with value {1}", colheaderAddress,
+                     colHeader.FormulaR1C1);
+                colHeaders.Add(colHeader.FormulaR1C1.ToString());
+            }
+            return colHeaders;
+        }
         private string GetVocabDisplayString(List<VocabItem> vocabItems)
         {
             return string.Join(",", vocabItems.Where(v => !v.Deprecated).Select(vi => vi.Display).ToArray());
@@ -369,6 +425,19 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 }
             }
             return 1;
+        }
+
+        private static void FormatCellForParameter(Range cell)
+        {
+            cell.ColumnWidth = 21;
+            cell.Interior.Pattern = XlPattern.xlPatternSolid;
+            cell.Interior.PatternColorIndex = XlPattern.xlPatternAutomatic;
+            cell.Interior.ThemeColor = XlThemeColor.xlThemeColorAccent1;
+            cell.Interior.TintAndShade = -0.249977111117893;
+            cell.Interior.PatternTintAndShade = 0;
+            cell.Font.ThemeColor = XlThemeColor.xlThemeColorDark1;
+            cell.Font.TintAndShade = -4.99893185216834E-02;
+
         }
     }
 }

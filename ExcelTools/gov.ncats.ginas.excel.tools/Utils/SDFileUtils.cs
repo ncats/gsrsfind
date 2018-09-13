@@ -16,6 +16,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         internal string[] SDF_FIELD_DELIMS = { ">  <", "> <" };
         internal const string SDF_RECORD_DELIM = "$$$$";
         internal const string MOLFILE_FIELD_NAME = "Molfile";
+        internal const string SD_LOADING_SCRIPT_NAME = "Create Substance from SD File";
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void HandleSDFileImport(string sdFilePath, Worksheet worksheet)
@@ -27,23 +28,24 @@ namespace gov.ncats.ginas.excel.tools.Utils
             SheetUtils sheetUtils = new SheetUtils();
             List<string> fieldNames = GetUniqueFieldNames(fileData);
             log.DebugFormat("total unique fields: {0}", fieldNames.Count);
-            //todo: make sure the sheet has no data!
-            ImageOps imageOps = new ImageOps();
-            //create a title row
-            sheetUtils.TransferDataToRow(fieldNames.ToArray(), 2, 1, imageOps, worksheet, 0);
             Dictionary<string, int> fieldNamesToColumns = new Dictionary<string, int>();
-            int col =1;
-            foreach(string fieldName in fieldNames)
+            int col = 1;
+            foreach (string fieldName in fieldNames)
             {
                 fieldNamesToColumns.Add(fieldName, ++col);
             }
+            fieldNames.Insert(0, "BATCH:" + SD_LOADING_SCRIPT_NAME);
+            //todo: make sure the sheet has no data!
+            ImageOps imageOps = new ImageOps();
+            //create a title row
+            sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);
 
             int row = 1;
             foreach(SDFileRecord record in fileData)
             {
                 sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, imageOps, worksheet);
             }
-            sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 100);
+            sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 30);
         }
 
         public List<SDFileRecord> ReadSdFile(string sdFilePath)
@@ -75,7 +77,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         oneFieldData.Add(MOLFILE_END);
                     }
                 }
-                oneRecord.RecordData.Add(currentFieldName, string.Join(Environment.NewLine, oneFieldData));
+                oneRecord.RecordData.Add(currentFieldName, string.Join("\n", oneFieldData));
 
                 if (SDF_FIELD_DELIMS.Any(d => line.StartsWith(d)))
                 {

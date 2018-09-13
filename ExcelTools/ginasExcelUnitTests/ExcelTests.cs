@@ -673,6 +673,24 @@ namespace ginasExcelUnitTests
             
         }
 
+        [TestMethod]
+        public void GetColumnHeadersTest()
+        {
+            string methodName = "GetColumnHeaders";
+            string filePath = @"..\..\..\Test_Files\header test.xlsx";
+            filePath = Path.GetFullPath(filePath);
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            MethodInfo method = typeof(SheetUtils).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
+            object[] parms = new object[1];
+            parms[0] = sheet;
+            List<string> columnHeaders= (List<string>) method.Invoke(null, parms);
+            string[] expectedHeaders = {"BATCH:Add Substance", "PT", "PT LANGUAGE", "PT TYPE", "SUBSTANCE TYPE",
+                "REFERENCE TEXT", "MOLECULAR WEIGHT"};
+            Assert.AreEqual(expectedHeaders.Length, columnHeaders.Count);
+            columnHeaders.ForEach(h => Assert.IsTrue(expectedHeaders.Contains(h)));
+
+        }
         private Workbook ReadDefaultExcelWorkbook()
         {
 

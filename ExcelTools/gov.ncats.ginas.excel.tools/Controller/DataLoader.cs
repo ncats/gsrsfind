@@ -17,7 +17,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
     public class DataLoader : ControllerBase, IController
     {
         public const string LOAD_OPERATION = "BATCH";
-        private const string STATUS_KEY = "IMPORT STATUS";
+        internal const string STATUS_KEY = "IMPORT STATUS";
         private DateTime _resolutionStart;
         private bool _notified = false;
         private static int _scriptNumber = 0;
@@ -249,66 +249,76 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ref string message, bool allowFinished = false)
         {
             Excel.Application application = arow.Application;
-
-            Dictionary<string, Excel.Range> keys = GetKeys(arow);
-            //If the status isn't empty, skip this one
-            string statusValue = GetProperty(keys, STATUS_KEY, "");
-            if (!string.IsNullOrWhiteSpace(statusValue))
+            UpdateCallback updateCallback = null;
+            try
             {
-                message = "Will not execute row, because " + STATUS_KEY + " is not empty";
-                log.Debug(message);
-                bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
-                if (!continuation) message += "; cancel";
-                if (!allowFinished) return null;
-            }
-            _scriptNumber++;
-
-            Dictionary<string, string> paramValues = new Dictionary<string, string>();
-            string runnerName = "tmpRunner";
-            foreach (string key in scriptUtils.ScriptParameters.Keys)
-            {
-                string defaultValue = string.Empty;
-                if (scriptUtils.ScriptParameters[key].IsBoolean()) defaultValue = "FALSE";
-                string parameterValue = GetProperty(keys, key, defaultValue);
-                if (!string.IsNullOrWhiteSpace(parameterValue))
+                Dictionary<string, Excel.Range> keys = GetKeys(arow);
+                //If the status isn't empty, skip this one
+                string statusValue = GetProperty(keys, STATUS_KEY, "");
+                if (!string.IsNullOrWhiteSpace(statusValue))
                 {
-                    ScriptParameter parameter = scriptUtils.ScriptParameters[key];
-                    if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        log.DebugFormat("parameter value: {0}", parameterValue);
-                    }
-                    //escape characters that causes errors in JavaScript interpreter
-                    string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
-                    string replacement2 = "ꬷ";
-                    string newLine = ((char)10).ToString();
-                    parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace, replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
-                    if (allowFinished)
-                    {
-                        string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
-                            parameter.key, parameterValue);
-                        ScriptExecutor.ExecuteScript(paramValueScript);
-                    }
-                    paramValues.Add(parameter.key, parameterValue);
-                    log.DebugFormat("In {0}, setting parm {1} to {2}",
-                        MethodBase.GetCurrentMethod().Name,
-                        parameter.key, parameterValue);
+                    message = "Will not execute row, because " + STATUS_KEY + " is not empty";
+                    log.Debug(message);
+                    bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
+                    if (!continuation) message += "; cancel";
+                    if (!allowFinished) return null;
                 }
+                _scriptNumber++;
+
+                Dictionary<string, string> paramValues = new Dictionary<string, string>();
+                string runnerName = "tmpRunner";
+                foreach (string key in scriptUtils.ScriptParameters.Keys)
+                {
+                    log.Debug("Looking at ScriptParameters.Keys " + key);
+                    string defaultValue = string.Empty;
+                    if (scriptUtils.ScriptParameters[key].IsBoolean()) defaultValue = "FALSE";
+                    string parameterValue = GetProperty(keys, key, defaultValue);
+                    if (!string.IsNullOrWhiteSpace(parameterValue))
+                    {
+                        ScriptParameter parameter = scriptUtils.ScriptParameters[key];
+                        if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            log.DebugFormat("parameter value: {0}", parameterValue);
+                        }
+                        //escape characters that causes errors in JavaScript interpreter
+                        string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
+                        string replacement2 = "ꬷ";
+                        string newLine = ((char)10).ToString();
+                        parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace, replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
+                        if (allowFinished)
+                        {
+                            string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
+                                parameter.key, parameterValue);
+                            ScriptExecutor.ExecuteScript(paramValueScript);
+                        }
+                        paramValues.Add(parameter.key, parameterValue);
+                        log.DebugFormat("In {0}, setting parm {1} to {2}",
+                            MethodBase.GetCurrentMethod().Name,
+                            parameter.key, parameterValue);
+                    }
+                }
+                string tempVal = JSTools.RandomIdentifier();
+                while (Callbacks != null && Callbacks.ContainsKey(tempVal))
+                {
+                    tempVal = JSTools.RandomIdentifier(10, true);
+                }
+                updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
+                updateCallback.RunnerNumber = _scriptNumber;
+                DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
+                    (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
+                updateCallback.SetExpiration(newExpirationDate);
+                updateCallback.setKey(tempVal);
+                updateCallback.ParameterValues = paramValues;
+                updateCallback.LoadScriptName = _scriptName;
+                message = "Total selected rows: " + (application.Selection as Excel.Range).Rows.Count;
+                log.Debug(message);
             }
-            string tempVal = JSTools.RandomIdentifier();
-            while (Callbacks != null && Callbacks.ContainsKey(tempVal))
+            catch (Exception ex)
             {
-                tempVal = JSTools.RandomIdentifier(10, true);
+                log.ErrorFormat("Error creating update callback: {0}", ex.Message, ex);
+                message = ex.Message;
             }
-            UpdateCallback updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
-            updateCallback.RunnerNumber = _scriptNumber;
-            DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
-                (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
-            updateCallback.SetExpiration(newExpirationDate);
-            updateCallback.setKey(tempVal);
-            updateCallback.ParameterValues = paramValues;
-            updateCallback.LoadScriptName = _scriptName;
-            message = "Total selected rows: " + (application.Selection as Excel.Range).Rows.Count;
-            log.Debug(message);
+
             return updateCallback;
         }
 
@@ -380,7 +390,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 Excel.Range range = dict[key];
                 if (range != null && range.Value2 != null)
                 {
-                    if (range.Value2 is string || range.Value2 is bool)
+                    if (range.Value2 is string || range.Value2 is bool ||  range.Value2 is double || range.Value2 is int)
                     {
                         return range.Value2.ToString();//.ToUpper();
                     }

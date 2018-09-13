@@ -188,6 +188,19 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
                     scriptParameters.Add(key, parameter);
                 }
+                else if ( key.StartsWith("property:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    log.DebugFormat("going to create arg with name: {0}", key);
+                   string addParmScript = tempScriptName + ".addArgument({\"key\": \"" + key + "\", \"name\": \"" 
+                        + key + "\"});";
+                    ScriptExecutor.ExecuteScript(addParmScript);
+                    object param =
+                        ScriptExecutor.ExecuteScript(tempScriptName
+                        + ".getArgumentByName('" + key + "')");
+                    ScriptParameter parameter = JSTools.GetScriptParameterFromString(param as string);
+                    scriptParameters.Add(key, parameter);
+
+                }
             }
         }
 
