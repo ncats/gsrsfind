@@ -343,6 +343,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
+        public void SetRowHeights(Worksheet sheet, int height)
+        {
+            foreach(Range row in sheet.UsedRange.Rows)
+            {
+                row.RowHeight = height;
+            }
+        }
+
         public static void SetupPTColumn(Range activeRange)
         {
             int column = activeRange.Column;
@@ -399,6 +407,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             return colHeaders;
         }
+
         private string GetVocabDisplayString(List<VocabItem> vocabItems)
         {
             return string.Join(",", vocabItems.Where(v => !v.Deprecated).Select(vi => vi.Display).ToArray());

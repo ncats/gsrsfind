@@ -45,7 +45,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, imageOps, worksheet);
             }
-            sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 30);
+            sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 25);
+            sheetUtils.SetRowHeights(worksheet, 15);
         }
 
         public List<SDFileRecord> ReadSdFile(string sdFilePath)

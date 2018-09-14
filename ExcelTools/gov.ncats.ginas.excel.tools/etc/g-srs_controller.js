@@ -118,9 +118,9 @@ var GSRSAPI = {
                                 + JSON.stringify(response) + '; url: '
                                 + this.url;
                             console.log(msg);
-                            if ((response.status >= 400 && response.status <= 600) || (response.status == 0)) {
-                                if (response.status == 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
-                                    && response.readyState == 4) {
+                            if ((response.status >= 400 && response.status <= 600) || (response.status === 0)) {
+                                if (response.status === 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
+                                    && response.readyState === 4) {
                                     /*not necessarily an error.
                                      This message occurs when we attempt to retrieve a section from a substance 
                                      that does not have that type of section (e.g., a protein does not have a molfile)*/
@@ -156,7 +156,7 @@ var GSRSAPI = {
                                     }
                                     else retMsg.message = "unparsed error";
                                 }
-                                else if (typeof (response.responseText) == 'object' && response.responseText.message) {
+                                else if (typeof response.responseText === 'object' && response.responseText.message) {
                                     console.log(' object');
                                     retMsg.message = response.responseText.message;
                                     if (response.status == 502) {
@@ -168,7 +168,7 @@ var GSRSAPI = {
                                     console.log(' simple message. response.status: ' + response.status);
                                     /*simple message*/
                                     retMsg.message = response.responseText;
-                                    if (response.status == 502) {
+                                    if (response.status === 502) {
                                         console.log('502; proxy error');
                                         retMsg.message = 'proxy error on server. Please report this to your administrator!';
                                     }
@@ -281,8 +281,8 @@ var GSRSAPI = {
                             g_api.gUtil.deepIterate(o[k], path + "[" + k + "]", cb);
                         });
                     } else {
-                        var ks = _.keys(o);
-                        _.forEach(ks, function (k) {
+                        var ks2 = _.keys(o);
+                        _.forEach(ks2, function (k) {
                             g_api.gUtil.deepIterate(o[k], path + "/" + k, cb);
                         });
                     }
@@ -510,7 +510,7 @@ var GSRSAPI = {
                         return simple._approvalIDDisplay;
                     } else {
                         return simple.uuid;
-                    };
+                    }
                 };
                 simple.full = function () {
                     /*if this is a new record, return self*/
@@ -936,6 +936,36 @@ var GSRSAPI = {
                 return rq;
             }
         };
+
+        g_api.StructureFinder = g_api.ResourceFinder.builder()
+            .resource("structure")
+            .extend(function (sfinder) {
+                sfinder.postSmiles = function (smi) {
+                    var url = g_api.GlobalSettings.getBaseURL();
+                    var pos = url.lastIndexOf("app/");
+                    url = url.substring(0, pos + 3) + "structure";
+                    console.log("postSmiles using URL " + url);
+                    var req = g_api.Request.builder()
+                        .url(url )
+                        .queryStringData({
+                            "body":smi                            
+                        });
+                    return g_api.httpProcess(req).andThen(function (tmp) {
+                        if (isJson(tmp)) {
+                            var obj = JSON.parse(tmp);
+                            console.log("Parsed object out of JSON");
+                            console.log(" going to return id " + obj.structure.id);
+                            return obj.structure.id;
+                        }
+                        return tmp;
+                    });
+                };
+
+                sfinder.searchByExactName = function (q) {
+                    return sfinder.search("root_names_name:\"^" + q + "$\"");
+                };
+            });
+
         /********************************
         Models
         ********************************/
@@ -1558,6 +1588,7 @@ var FetcherMaker = GGlob.FetcherMaker;
 var FetcherRegistry = GGlob.FetcherRegistry;
 var UUID = GGlob.UUID;
 var Request = GGlob.Request;
+var StructureFinder = GGlob.StructureFinder;
 
 /*TODO: Finish this*/
 var Validation = {
@@ -2326,7 +2357,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         var substanceForPatch;
 
         var nameType = args["name type"].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args["reference type"].getValue();
         var referenceCitation = args["reference citation"].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2337,7 +2368,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             reference = reference.setUrl(referenceUrl);
         }
 
-        if (public) {
+        if (dataPublic) {
             console.log('perceived public reference');
             reference.setPublic(true);
             reference.setPublicDomain(true);
@@ -2352,7 +2383,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
 
         var nameObject = Name.builder().setName(name)
             .setType(nameType)
-            .setPublic(public)
+            .setPublic(dataPublic)
             .setLanguages(langs);
 
         var lookupCriterion = uuid;
@@ -2460,8 +2491,8 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         var pt = args.pt.getValue();
         var name = args.name.getValue();
         var nameType = args['name type'].getValue();
-        var public = args.pd.isYessy();
-        console.log('got arg public: ' + public);
+        var dataPublic = args.pd.isYessy();
+        console.log('got arg public: ' + dataPublic);
         var nameLanguage = args.language.getValue();
         console.log('got arg nameLanguage: ' + nameLanguage);
 
@@ -2475,7 +2506,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
             reference = reference.setUrl(referenceUrl);
         }
 
-        if (public) {
+        if (dataPublic) {
             console.log('perceived public name');
             reference.setPublic(true);
             reference.setPublicDomain(true);
@@ -2490,7 +2521,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
 
         var name = Name.builder().setName(name)
             .setType(nameType)
-            .setPublic(public)
+            .setPublic(dataPublic)
             .setLanguages(langs);
         var lookupCriterion = uuid;
         if (uuid == null || uuid.length == 0) {
@@ -2616,7 +2647,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var codeComments = args['comments'].getValue();
         var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2625,7 +2656,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        if (public) {
+        if (dataPublic) {
             reference.setPublic(true);
             reference.setPublicDomain(true);
         } else {
@@ -2637,7 +2668,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var code = Code.builder().setCode(code)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setPublic(public);
+            .setPublic(dataPublic);
         if (url) {
             code.setUrl(url);
         }
@@ -2753,7 +2784,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         var pt2 = args.pt2.getValue();
         var relationshiptype = args['relationship type'].getValue();
         console.log('got relationshiptype: ' + relationshiptype);
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2765,7 +2796,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             if (referenceUrl && referenceUrl.length > 0) {
                 reference = reference.setUrl(referenceUrl);
             }
-            if (public) {
+            if (dataPublic) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2909,7 +2940,7 @@ Script.builder().mix({
         var codeComments = args.comments.getValue();
         var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -2929,7 +2960,7 @@ Script.builder().mix({
             && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public) {
+            if (dataPublic) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -2950,7 +2981,7 @@ Script.builder().mix({
             .setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setPublic(public);
+            .setPublic(dataPublic);
 
         if (url) {
             code.setUrl(url);
@@ -3102,7 +3133,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         var codeComments = args.comments.getValue();
         var codeText = args['code text'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -3112,7 +3143,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public) {
+            if (dataPublic) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -3133,7 +3164,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
             .setCode(codeValue)
             .setType(codeType)
             .setCodeSystem(codeSystem)
-            .setPublic(public);
+            .setPublic(dataPublic);
         if (codeText) code.setCodeComments(codeText);
         if (codeComments) code.setCodeText(codeComments);
 
@@ -3261,7 +3292,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         var codeSystem = args['code system'].getValue();
         var codeComments = args['comments'].getValue();
         var url = args['code url'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -3271,7 +3302,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
-            if (public) {
+            if (dataPublic) {
                 reference.setPublic(true);
                 reference.setPublicDomain(true);
             } else {
@@ -3293,7 +3324,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
             .setType(codeType)
             .setCodeSystem(codeSystem)
             .setCodeComments(codeComments)
-            .setPublic(public);
+            .setPublic(dataPublic);
         if (url) {
             code.setUrl(url);
         }
@@ -3728,7 +3759,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
 
         var pt = args.pt.getValue();
         var substanceClass = args['substance class'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -3744,7 +3775,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        if (public) {
+        if (dataPublic) {
             reference.setPublic(true);
             reference.setPublicDomain(true);
         } else {
@@ -3758,7 +3789,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         console.log('pushed ' + nameLang + ' onto langs');
         var name = Name.builder().setName(pt)
             .setType(nameType)
-            .setPublic(public)
+            .setPublic(dataPublic)
             .setPreferred(true)
             .setLanguages(langs)
             .addReference(reference);
@@ -3888,7 +3919,7 @@ Script.builder().mix({
 
         var pt = args.pt.getValue();
         var substanceClass = args['substance class'].getValue();
-        var public = args.pd.isYessy();
+        var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
@@ -3904,7 +3935,7 @@ Script.builder().mix({
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        if (public) {
+        if (dataPublic) {
             reference.setPublic(true);
             reference.setPublicDomain(true);
         } else {
@@ -3918,7 +3949,7 @@ Script.builder().mix({
         console.log('pushed ' + nameLang + ' onto langs');
         var name = Name.builder().setName(pt)
             .setType(nameType)
-            .setPublic(public)
+            .setPublic(dataPublic)
             .setPreferred(true)
             .setLanguages(langs)
             .addReference(reference);
@@ -3936,18 +3967,42 @@ Script.builder().mix({
         for (var arg in args) {
             console.log('arg name ' + arg + ' = ' + args[arg].getValue());
             if (arg.toUpperCase().indexOf("PROPERTY:") > -1 && args[arg].getValue()) {
-                var pos2 = arg.indexOf(":");
-                var propName = arg.substr(pos2 + 1);
+                var tokens = arg.split(":");
+
+                var propName = tokens[1];
+                var propInterpretation = '';
+                var units = '';
+                if (tokens.length >= 3) propInterpretation = tokens[2];
+                if (tokens.length >= 4) units = tokens[3];
+
                 console.log("Creating property " + propName);
                 var prop = Property.builder().setName(propName);
                 var floatVal = parseFloat(args[arg].getValue());
-                if (isNaN(floatVal))
+                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT'))
                 {
                     prop.setPropertyStringValue(args[arg].getValue());
                 }
                 else {
-                    prop.setAverage(floatVal);
+                    if (propInterpretation) {
+                        if (propInterpretation.toUpperCase() === "HIGH") {
+                            console.log('setting high value');
+                            prop.setHigh(floatVal);
+                        }
+                        else if (propInterpretation.toUpperCase() === "LOW") {
+                            console.log('setting low value');
+                            prop.setLow(floatVal);
+                        }
+                        else {
+                            console.log('setting average value');
+                            prop.setAverage(floatVal);
+                        }
+                    }
+                    else {
+                        console.log('setting average value (default)');
+                        prop.setAverage(floatVal);
+                    }
                 }
+                if (units) prop.setUnits(units);
                     
                 simpleSub.properties.push(prop);
             }

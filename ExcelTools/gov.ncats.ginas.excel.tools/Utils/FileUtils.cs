@@ -81,7 +81,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             try
             {
                 config = JSTools.GetGinasToolsConfigurationFromString(configString);
-                log.Debug("converted config object: " + config.ToString());
             }
             catch (Exception ex)
             {

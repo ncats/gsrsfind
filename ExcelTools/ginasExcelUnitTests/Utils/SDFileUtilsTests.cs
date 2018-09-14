@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 using gov.ncats.ginas.excel.tools.Model;
 
@@ -36,9 +37,11 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void ReadSDFileTest()
         {
-            string path = @"C:\Projects\ncats\SD files from Andrzej\INN_119.sdf";
+            string filePath = @"..\..\..\Test_Files\INN_119.sdf";
+            filePath = Path.GetFullPath(filePath);
+
             SDFileUtils sDFileUtils = new SDFileUtils();
-            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(path);
+            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(filePath);
             int expectedRecords = 47;
             Assert.AreEqual(expectedRecords, sDFileRecords.Count);
 
@@ -51,9 +54,10 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void ReadSDFileTest2()
         {
-            string path = @"C:\Projects\ncats\SD files from Andrzej\Substances_20180816_1605.sdf";
+            string filePath = @"..\..\..\Test_Files\Substances_20180816_1605.sdf";
+            filePath = Path.GetFullPath(filePath);
             SDFileUtils sDFileUtils = new SDFileUtils();
-            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(path);
+            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(filePath);
             int expectedRecords = 47;
             Assert.AreEqual(expectedRecords, sDFileRecords.Count);
 
@@ -64,9 +68,10 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void ReadSDFileTest3()
         {
-            string path = @"C:\Projects\ncats\SDfile from Chris Jarvis\Export1d.sdf";
+            string filePath = @"..\..\..\Test_Files\Export1d.sdf";
+            filePath = Path.GetFullPath(filePath);
             SDFileUtils sDFileUtils = new SDFileUtils();
-            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(path);
+            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(filePath);
             int expectedRecords = 68;
             Assert.AreEqual(expectedRecords, sDFileRecords.Count);
 

@@ -110,5 +110,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             GinasResult result = serializer.Deserialize<GinasResult > (ginasResultRaw);
             return result;
         }
+        public static StructureReturn GetStructureFromString(string structureJson)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            return serializer.Deserialize<StructureReturn>(structureJson);
+        }
     }
 }

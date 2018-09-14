@@ -135,8 +135,8 @@
       <HintPath>..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -216,6 +216,7 @@
     <Compile Include="Model\ScriptParameter.cs" />
     <Compile Include="Model\SDFileRecord.cs" />
     <Compile Include="Model\SearchValue.cs" />
+    <Compile Include="Model\StructureReturn.cs" />
     <Compile Include="Model\Vocab.cs" />
     <Compile Include="Model\VocabContent.cs" />
     <Compile Include="Model\VocabItem.cs" />
@@ -272,6 +273,7 @@
     <EmbeddedResource Include="UI\RetrievalForm.resx">
       <DependentUpon>RetrievalForm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="etc\g-srs.tools.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

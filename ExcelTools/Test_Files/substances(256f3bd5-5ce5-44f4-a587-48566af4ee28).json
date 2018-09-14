@@ -1,0 +1,64 @@
+{
+  "uuid": "256f3bd5-5ce5-44f4-a587-48566af4ee28",
+  "created": 1520353022000,
+  "createdBy": "admin",
+  "lastEdited": 1520353022000,
+  "lastEditedBy": "admin",
+  "deprecated": false,
+  "definitionType": "PRIMARY",
+  "definitionLevel": "COMPLETE",
+  "substanceClass": "chemical",
+  "status": "approved",
+  "version": "3",
+  "approvedBy": "FDA_SRS",
+  "approvalID": "H8T6RER0YI",
+  "structure": {
+    "id": "ee400ea9-93be-4060-a428-e0c7b68dc9f1",
+    "created": 1520353022000,
+    "lastEdited": 1520353022000,
+    "deprecated": false,
+    "digest": "b882f88d0302c32b2048c58cc51062ba8e7ef5cd",
+    "molfile": "\n   JSDraw210051722202D\n\n 25 28  0  0  1  0              0 V2000\n   30.8124  -10.4135    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0\n   29.4586   -6.5316    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   30.8124   -7.3228    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   34.8732   -5.0036    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   33.5502   -4.2034    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   32.1676   -4.9686    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   32.1676   -6.5305    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   33.5262   -7.3308    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   34.8732   -6.5688    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   36.2168   -7.3105    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n   36.2168   -8.8890    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   33.5262   -8.8890    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   32.1623   -9.6660    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   30.8124   -8.8889    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   29.4586  -11.1886    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   29.4586   -9.6640    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n   28.1069   -8.8889    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   28.1069   -7.3228    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   26.7843   -5.0398    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n   26.7843   -6.5644    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   25.4664   -8.8551    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   25.4664   -7.3305    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n   24.1438   -6.5722    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   22.8258   -7.3384    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   21.5032   -6.5799    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n 14  1  1  6  0  0  0\n  3  2  2  0  0  0  0\n  7  3  1  0  0  0  0\n  5  4  2  0  0  0  0\n  6  5  1  0  0  0  0\n  7  6  2  0  0  0  0\n  8  7  1  0  0  0  0\n  9  8  2  0  0  0  0\n  9  4  1  0  0  0  0\n 10  9  1  0  0  0  0\n 11 10  1  0  0  0  0\n 12 11  2  0  0  0  0\n 12  8  1  0  0  0  0\n 13 12  1  0  0  0  0\n 14 13  1  0  0  0  0\n 14  3  1  0  0  0  0\n 16 14  1  0  0  0  0\n 16 15  1  0  0  0  0\n 17 16  1  0  0  0  0\n 18 17  1  0  0  0  0\n 18  2  1  0  0  0  0\n 18 20  1  6  0  0  0\n 20 19  2  0  0  0  0\n 22 20  1  0  0  0  0\n 22 21  1  0  0  0  0\n 23 22  1  0  0  0  0\n 24 23  1  0  0  0  0\n 25 24  1  0  0  0  0\nM  END",
+    "smiles": "CCCN(C)C(=O)[C@H]1CN(C)[C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1",
+    "formula": "C20H25N3O",
+    "opticalActivity": "UNSPECIFIED",
+    "atropisomerism": "No",
+    "stereoCenters": 2,
+    "definedStereo": 2,
+    "ezCenters": 0,
+    "charge": 0,
+    "mwt": 323.432,
+    "count": 1,
+    "createdBy": "admin",
+    "lastEditedBy": "admin",
+    "hash": "3USXPWS6YMGZ",
+    "self": "https://ginas.ncats.nih.gov/ginas/app/api/v1/structures(ee400ea9-93be-4060-a428-e0c7b68dc9f1)?view=full",
+    "stereochemistry": "ABSOLUTE",
+    "references": [ "18b48568-531a-48bc-a77f-de66a9919922" ],
+    "access": [],
+    "_properties": {
+      "count": 5,
+      "href": "https://ginas.ncats.nih.gov/ginas/app/api/v1/structures(ee400ea9-93be-4060-a428-e0c7b68dc9f1)/properties"
+    }
+  },
+  "_moieties": {
+    "count": 1,
+    "href": "https://ginas.ncats.nih.gov/ginas/app/api/v1/substances(256f3bd5-5ce5-44f4-a587-48566af4ee28)/moieties"
+  },
+  "_names": {
+    "count": 3,
+    "href": "https://ginas.ncats.nih.gov/ginas/app/api/v1/substances(256f3bd5-5ce5-44f4-a587-48566af4ee28)/names"
+  },
+  "_references": {
+    "count": 3,
+    "href": "https://ginas.ncats.nih.gov/ginas/app/api/v1/substances(256f3bd5-5ce5-44f4-a587-48566af4ee28)/references"
+  },
+  "_codes": {
+    "count": 1,
+    "href": "https://ginas.ncats.nih.gov/ginas/app/api/v1/substances(256f3bd5-5ce5-44f4-a587-48566af4ee28)/codes"
+  },
+  "_approvalIDDisplay": "H8T6RER0YI",
+  "_name": "LYSERGIC ACID METHYLPROPYLAMIDE",
+  "access": [],
+  "_self": "https://ginas.ncats.nih.gov/ginas/app/api/v1/substances(256f3bd5-5ce5-44f4-a587-48566af4ee28)?view=full"
+}
