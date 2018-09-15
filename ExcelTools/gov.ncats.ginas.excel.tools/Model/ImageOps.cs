@@ -103,10 +103,16 @@ namespace gov.ncats.ginas.excel.tools.Model
             {
                 //Creating the HttpWebRequest
                 HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+                
                 //Setting the Request method HEAD, you can also use GET too.
                 request.Method = "HEAD";
+                if(url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
                 //Getting the Web Response.
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+
                 //Returns TRUE if the Status code == 200
                 long contentLength = response.ContentLength;
                 
@@ -117,8 +123,9 @@ namespace gov.ncats.ginas.excel.tools.Model
                     contentLength, elapsed.Milliseconds);
                 return ( response.StatusCode == HttpStatusCode.OK && contentLength > 0);
             }
-            catch
-            {
+            catch(Exception ex)
+           {
+                log.DebugFormat("Error while looking up URL: " + ex.Message);
                 //Any exception will returns false.
                 return false;
             }

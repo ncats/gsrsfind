@@ -32,7 +32,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
            var content = new FormUrlEncodedContent(new[]
            {
-                new KeyValuePair<string, string>("", molfile)
+                new KeyValuePair<string, string>("data", molfile)
             });
 
             RestClient.BaseAddress = new Uri(configuration.SelectedServer.ServerUrl);
