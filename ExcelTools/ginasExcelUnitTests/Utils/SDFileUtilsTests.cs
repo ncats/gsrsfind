@@ -46,9 +46,7 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             Assert.AreEqual(expectedRecords, sDFileRecords.Count);
 
             string molfilePath = @"c:\temp\test1.mol";
-            System.IO.File.WriteAllText(molfilePath, sDFileRecords[0].RecordData["Molfile"]);
-
-            
+            File.WriteAllText(molfilePath, sDFileRecords[0].RecordData["Molfile"]);
         }
 
         [TestMethod]
@@ -62,7 +60,7 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             Assert.AreEqual(expectedRecords, sDFileRecords.Count);
 
             string molfilePath = @"c:\temp\test2.mol";
-            System.IO.File.WriteAllText(molfilePath, sDFileRecords[1].RecordData["Molfile"]);
+            File.WriteAllText(molfilePath, sDFileRecords[1].RecordData["Molfile"]);
         }
 
         [TestMethod]
@@ -114,4 +112,4 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             expectedFieldNames.ForEach(n => Assert.IsTrue(actualFieldNames.Contains(n)));
         }
     }
-}
+} 

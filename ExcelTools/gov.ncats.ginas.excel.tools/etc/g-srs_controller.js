@@ -800,7 +800,7 @@ var GSRSAPI = {
             makeCodeFetcher: function (codeSystem, name) {
                 var nm = name;
                 if (!nm) {
-                    nm = codeSystem + "[CODE]"
+                    nm = codeSystem + "[CODE]";
                 };
                 return g_api.FetcherMaker.make(nm, function (simpleSub) {
                     return simpleSub.fetch("codes(codeSystem:" + codeSystem + ")")
@@ -810,7 +810,7 @@ var GSRSAPI = {
                                     if (a.type === "PRIMARY" && b.type !== "PRIMARY") {
                                         return -1;
                                     } else if (a.type !== "PRIMARY" && b.type === "PRIMARY") {
-                                        return 1
+                                        return 1;
                                     } else {
                                         return 0;
                                     }
@@ -2641,7 +2641,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
         var bdnum = args.bdnum.getValue();
-        var code = args.code.getValue();
+        var codeInput = args.code.getValue();
         var codeType = args['code type'].getValue();
         var codeSystem = args['code system'].getValue();
         var codeComments = args['comments'].getValue();
@@ -2665,7 +2665,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         }
 
         console.log('Creating code using codeText ' + codeText + '; and comments: ' + codeComments);
-        var code = Code.builder().setCode(code)
+        var code = Code.builder().setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
             .setPublic(dataPublic);
@@ -2951,12 +2951,12 @@ Script.builder().mix({
         if (allowMultipleInput &&
             (allowMultipleInput === true ||
                 allowMultipleInput.toUpperCase() === 'TRUE'
-                || allowMultipleInput.toUpperCase().charAt(0) == ('Y'))) {
+                || allowMultipleInput.toUpperCase().charAt(0) === ('Y'))) {
             allowMultiple = true;
         }
         console.log('allowMultiple: ' + allowMultiple);
 
-        if (referenceType && referenceType.length > 0 && referenceCitation != null
+        if (referenceType && referenceType.length > 0 && referenceCitation !== null
             && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
@@ -3650,7 +3650,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
                 _.forEach(s.codes, function (c, i) {
                     if (c.codeSystem === codeSystem) {
                         /*replace the access*/
-                        if (!(c.access && typeof (c.access) === 'object')) {
+                        if (!(c.access && typeof c.access === 'object')) {
                             console.log('creating access array');
                             c.access = [];
                         }
@@ -3914,6 +3914,11 @@ Script.builder().mix({
         description: "Public Domain status of the code (sets access for reference as well)",
         defaultValue: false, required: false
     })
+    .addArgument({
+        "key": "cas", name: "CAS",
+        description: "CAS number",
+        defaultValue: false, required: false
+    })
     .setExecutor(function (args) {
         console.log('Starting in Create Substance executor');
 
@@ -3931,6 +3936,7 @@ Script.builder().mix({
         var nameLang = args['pt language'].getValue();
 
         var refuuid = GSRSAPI.builder().UUID.randomUUID();
+        var casno = args.cas.getValue();
         var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
@@ -3961,6 +3967,13 @@ Script.builder().mix({
             references: [],
             properties: []
         };
+        var code = null;
+        if (casno) {
+            code= Code.builder().setCode(casno)
+                .setType("PRIMARY")
+                .setCodeSystem("CAS")
+                .setPublic(dataPublic);
+        }
         simpleSub.names.push(name);
         simpleSub.references.push(reference);
 
@@ -4025,10 +4038,15 @@ Script.builder().mix({
         }
 
         var sub = SubstanceBuilder.fromSimple(simpleSub);
+        if (code) {
+            sub.codes = [];
+            sub.codes.push(code);
+            console.log("Adding CAS number");
+        }
 
         var p = sub.patch();
         if (args['change reason'] && args['change reason'].getValue()) {
-            p.add("/changeReason", args['change reason'].getValue())
+            p.add("/changeReason", args['change reason'].getValue());
         }
         return p.apply()
             .andThen(function (resp) {

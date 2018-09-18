@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net;
 
 using gov.ncats.ginas.excel.tools.Model;
 using System.Text;
@@ -30,22 +31,31 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string url = configuration.SelectedServer.ServerUrl + "structure";
             log.Debug(molfile);
 
-           var content = new FormUrlEncodedContent(new[]
-           {
+            var content = new FormUrlEncodedContent(new[]
+            {
                 new KeyValuePair<string, string>("data", molfile)
             });
 
-            RestClient.BaseAddress = new Uri(configuration.SelectedServer.ServerUrl);
-            using (HttpResponseMessage response = await RestClient.PostAsJsonAsync("structure", 
-                content))
+            RestClient.DefaultRequestHeaders.Accept.Clear();
+            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            if(RestClient.BaseAddress == null ) RestClient.BaseAddress = new Uri(configuration.SelectedServer.ServerUrl);
+            string fullUrl = configuration.SelectedServer.ServerUrl + "structure";
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
+            message.Content = new StringContent(molfile);
+            if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            }
+
+            using (HttpResponseMessage response = await RestClient.SendAsync(message))
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    string result = string.Empty;
-
                     try
                     {
-                        result = await response.Content.ReadAsStringAsync();
+                        //string result = await response.Content.ReadAsStringAsync();
                         StructureReturn r = await response.Content.ReadAsAsync<StructureReturn>();
                         if (r.Structure != null)
                         {

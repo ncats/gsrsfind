@@ -8,11 +8,14 @@ using System.IO;
 
 using Microsoft.Office.Interop.Excel;
 
+using gov.ncats.ginas.excel.tools.Utils;
+
 namespace gov.ncats.ginas.excel.tools.Model
 {
     public class ImageOps
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        GinasToolsConfiguration configuration = FileUtils.GetGinasConfiguration();
 
         //public void AddStructureImageToCell(string Val, Range cell, int size)
         //{
@@ -130,6 +133,15 @@ namespace gov.ncats.ginas.excel.tools.Model
                 return false;
             }
             
+        }
+
+        public void CreateMolfileImage(Range cell, string molfile)
+        {
+            string cleanMolfile = molfile.Replace("\r", "");
+            Task<string> structureid = RestUtils.SaveMolfile(cleanMolfile);
+            string structureImageUrl = configuration.SelectedServer.ServerUrl + "img/" + structureid.Result + ".png";
+            log.DebugFormat("using structure URL {0}", structureImageUrl);
+            AddImageCaption(cell, structureImageUrl, 300);
         }
     }
 

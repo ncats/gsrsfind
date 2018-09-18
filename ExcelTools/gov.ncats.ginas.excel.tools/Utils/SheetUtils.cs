@@ -287,14 +287,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public string TransferDataToRow(string[] data, int currentColumn, int dataRow,
             ImageOps imageOps, Worksheet worksheet, int firstPart = 1)
         {
+            string imageFormat = Properties.Resources.ImageFormat;
+
             for (int part = firstPart; part < data.Length; part++)
             {
                 int column = currentColumn + part;
                 string cellId = GetColumnName(column) + dataRow;
                 string result = data[part];
                 if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
-                string imageFormat = Properties.Resources.ImageFormat;
-
+                
                 if (ImageOps.IsImageUrl(result))
                 {
                     if( Configuration.SelectedServer.LooksLikeSingleSignon()
@@ -329,6 +330,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 string cellId = GetColumnName(column) + dataRow;
                 Range currentCell = worksheet.Range[cellId];
                 currentCell.FormulaR1C1 = data[fieldName];
+                if( fieldName.Equals(SDFileUtils.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    imageOps.CreateMolfileImage(currentCell, data[fieldName]);
+                }
             }
             return string.Empty;
         }
