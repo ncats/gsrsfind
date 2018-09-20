@@ -419,7 +419,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             KeepCheckingCallbacks = haveActive;
             if (!haveActive)
             {
-                message = string.Format("No active callbacks detected. Total callbacks: {0}, ScriptQueue count: {2}",
+                message = string.Format("No active callbacks detected. Total callbacks: {0}, ScriptQueue count: {1}",
                     Callbacks.Count, ScriptQueue.Count);
             }
 

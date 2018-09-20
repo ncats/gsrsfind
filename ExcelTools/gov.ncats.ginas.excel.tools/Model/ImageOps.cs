@@ -44,20 +44,20 @@ namespace gov.ncats.ginas.excel.tools.Model
         //}
 
 
-        public bool hascomment(Range cell)
+        public static bool hascomment(Range cell)
         {
             try
             {
                 string.IsNullOrEmpty(cell.Comment.Text());
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
         }
 
-        public void AddImageCaption(Range cell, string url, int size)
+        public static void AddImageCaption(Range cell, string url, int size)
         {
             if (!hascomment(cell)) cell.AddComment();
             cell.Comment.Shape.Fill.UserPicture(url);
@@ -87,7 +87,7 @@ namespace gov.ncats.ginas.excel.tools.Model
         public static bool IsImageUrl(string url)
         {
             string imageFormat = Properties.Resources.ImageFormat;
-            if(url.StartsWith("http") && url.Contains("img/") && url.Contains(imageFormat))
+            if (url.StartsWith("http") && url.Contains("img/") && url.Contains(imageFormat))
             {
                 return true;
             }
@@ -106,10 +106,10 @@ namespace gov.ncats.ginas.excel.tools.Model
             {
                 //Creating the HttpWebRequest
                 HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
-                
+
                 //Setting the Request method HEAD, you can also use GET too.
                 request.Method = "HEAD";
-                if(url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+                if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 }
@@ -118,30 +118,48 @@ namespace gov.ncats.ginas.excel.tools.Model
 
                 //Returns TRUE if the Status code == 200
                 long contentLength = response.ContentLength;
-                
+
                 response.Close();
 
                 TimeSpan elapsed = DateTime.Now.Subtract(start);
                 log.DebugFormat("in {0}, length: {1}; duration {2}", System.Reflection.MethodBase.GetCurrentMethod().Name,
                     contentLength, elapsed.Milliseconds);
-                return ( response.StatusCode == HttpStatusCode.OK && contentLength > 0);
+                return (response.StatusCode == HttpStatusCode.OK && contentLength > 0);
             }
-            catch(Exception ex)
-           {
+            catch (Exception ex)
+            {
                 log.DebugFormat("Error while looking up URL: " + ex.Message);
                 //Any exception will returns false.
                 return false;
             }
-            
+
         }
 
         public void CreateMolfileImage(Range cell, string molfile)
         {
             string cleanMolfile = molfile.Replace("\r", "");
-            Task<string> structureid = RestUtils.SaveMolfile(cleanMolfile);
-            string structureImageUrl = configuration.SelectedServer.ServerUrl + "img/" + structureid.Result + ".png";
-            log.DebugFormat("using structure URL {0}", structureImageUrl);
-            AddImageCaption(cell, structureImageUrl, 300);
+            string structureImageUrl = string.Empty;
+            try
+            {
+                RestUtils.SaveMolfileAndDisplay(cleanMolfile, cell, configuration.SelectedServer.ServerUrl);
+                //string structureId = structureidTask.Result;
+                //if (!string.IsNullOrEmpty(structureId))
+                //{
+                //    // image displayed by SaveMolfile
+                //    //structureImageUrl = configuration.SelectedServer.ServerUrl + "img/" + structureId + ".png";
+                //    //log.DebugFormat("using structure URL {0}", structureImageUrl);
+                //    //AddImageCaption(cell, structureImageUrl, 300);
+                //}
+                //else
+                //{
+                //    log.Debug("Structure not saved");
+                //}
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Error in CreateMolfileImage: {0}", ex.Message);
+                log.Debug(ex.StackTrace);
+            }
         }
     }
 

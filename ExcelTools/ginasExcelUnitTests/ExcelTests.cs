@@ -45,9 +45,8 @@ namespace ginasExcelUnitTests
             Range cellWithComment = sheet.Range["A1"];
             Range cellWithoutComment = sheet.Range["B1"];
 
-            ImageOps imageOps = new ImageOps();
-            Assert.IsTrue( imageOps.hascomment(cellWithComment));
-            Assert.IsFalse(imageOps.hascomment(cellWithoutComment));
+            Assert.IsTrue( ImageOps.hascomment(cellWithComment));
+            Assert.IsFalse(ImageOps.hascomment(cellWithoutComment));
         }
 
         //This test was too 'brittle'-- the server removed the data to be downloaded.

@@ -304,7 +304,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         log.Debug("(image)");
                         cellId = GetColumnName(column - 1) + dataRow;
                         Range currentCell = worksheet.Range[cellId];
-                        imageOps.AddImageCaption(currentCell, result, 240);
+                        ImageOps.AddImageCaption(currentCell, result, 240);
                     }
                     else
                     {
@@ -429,11 +429,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     int numberOfRows = Convert.ToInt32(numberOfRowsObj);
                     return numberOfRows;
                 }
-                catch(FormatException ex)
+                catch(FormatException)
                 {
                     log.WarnFormat("Error parsing number from {0}", numberOfRowsObj);
                 }
-                catch (OverflowException ex)
+                catch (OverflowException)
                 {
                     log.WarnFormat("Overflow error parsing number from {0}", numberOfRowsObj);
                 }

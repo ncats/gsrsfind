@@ -47,6 +47,11 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             }
             else
             {
+                if(rangeText.Contains("<html") && rangeText.Contains("No User Present"))
+                {
+                    rangeText = "Authentication error " + rangeText;
+                    statusRange.FormulaR1C1 = rangeText;
+                }
                 statusRange.EntireRow.Interior.Color = COLOR_ERROR;
             }
             

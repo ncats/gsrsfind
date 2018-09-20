@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net;
+using System.Text.RegularExpressions;
+
+using Microsoft.Office.Interop.Excel;
 
 using gov.ncats.ginas.excel.tools.Model;
 using System.Text;
@@ -21,33 +24,21 @@ namespace gov.ncats.ginas.excel.tools.Utils
             RestClient = new HttpClient();
             RestClient.DefaultRequestHeaders.Accept.Clear();
             RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
 
-        public static async Task<string> SaveMolfile(string molfile)
+        public static async Task<string> SaveMolfileAndDisplay(string molfile, Range cell, string serverUrl)
         {
-            //load configuration each call because the configuration may have changed
-            GinasToolsConfiguration configuration = FileUtils.GetGinasConfiguration();
-            string url = configuration.SelectedServer.ServerUrl + "structure";
-            log.Debug(molfile);
+            molfile = Regex.Replace(molfile, "[^\x0d\x0a\x20-\x7e\t]", "");
+            if (molfile.Contains("\r")) log.Debug("molfile contains CR");
 
-            var content = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("data", molfile)
-            });
-
-            RestClient.DefaultRequestHeaders.Accept.Clear();
-            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
-            RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-            if(RestClient.BaseAddress == null ) RestClient.BaseAddress = new Uri(configuration.SelectedServer.ServerUrl);
-            string fullUrl = configuration.SelectedServer.ServerUrl + "structure";
+            if (RestClient.BaseAddress == null) RestClient.BaseAddress = new Uri(serverUrl);
+            string fullUrl = serverUrl + "structure";
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
-            message.Content = new StringContent(molfile);
-            if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
-            {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            }
+            message.Content = new StringContent(molfile, Encoding.UTF8);
 
             using (HttpResponseMessage response = await RestClient.SendAsync(message))
             {
@@ -59,8 +50,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         StructureReturn r = await response.Content.ReadAsAsync<StructureReturn>();
                         if (r.Structure != null)
                         {
+                            if (cell != null)
+                            {
+                                string structureImageUrl = serverUrl + "img/" + r.Structure.Id + ".png";
+                                log.DebugFormat("using structure URL {0}", structureImageUrl);
+                                ImageOps.AddImageCaption(cell, structureImageUrl, 300);
+                            }
                             return r.Structure.Id;
                         }
+                        log.Debug("Error saving structure: " + response.ReasonPhrase);
                         return string.Empty;
                     }
                     catch (Exception e2)
@@ -68,7 +66,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         log.ErrorFormat("Error during structure post: " + e2.Message);
                         throw e2;
                     }
-
                 }
                 else
                 {

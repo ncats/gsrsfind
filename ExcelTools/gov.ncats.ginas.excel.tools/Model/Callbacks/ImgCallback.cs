@@ -27,8 +27,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             strs = ((string)res).Split(Microsoft.VisualBasic.ControlChars.Tab);
             if (strs.GetUpperBound(0) - strs.GetLowerBound(0) >= 1)
             {
-                ImageOps imageOps = new ImageOps();
-                imageOps.AddImageCaption(targetRange, strs[0], 300);
+                ImageOps.AddImageCaption(targetRange, strs[0], 300);
             }
 
         }

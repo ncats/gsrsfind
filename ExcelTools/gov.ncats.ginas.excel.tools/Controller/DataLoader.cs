@@ -22,7 +22,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private bool _notified = false;
         private static int _scriptNumber = 0;
         private string _scriptName;
-        private float _secondsPerScript = 10;
+        private readonly float _secondsPerScript = 10;
         private int _NumTimesFoundNoActives = 0;
         private const int MAX_TIMES_NO_ACTIVE = 4;
         private string _currentKey = string.Empty;

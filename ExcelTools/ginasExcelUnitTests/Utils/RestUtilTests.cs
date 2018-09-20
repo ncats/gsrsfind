@@ -1,13 +1,17 @@
 ﻿using System;
 using System.IO;
+using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ginasExcelUnitTests.Utils
 {
+
     [TestClass]
     public class RestUtilTests
     {
+        GinasToolsConfiguration configuration = FileUtils.GetGinasConfiguration();
+
         [TestMethod]
         public void SaveMolfileTest()
         {
@@ -16,7 +20,7 @@ namespace ginasExcelUnitTests.Utils
 
             string molfileText = File.ReadAllText(molfilePath);
             molfileText = molfileText.Replace("\r", "");
-            var saved= RestUtils.SaveMolfile(molfileText);
+            var saved= RestUtils.SaveMolfileAndDisplay(molfileText, null, configuration.SelectedServer.ServerUrl);
             string id = saved.Result;
             Console.WriteLine("id of molfile: " + id);
             Assert.IsFalse(string.IsNullOrEmpty(id));
