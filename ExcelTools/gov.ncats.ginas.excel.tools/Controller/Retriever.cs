@@ -105,7 +105,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         SheetUtils.FindRow(ExcelSelection, key, currentColumn);
                     if (_resolveToNewSheet)
                     {
-                        if(!ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
+                        if (!ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
                         {
                             continue;
                         }
@@ -256,7 +256,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-           private void QueueOneBatch(Callback cb, List<string> submittable)
+        private void QueueOneBatch(Callback cb, List<string> submittable)
         {
             cb.setKey(JSTools.RandomIdentifier());
             while (Callbacks.ContainsKey(cb.getKey()))
@@ -276,19 +276,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ScriptQueue.Enqueue(script);
         }
 
-        private List<string> GetSimpleSearchValues(Excel.Range selection)
-        {
-            List<string> searchValues = new List<string>();
-            foreach (Excel.Range row in selection.Rows)
-            {
-                string cellName = SheetUtils.GetColumnName(row.Column) + row.Row;
-                string cellValue = (string)selection.Worksheet.get_Range(cellName).Value;
-                //log.Debug(string.Format("cell {0} = value: {1}",
-                //    cellName, cellValue));
-                searchValues.Add(cellValue);
-            }
-            return searchValues;
-        }
 
         private List<SearchValue> GetSearchValues(Excel.Range selection)
         {

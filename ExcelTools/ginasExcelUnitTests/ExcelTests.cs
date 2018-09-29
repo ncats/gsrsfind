@@ -688,8 +688,33 @@ namespace ginasExcelUnitTests
                 "REFERENCE TEXT", "MOLECULAR WEIGHT"};
             Assert.AreEqual(expectedHeaders.Length, columnHeaders.Count);
             columnHeaders.ForEach(h => Assert.IsTrue(expectedHeaders.Contains(h)));
-
         }
+
+        [TestMethod]
+        public void GetNewSheetResolverCursorTest()
+        {
+            string methodName = "GetNewSheetResolverCursor";
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            
+            retriever.SetStatusUpdater(statusUpdater);
+            string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            filePath = Path.GetFullPath(filePath);
+
+            Workbook workbook = ReadExcelWorkbook(filePath);
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            sheet.Select();
+            sheet.Range["B2", "B9"].Select();
+            retriever.SetExcelWindow(excel.ActiveWindow);
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            RangeWrapper rangeWrapper = (RangeWrapper)methodInfo.Invoke(retriever, new object[0]);
+
+            Assert.AreEqual(sheet.Cells.Count, rangeWrapper.GetRange().Cells.Count);
+        }
+
         private Workbook ReadDefaultExcelWorkbook()
         {
 

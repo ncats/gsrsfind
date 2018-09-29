@@ -126,5 +126,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 + extension;
             return filePath;
         }
+
+        public static bool FolderExists(string folderPath)
+        {
+            return Directory.Exists(folderPath);
+        }
     }
 }

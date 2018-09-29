@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Timers;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
@@ -156,6 +157,141 @@ namespace ginasExcelUnitTests
             retriever.LaunchFirstScript();
             Assert.AreEqual(dummyScript, scriptExecutorMock.TestScript);
             Assert.AreEqual(0, retriever.GetScriptQueue().Count);
+        }
+
+        [TestMethod]
+        public void QueueOneBatchTest()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+            string methodName = "QueueOneBatch";
+            int totalScriptsBefore = retriever.GetScriptQueue().Count;
+
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName, 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            Callback callback = new Callback();
+            callback.setKey("unique key");
+            List<string> searchValues = new List<string>(new string[] { "aspirin", "ibuprofen", "naproxen" });
+            object[] parms = new object[2];
+            parms[0] = callback;
+            parms[1] = searchValues;
+
+            methodInfo.Invoke(retriever, parms);
+            int totalScriptsAfter = retriever.GetScriptQueue().Count;
+            Assert.AreEqual(1, (totalScriptsAfter - totalScriptsBefore));
+        }
+
+        [TestMethod]
+        public void MakeImageSearchTest()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+            string methodName = "MakeImageSearch";
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            string key = "Unique Search Key";
+            List<string> searchNames = new List<string>(new string[] {"benzene", "water", "iodine"});
+            object[] parms = new object[2];
+            parms[0] = key;
+            parms[1] = searchNames;
+
+            string imageSearch = (string) methodInfo.Invoke(retriever, parms);
+            Assert.IsTrue(imageSearch.Contains(".fetchers(['Image URL'])"));
+        }
+
+        [TestMethod]
+        public void DecremementTotalScriptTest()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+            string methodName = "DecremementTotalScripts";
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            string fieldName = "_totalScripts";
+            FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            fieldInfo.SetValue(retriever, 5);
+
+            methodInfo.Invoke(retriever, new object[0]);
+            int scriptTotalAfter = (int) fieldInfo.GetValue(retriever);
+            Assert.AreEqual(4, scriptTotalAfter);
+        }
+
+        [TestMethod]
+        public void DecremementTotalScriptTest2()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+            string methodName = "DecremementTotalScripts";
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            string fieldName = "_totalScripts";
+            FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            fieldInfo.SetValue(retriever, 0);
+
+            methodInfo.Invoke(retriever, new object[0]);
+            int scriptTotalAfter = (int)fieldInfo.GetValue(retriever);
+            Assert.AreEqual(0, scriptTotalAfter);
+        }
+
+        [TestMethod]
+        public void CheckAllCallbacksTest()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+
+            //callbacks is null -- expect immediate exit
+            retriever.CheckAllCallbacks(null, null);
+            Assert.IsNotNull(retriever);// what else to test? we're confirming that the method runs without Exception
+        }
+
+        [TestMethod]
+        public void CheckAllCallbacksTest2()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+
+            int secondsToMilliseconds = 1000;
+            string fieldName = "_timer";
+            FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            fieldInfo.SetValue(retriever, new Timer(40 * secondsToMilliseconds));
+            retriever.CheckAllCallbacks(null, null);
+            Assert.IsNull(fieldInfo.GetValue(retriever));
+        }
+
+
+        [TestMethod]
+        public void LaunchCheckJobTest()
+        {
+            Retriever retriever = new Retriever();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            retriever.SetScriptExecutor(scriptExecutorMock);
+            StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
+            retriever.SetStatusUpdater(statusUpdater);
+            string fieldName = "_timer";
+            FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            retriever.LaunchCheckJob();
+            Assert.IsNotNull(fieldInfo.GetValue(retriever));
+
         }
 
         private BatchCallback setupData()

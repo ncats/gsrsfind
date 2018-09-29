@@ -45,6 +45,10 @@ namespace ginasExcelUnitTests.Model
             {
                 return mockParameters.Count;
             }
+            else if(script.Equals("_.map($('div.checkop input:checked'), 'name').join('___');"))
+            {
+                return "Lychi___Record Access___All Names___CAS Numbers";
+            }
 
             return new object();
         }

@@ -1,3 +1,8 @@
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.ResolveComReference.cache
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.Utils.FieldMappingDialog.resources
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.GenerateResource.cache
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.CoreCompileInputs.cache
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csprojAssemblyReference.cache
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs.tools.config
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
@@ -11,33 +16,28 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_contro
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs_controller.html
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\LastScript.js
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\g-srs.config.json
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.dll.config
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ginasExcelUnitTests.pdb
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Tools.Common.dll
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Interop.Excel.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.Tools.Applications.Runtime.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Tools.Excel.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Newtonsoft.Json.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Tools.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\System.Net.Http.Formatting.dll
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.dll
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Vbe.Interop.dll
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\stdole.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.pdb
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.dll.config
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.xml
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.xml
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\log4net.xml
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Newtonsoft.Json.xml
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\System.Net.Http.Formatting.xml
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.xml
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csprojAssemblyReference.cache
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.ResolveComReference.cache
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.CoreCompileInputs.cache
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.CopyComplete
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.pdb
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.xml

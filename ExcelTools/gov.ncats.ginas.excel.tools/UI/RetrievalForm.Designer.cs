@@ -63,6 +63,7 @@
             // 
             // buttonAddStructure
             // 
+            this.buttonAddStructure.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonAddStructure.Enabled = false;
             this.buttonAddStructure.Location = new System.Drawing.Point(250, 349);
             this.buttonAddStructure.Margin = new System.Windows.Forms.Padding(2);
@@ -76,6 +77,7 @@
             // 
             // buttonCancel
             // 
+            this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonCancel.Location = new System.Drawing.Point(400, 349);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(2);
             this.buttonCancel.Name = "buttonCancel";
@@ -133,6 +135,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(593, 431);
             this.Controls.Add(this.buttonDebugDOM);
             this.Controls.Add(this.checkBoxNewSheet);

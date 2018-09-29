@@ -191,6 +191,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 consoleScript.InnerHtml = "window['oldconsole'] = window['console'];window['console'] = {log: function (r){ GSRSAPI_consoleStack.push(r);oldconsole.log(r);}}";
                 bodyElement.AppendChild(consoleScript);
             }
+            bodyElement.SetAttribute("className", string.Empty);
+            bodyElement.Style = "padding-top:10px";
         }
 
         public static void BuildDocumentHead(HtmlDocument document)

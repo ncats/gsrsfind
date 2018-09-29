@@ -34,8 +34,22 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(System.IO.File.Exists(fullPath));
             Console.WriteLine("fullPath: " + fullPath);
             System.IO.File.Delete(fullPath);
-        }      
+        }
 
-        
+
+        [TestMethod]
+        public void FolderExistsTest1()
+        {
+            string path1 = @"c:\temp";
+            Assert.IsTrue(FileUtils.FolderExists(path1));
+        }
+
+        [TestMethod]
+        public void FolderExistsTest2()
+        {
+            string path1 = @"c:\ImaginaryFolder";
+            Assert.IsFalse(FileUtils.FolderExists(path1));
+        }
+
     }
 }

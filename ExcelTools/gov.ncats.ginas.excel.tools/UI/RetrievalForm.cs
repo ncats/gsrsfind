@@ -106,12 +106,12 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             if (_expectedTitles.Contains( webBrowser1.DocumentTitle) || string.IsNullOrWhiteSpace(webBrowser1.DocumentTitle))
             {
+                log.Debug("normal document completed");
                 webBrowser1.DocumentCompleted -= WebBrowser1_DocumentCompleted;
                 BuildGinasToolsDocument();
             }
             else if (webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE))
             {
-                //last script
                 log.Warn("webBrowser1.DocumentTitle.Equals(COMPLETED_DOCUMENT_TITLE)");
                 webBrowser1.Visible = true;
             }
@@ -246,13 +246,15 @@ namespace gov.ncats.ginas.excel.tools.UI
 
             return true;
         }
+
         private void BuildGinasToolsDocument()
         {
             //clear out old event handlers and scripts... optimistically
             webBrowser1.Document.InvokeScript("eval", new object[] { "$('document').off()" });
             webBrowser1.Document.InvokeScript("eval", new object[] {
                 "$('script').remove(); " });
-                
+
+            //make sure the original document is completely loaded    
             int iter = 0;
             while (webBrowser1.IsBusy && ++iter < 500)
             {
@@ -289,11 +291,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
-                (_configuration.DebugMode ));
+                _configuration.DebugMode );
             webBrowser1.Document.Title = "ginas Tools";
-            webBrowser1.Document.Body.SetAttribute("className", string.Empty);
-            webBrowser1.Document.Body.Style = "padding-top:10px";
-            ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + "api/v1/');");
+            
+            ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
             checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             if (CurrentOperationType == OperationType.Loading)
             {
@@ -328,38 +329,24 @@ namespace gov.ncats.ginas.excel.tools.UI
             else if (CurrentOperationType == OperationType.GetStructures)
             {
                 ExecuteScript("setMode('resolver');");
+                //_scriptToRunUponCompletion allows the dialog to process information without becoming visible
                 if (!string.IsNullOrWhiteSpace(_scriptToRunUponCompletion))
                 {
                     ExecuteScript(_scriptToRunUponCompletion);
                 }
             }
-            buttonDebugDOM.Enabled = false; //_configuration.DebugMode;
-            buttonDebugDOM.Visible = false;//_configuration.DebugMode;
+            buttonDebugDOM.Enabled = false; 
+            buttonDebugDOM.Visible = false;
             checkBoxSaveDiagnostic.Enabled = _configuration.DebugMode;
 
-            if( _configuration.DebugMode)
+            if( _configuration.DebugMode && FileUtils.FolderExists(@"c:\temp"))
             {
                 FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
             }            
             webBrowser1.Visible = true;
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //collect info on scripts
-            List<string> functionNames = new List<string>();
-            foreach (HtmlElement elem in webBrowser1.Document.All)
-            {
-                if (elem.TagName.Equals("script", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    string script = elem.InnerText;
-
-                }
-            }
-            webBrowser1.Document.InvokeScript("handleReady");
-            log.Debug(webBrowser1.DocumentText);
-        }
-
+        
         public void HandleClick(object obj, EventArgs args)
         {
             MessageBox.Show(args.ToString());

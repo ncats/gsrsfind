@@ -8,6 +8,20 @@ namespace gov.ncats.ginas.excel.tools.Model
 {
     public class GinasToolsConfiguration
     {
+        private string _apiPath;
+
+        public string ApiPath
+        {
+            get
+            {
+                if( !string.IsNullOrEmpty(_apiPath)) return _apiPath;
+                return "api/v1/";
+            }
+            set
+            {
+                _apiPath = value;
+            }
+        }
         public GinasToolsConfiguration()
         {
             Servers = new List<GinasServer>();

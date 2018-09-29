@@ -25,5 +25,6 @@
   "DebugMode": false,
   "SortVocabsAlphabetically": true,
   "BatchSize": 50,
-  "ExpirationOffset" :  200
+  "ExpirationOffset" :  200,
+  "ApiPath" : "api/v1/"
 }

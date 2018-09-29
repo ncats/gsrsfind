@@ -118,7 +118,7 @@ var GSRSAPI = {
                                 + JSON.stringify(response) + '; url: '
                                 + this.url;
                             console.log(msg);
-                            if ((response.status >= 400 && response.status <= 600) || (response.status === 0)) {
+                            if ((response.status >= 400 && response.status <= 600) || response.status === 0) {
                                 if (response.status === 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
                                     && response.readyState === 4) {
                                     /*not necessarily an error.
