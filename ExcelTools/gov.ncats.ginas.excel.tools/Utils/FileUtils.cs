@@ -32,16 +32,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string javascriptFilePath = GetCurrentFolder() + @"\etc\json-patch.js";
             return File.ReadAllText(javascriptFilePath);
         }
-        public static string GetHtml()
-        {
-            String htmlFilePath = GetCurrentFolder() + @"\etc\g-srs_controller.html";
-            if (!File.Exists(htmlFilePath))
-            {
-                System.Windows.Forms.MessageBox.Show("HTML file not found!");
-                return "";
-            }
-            return File.ReadAllText(htmlFilePath);
-        }
 
         public static string GetErrorHtml()
         {

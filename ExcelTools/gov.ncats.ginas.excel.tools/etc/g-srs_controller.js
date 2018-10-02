@@ -138,7 +138,7 @@ var GSRSAPI = {
                                 var retMsg = { valid: false };
                                 console.log('	initialized retMsg');
                                 /*detect a complex, nested error message*/
-                                if (typeof (response.responseText) == 'string' && this.isJson(response.responseText)) {
+                                if (typeof (response.responseText) === 'string' && this.isJson(response.responseText)) {
                                     var responseRestored = JSON.parse(response.responseText);
                                     console.log(' parsed JSON');
                                     if (responseRestored.validationMessages && responseRestored.validationMessages.length > 0) {
@@ -159,7 +159,7 @@ var GSRSAPI = {
                                 else if (typeof response.responseText === 'object' && response.responseText.message) {
                                     console.log(' object');
                                     retMsg.message = response.responseText.message;
-                                    if (response.status == 502) {
+                                    if (response.status === 502) {
                                         console.log('502; proxy error');
                                         retMsg.message = 'proxy error on server. Please report this to your administrator!';
                                     }
@@ -307,7 +307,7 @@ var GSRSAPI = {
                         var mod = false;
                         _.forEach(ks, function (k) {
                             var rep = cb(node(path, k, o[k], o));
-                            if (rep == g_api.gUtil.empty) {
+                            if (rep === g_api.gUtil.empty) {
                                 o[k] = g_api.gUtil.empty;
                                 mod = true;
                             } else {
@@ -319,7 +319,7 @@ var GSRSAPI = {
                         });
                         if (mod) {
                             var newArray = _.filter(o, function (e) {
-                                if (e == g_api.gUtil.empty)
+                                if (e === g_api.gUtil.empty)
                                     return false;
                                 return true
                             });
@@ -329,8 +329,8 @@ var GSRSAPI = {
                             });
                         };
                     } else {
-                        var ks = _.keys(o);
-                        _.forEach(ks, function (k) {
+                        var ks2 = _.keys(o);
+                        _.forEach(ks2, function (k) {
                             var rep = cb(node(path, k, o[k], o));
                             if (rep === gUtil.empty) {
                                 delete o[k];
@@ -639,7 +639,7 @@ var GSRSAPI = {
                                         return { valid: false, message: "Unexpected error from server" };
                                     } else {
                                         return r;
-                                    };
+                                    }
                                 });
                         });
                 };
@@ -820,7 +820,7 @@ var GSRSAPI = {
                                         return cd.code + " [" + cd.type + "]";
                                     } else {
                                         return cd.code;
-                                    };
+                                    }
                                 })
                                 .value()
                                 .join("; ");
@@ -1287,7 +1287,7 @@ var GSRSAPI = {
                     var l = _.filter(scr.arguments, function (a) {
                         return a.name === narg
                     });
-                    if (l.length == 0)
+                    if (l.length === 0)
                         return undefined;
                     return l[0];
                 };
@@ -1393,7 +1393,7 @@ var GSRSAPI = {
                         return cargs.validate()
                             .andThen(function (v) {
 
-                                if (v.length == 0 ||
+                                if (v.length === 0 ||
                                     (cargs.forced() &&
                                         !_.filter(v, function (item) { return item.overall }).length > 0)) {
                                     return scr.execute(cargs.args)
@@ -1402,7 +1402,7 @@ var GSRSAPI = {
                                                 return { "valid": true, "message": "Success", "returned": r };
                                             } else {
                                                 return r;
-                                            };
+                                            }
                                         });
                                 } else {
                                     var msg = _.chain(v)
@@ -1412,7 +1412,7 @@ var GSRSAPI = {
                                         .value()
                                         .join(";");
                                     return { "valid": false, "message": msg };
-                                };
+                                }
                             });
                     };
                     cargs.forced = function () {
@@ -1896,7 +1896,7 @@ FetcherRegistry.addFetcher(
 );
 
 
-/*FetcherRegistry.addFetcher(
+FetcherRegistry.addFetcher(
     FetcherMaker.make("Vapor Pressure", function (simpleSub) {
         return simpleSub.fetch("properties")
             .andThen(function (r) {
@@ -1908,8 +1908,26 @@ FetcherRegistry.addFetcher(
                     .value();
             });
     }).addTag("Properties")
-);*/
+);
 
+FetcherRegistry.addFetcher(
+    FetcherMaker.make("Volume of Distribution", function (simpleSub) {
+        return simpleSub.fetch("properties")
+            .andThen(function (r) {
+                return _.chain(r)
+                    .filter({ name: "Volume of Distribution" })
+                    .map(function (ro) {
+                        var returnText = [];
+                        if (ro.value.low) returnText.push("Low: " + ro.value.low);
+                        if (ro.value.high) returnText.push("High: " + ro.value.high);
+                        if (ro.value.average) returnText.push("Average: " + ro.value.average);
+                        if (ro.value.units) returnText.push("Units: " + ro.value.units);
+                        return returnText.join('; ');
+                    })
+                    .value();
+            });
+    }).addTag("Properties")
+);
 /*******************
 CV helper (TODO:move to main library)
 *******************/
@@ -2138,7 +2156,6 @@ function validate3Params(args) {
                         "message": "Could not find record with that UUID",
                         "overall": true
                     };
-                    console.log(' about to return simple false');
                 }
             });
     }
@@ -2387,8 +2404,8 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             .setLanguages(langs);
 
         var lookupCriterion = uuid;
-        if (uuid == null || uuid.length == 0) {
-            if (pt != null && pt.length > 0) {
+        if (uuid === null || uuid.length === 0) {
+            if (pt !== null && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -2519,18 +2536,18 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
         var langs = [];
         langs.push(nameLanguage);
 
-        var name = Name.builder().setName(name)
+        var nameObject = Name.builder().setName(name)
             .setType(nameType)
             .setPublic(dataPublic)
             .setLanguages(langs);
         var lookupCriterion = uuid;
-        if (uuid == null || uuid.length == 0) {
+        if (uuid === null || uuid.length === 0) {
             lookupCriterion = pt;
             console.log('lookupCriterion: ' + lookupCriterion);
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
             .andThen(function (s) {
-                if (!s || !s.content || s.content.length == 0) {
+                if (!s || !s.content || s.content.length === 0) {
                     console.log('no results found for query of ' + lookupCriterion);
                     return { valid: false, message: 'Error looking up record for ' + lookupCriterion };
                 }
@@ -2680,8 +2697,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         }
 
         var lookupCriterion = uuid;
-        if (uuid == null || uuid.length == 0) {
-            if (pt != null && pt.length > 0) {
+        if (uuid === null || uuid.length === 0) {
+            if (pt !== null && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -2691,7 +2708,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
         /*return SubstanceFinder.get(uuid)*/
             .andThen(function (s) {
-                if (!s || !s.content || s.content.length == 0) {
+                if (!s || !s.content || s.content.length === 0) {
                     console.log('no results found for query of ' + lookupCriterion);
                     return { valid: false, message: 'Error looking up record for ' + lookupCriterion };
                 }
@@ -2791,7 +2808,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         var referenceTags = args['reference tags'].getValue();
         console.log('got remaining parms ');
         var reference = null;
-        if (referenceType != null && referenceCitation != null) {
+        if (referenceType !== null && referenceCitation !== null) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             if (referenceUrl && referenceUrl.length > 0) {
                 reference = reference.setUrl(referenceUrl);
@@ -2803,7 +2820,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags != null && referenceTags.length > 0) {
+            if (referenceTags !== null && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -2967,7 +2984,7 @@ Script.builder().mix({
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags != null && referenceTags.length > 0) {
+            if (referenceTags !== null && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3019,10 +3036,10 @@ Script.builder().mix({
                                     var valuesOK = true;
                                     var valuesError = '';
                                     _.forEach(codes, function (cd) {
-                                        if (cd.codeSystem == codeSystem) {
+                                        if (cd.codeSystem === codeSystem) {
                                             if (allowMultiple) {
                                                 /*use the double equal to allow coercion of values*/
-                                                if (cd.code == codeInput) {
+                                                if (cd.code === codeInput) {
                                                     console.log(' duplicate code detected');
                                                     valuesOK = false;
                                                     valuesError = 'This substance already has the code "'
@@ -3140,7 +3157,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         var reference = null;
         var referenceTags = args['reference tags'].getValue();
 
-        if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
+        if (referenceType && referenceType.length > 0 && referenceCitation !== null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
             if (dataPublic) {
@@ -3150,7 +3167,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags != null && referenceTags.length > 0) {
+            if (referenceTags !== null && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3189,7 +3206,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                                     var indexReferenceToRemove = -1;
                                     var indexReferencesToRemove = [];
                                     for (var i = 0; i < codeCollection.length; i++) {
-                                        if (codeCollection[i].codeSystem == codeSystem) {
+                                        if (codeCollection[i].codeSystem === codeSystem) {
                                             indexCodeToRemove = i;
                                             break;
                                         }
@@ -3299,7 +3316,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         var reference = null;
         var referenceTags = args['reference tags'].getValue();
 
-        if (referenceType && referenceType.length > 0 && referenceCitation != null && referenceCitation.length > 0) {
+        if (referenceType && referenceType.length > 0 && referenceCitation !== null && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
             if (dataPublic) {
@@ -3309,7 +3326,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags != null && referenceTags.length > 0) {
+            if (referenceTags !== null && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3357,10 +3374,10 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                     }
 
                                     for (var i = 0; i < codeCollection.length; i++) {
-                                        if (codeCollection[i].codeSystem == codeSystem
-                                            && codeCollection[i].code == codeValue) {
+                                        if (codeCollection[i].codeSystem === codeSystem
+                                            && codeCollection[i].code === codeValue) {
                                             /*see if sufficient reference input was not provided*/
-                                            if (!referenceCitation || referenceCitation.length == 0) {
+                                            if (!referenceCitation || referenceCitation.length === 0) {
                                                 console.log('Copying ref ' + JSON.stringify(codeCollection[i].references));
                                                 code.references = codeCollection[i].references;
                                             }
@@ -3433,7 +3450,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 
         var s0;
         var lookupCriterion = uuid;
-        if (uuid == null || uuid.length == 0) {
+        if (uuid === null || uuid.length === 0) {
             if (pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
@@ -3513,7 +3530,7 @@ Script.builder().mix({
         var searchCrit = (uuid) ? uuid : pt;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
-                if (!s || !s.content || s.content.length == 0) {
+                if (!s || !s.content || s.content.length === 0) {
                     return { valid: false, message: 'search for ' + searchCrit + ' returned no records' };
                 }
                 var rec = s.content[0]; /*can be undefined... */
@@ -3626,7 +3643,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
         var searchCrit = (uuid) ? uuid : pt;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
-                if (!s || !s.content || s.content.length == 0) {
+                if (!s || !s.content || s.content.length === 0) {
                     return { valid: false, message: 'search for ' + searchCrit + ' returned no records' };
                 }
                 var rec = s.content[0]; /*can be undefined... */
@@ -4132,8 +4149,8 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
         var s0;
 
         var lookupCriterion = uuid;
-        if (uuid == null || uuid.length == 0) {
-            if (pt != null && pt.length > 0) {
+        if (uuid === null || uuid.length === 0) {
+            if (pt !== null && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {

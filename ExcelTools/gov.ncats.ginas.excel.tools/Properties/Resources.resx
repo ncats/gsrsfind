@@ -130,10 +130,6 @@
   <data name="DefaultBatchSize" xml:space="preserve">
     <value>300</value>
   </data>
-  <data name="FallbackURL" xml:space="preserve">
-    <value>http://localhost:9000/ginas/app/</value>
-    <comment>old: https://tripod.nih.gov/ginas/app/ local: http://localhost:9000/ginas/app/</comment>
-  </data>
   <data name="ImageFormat" xml:space="preserve">
     <value>png</value>
     <comment>note: this is case-sensitive!</comment>

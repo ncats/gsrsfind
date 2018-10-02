@@ -100,15 +100,6 @@ namespace gov.ncats.ginas.excel.tools.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://localhost:9000/ginas/app/.
-        /// </summary>
-        internal static string FallbackURL {
-            get {
-                return ResourceManager.GetString("FallbackURL", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to png.
         /// </summary>
         internal static string ImageFormat {

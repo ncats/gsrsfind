@@ -37,14 +37,7 @@ namespace ginasExcelUnitTests
 
         }
 
-        [TestMethod]
-        public void test_getHTML()
-        {
-            string html = FileUtils.GetHtml();
-            Assert.IsTrue(html.Contains("<textarea id=\"console\">") 
-                && html.Contains("_.forEach(runner.getArguments()"));
-        }
-
+        
         [TestMethod]
         public void getTempFile_test()
         {

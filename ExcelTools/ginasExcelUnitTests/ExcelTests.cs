@@ -198,15 +198,15 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet) workbook.Sheets[1];
+            Worksheet sheet = (Worksheet)workbook.Sheets[1];
             Range range = sheet.Range["B2", "B9"];
 
             List<Callback> callbacks = new List<Callback>();
-            for(int row = 1; row< range.Cells.Count; row++)
+            for (int row = 1; row < range.Cells.Count; row++)
             {
-                Range currRange = (Range) range.Cells[row];
+                Range currRange = (Range)range.Cells[row];
                 RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(currRange);
-                
+
                 CursorBasedResolverCallback cursorBasedResolverCallback = CallbackFactory.CreateCursorBasedResolverCallback(wrapper);
                 cursorBasedResolverCallback.OriginalRow = row;
                 cursorBasedResolverCallback.setKey("key" + row);
@@ -221,7 +221,7 @@ namespace ginasExcelUnitTests
             object[] callParms = new object[1];
             callParms[0] = "key2";
 
-            int locatedRow= (int) methodToTest.Invoke(retriever, callParms);
+            int locatedRow = (int)methodToTest.Invoke(retriever, callParms);
             Assert.AreEqual(2, locatedRow);
         }
 
@@ -706,13 +706,19 @@ namespace ginasExcelUnitTests
             Workbook workbook = ReadExcelWorkbook(filePath);
             Worksheet sheet = (Worksheet)workbook.Sheets[1];
             sheet.Select();
-            sheet.Range["B2", "B9"].Select();
+            Range selectedRange = sheet.Range["B2", "B9"];
+            selectedRange.Select();
             retriever.SetExcelWindow(excel.ActiveWindow);
+            retriever.SetSelection(sheet.Range["B2", "B9"]);
+            
             MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
                 BindingFlags.NonPublic | BindingFlags.Instance);
             RangeWrapper rangeWrapper = (RangeWrapper)methodInfo.Invoke(retriever, new object[0]);
+            int actualRangeCount = rangeWrapper.GetRange().Cells.Count;
+            workbook.Close(false);
+            int expectedRangeCount = 1;
 
-            Assert.AreEqual(sheet.Cells.Count, rangeWrapper.GetRange().Cells.Count);
+            Assert.AreEqual( expectedRangeCount, actualRangeCount);
         }
 
         private Workbook ReadDefaultExcelWorkbook()

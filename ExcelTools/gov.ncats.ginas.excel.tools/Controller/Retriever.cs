@@ -467,13 +467,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             string[] headers;
             object checkedInput = ScriptExecutor.ExecuteScript("_.map($('div.checkop input:checked'), 'name').join('___');");
-            headers = (checkedInput as string).Split("___".ToCharArray());
+            string[] splitters = { "___" };
+            headers = (checkedInput as string).Split(splitters, StringSplitOptions.None);
 
-            Excel.Worksheet nsheet = (Excel.Worksheet)ExcelWindow.Application.Sheets.Add();
+            Excel.Worksheet newSheet = (Excel.Worksheet)ExcelWindow.Application.Sheets.Add();
             SheetUtils sheetUtils = new SheetUtils();
-            nsheet.Name = sheetUtils.GetNewSheetName(ExcelSelection.Application.ActiveWorkbook,
+            newSheet.Name = sheetUtils.GetNewSheetName(ExcelSelection.Application.ActiveWorkbook,
                 "Resolved");
-            nsheet.Range["A1"].FormulaR1C1 = "Query";
+            newSheet.Range["A1"].FormulaR1C1 = "Query";
             int currCol = -1;
             foreach (string header in headers)
             {
@@ -482,11 +483,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     log.Debug("Header contains blank");
                     continue;
                 }
-                nsheet.Range["B1"].Offset[0, ++currCol].FormulaR1C1 = header;
+                newSheet.Range["B1"].Offset[0, ++currCol].FormulaR1C1 = header;
                 log.DebugFormat("put header into column {0}", currCol);
             }
-            RangeWrapper wrapped = RangeWrapperFactory.CreateRangeWrapper(nsheet.Range["A2"]);
-            ExcelSelection = nsheet.Range["A2"];
+            RangeWrapper wrapped = RangeWrapperFactory.CreateRangeWrapper(newSheet.Range["A2"]);
+            ExcelSelection = newSheet.Range["A2"];
             return wrapped;
         }
 
