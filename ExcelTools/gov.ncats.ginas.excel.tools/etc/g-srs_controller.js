@@ -26,15 +26,15 @@ var GSRSAPI = {
             authenticate: function (req) {
                 req.headers = {};
                 /*figure out authentication*/
-                if (g_api.GlobalSettings.authUsername !== null
+                if (g_api.GlobalSettings.authUsername 
                     && g_api.GlobalSettings.authUsername.length > 0
-                    && g_api.GlobalSettings.authKey !== null
+                    && g_api.GlobalSettings.authKey 
                     && g_api.GlobalSettings.authKey.length > 0) {
                     req.headers["auth-username"] = g_api.GlobalSettings.authUsername;
                     req.headers["auth-key"] = g_api.GlobalSettings.authKey;
                     console.log("using name/key authentication");
                 }
-                else if (g_api.GlobalSettings.authToken !== null
+                else if (g_api.GlobalSettings.authToken 
                     && g_api.GlobalSettings.authToken.length > 0) {
                     req.headers["auth-token"] = g_api.GlobalSettings.authToken;
                     console.log("using token authentication");
@@ -1138,7 +1138,7 @@ var GSRSAPI = {
                     console.log('setPropertyStringValue ' + txt);
                     return prop;
                 };
-                prop.setAverage= function (avg) {
+                prop.setAverage = function (avg) {
                     prop.value.average = avg;
                     return prop;
                 };
@@ -2041,7 +2041,7 @@ function validate4Params(args) {
                 if (resp.content && resp.content.length >= 1) {
                     var rec = resp.content[0];
                     var pt = rec._name;
-                    if (pt !== args.pt.getValue()) {
+                    if (pt.toUpperCase() !== args.pt.getValue().toUpperCase()) {
                         return {
                             "valid": false,
                             "message": "The PT of the record does not match the value provided",
@@ -2404,8 +2404,8 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             .setLanguages(langs);
 
         var lookupCriterion = uuid;
-        if (uuid === null || uuid.length === 0) {
-            if (pt !== null && pt.length > 0) {
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -2541,7 +2541,7 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
             .setPublic(dataPublic)
             .setLanguages(langs);
         var lookupCriterion = uuid;
-        if (uuid === null || uuid.length === 0) {
+        if (!uuid || uuid.length === 0) {
             lookupCriterion = pt;
             console.log('lookupCriterion: ' + lookupCriterion);
         }
@@ -2564,14 +2564,14 @@ Script.builder().mix({ name: "Add Name Public", description: "Adds a name to a s
                                 return false;
                             }
                         });
-                        if (reference) name.addReference(reference);
+                        if (reference) nameObject.addReference(reference);
                         return substance;
                     })
                     .andThen(function (s2) {
 
                         console.log('Building a patch for substance');
                         return substance.patch()
-                            .addData(name)
+                            .addData(nameObject)
                             .add("/changeReason", args['change reason'].getValue())
                             .apply()
                             .andThen(_.identity);
@@ -2697,8 +2697,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         }
 
         var lookupCriterion = uuid;
-        if (uuid === null || uuid.length === 0) {
-            if (pt !== null && pt.length > 0) {
+        if (!uuid || uuid.length === 0) {
+            if (!pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -2808,7 +2808,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         var referenceTags = args['reference tags'].getValue();
         console.log('got remaining parms ');
         var reference = null;
-        if (referenceType !== null && referenceCitation !== null) {
+        if (referenceType && referenceCitation) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             if (referenceUrl && referenceUrl.length > 0) {
                 reference = reference.setUrl(referenceUrl);
@@ -2820,7 +2820,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags !== null && referenceTags.length > 0) {
+            if (referenceTags&& referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -2973,7 +2973,7 @@ Script.builder().mix({
         }
         console.log('allowMultiple: ' + allowMultiple);
 
-        if (referenceType && referenceType.length > 0 && referenceCitation !== null
+        if (referenceType && referenceType.length > 0 && referenceCitation
             && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
@@ -2984,7 +2984,7 @@ Script.builder().mix({
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags !== null && referenceTags.length > 0) {
+            if (referenceTags && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3157,7 +3157,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         var reference = null;
         var referenceTags = args['reference tags'].getValue();
 
-        if (referenceType && referenceType.length > 0 && referenceCitation !== null && referenceCitation.length > 0) {
+        if (referenceType && referenceType.length > 0 && referenceCitation && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
             if (dataPublic) {
@@ -3167,7 +3167,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags !== null && referenceTags.length > 0) {
+            if (referenceTags && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3316,7 +3316,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         var reference = null;
         var referenceTags = args['reference tags'].getValue();
 
-        if (referenceType && referenceType.length > 0 && referenceCitation !== null && referenceCitation.length > 0) {
+        if (referenceType && referenceType.length > 0 && referenceCitation && referenceCitation.length > 0) {
             reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
             reference = reference.setUrl(referenceUrl);
             if (dataPublic) {
@@ -3326,7 +3326,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags !== null && referenceTags.length > 0) {
+            if (referenceTags && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -3401,8 +3401,8 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                     } else {
                                         return { "message": "Error locating code to replace", "valid": false };
                                     }
-                                })
-                        })
+                                });
+                        });
                 } else {
                     console.log('Did not locate substance based on ' + pt);
                     return { "message": "Did not locate substance based on " + pt, "valid": false };
@@ -3450,7 +3450,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 
         var s0;
         var lookupCriterion = uuid;
-        if (uuid === null || uuid.length === 0) {
+        if (!uuid || uuid.length === 0) {
             if (pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
@@ -3597,7 +3597,7 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
             .andThen(function (s) {
                 var updatePatch = s.patch();
                 console.log('called .patch');
-                jsonString = jsonString.replace(/ꬷ/g, "\\n")
+                jsonString = jsonString.replace(/ꬷ/g, "\\n");
                 console.log('called .replace');
                 var parsedJson = JSON.parse(jsonString);
                 updatePatch = updatePatch.replace("", parsedJson);
@@ -4149,8 +4149,8 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
         var s0;
 
         var lookupCriterion = uuid;
-        if (uuid === null || uuid.length === 0) {
-            if (pt !== null && pt.length > 0) {
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -4193,6 +4193,167 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(_.identity);
+            });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+
+
+/*Add a volume of distributino*/
+Script.builder().mix({ name: "Volume of Distribution", description: "Add values to Volume of Distribution Property for a substance record" })
+    .addArgument({
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "low value", name: "LOW VALUE", description: "Minimum of the value range", required: false
+    })
+    .addArgument({
+        "key": "high value", name: "HIGH VALUE", description: "Maximum of the value range", required: false
+    })
+    .addArgument({
+        "key": "average", name: "AVERAGE",
+        description: "Middle of the value range", required: false
+    })
+    .addArgument({
+        "key": "units", name: "UNITS",
+        description: "Unit of measure for this value", required: false,
+        defaultValue: "Liters/Kilogram"
+    })
+    .addArgument({
+        "key": "reference type", name: "REFERENCE TYPE",
+        description: "Type of reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        type: "cv",
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: true
+    })
+    .addArgument({
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
+    })
+    .addArgument({
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the property (sets access for reference as well)",
+        defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Adding a value to the Volume of Distribution property",
+        description: "Text for the record change", required: false
+    })
+    .addValidator(validate4Params)
+    .setExecutor(function (args) {
+        var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
+        var lowValue = args["low value"].getValue();
+        var highValue = args["high value"].getValue();
+        var averageValue = args["average"].getValue();
+        var units = args.units.getValue();
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
+        var referenceUrl = args['reference url'].getValue();
+        var referenceTags = args['reference tags'].getValue();
+        var dataPublic = args.pd.isYessy();
+
+        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
+        if (referenceUrl && referenceUrl.length > 0) {
+            reference = reference.setUrl(referenceUrl);
+        }
+        if (dataPublic) {
+            reference.setPublic(true);
+            reference.setPublicDomain(true);
+        } else {
+            reference.setPublic(false);
+            reference.setPublicDomain(false);
+        }
+        if (referenceTags && referenceTags.length > 0) {
+            var tags = referenceTags.split("|");
+            var tagSet = [];
+            _.forEach(tags, function (tag) {
+                tagSet.push(tag);
+            });
+            reference.tags = tagSet;
+        }
+
+        var s0;
+        var lookupCriterion = uuid;
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        var prop = Property.builder().setName("Volume of Distribution");
+        prop.setType("PHARMACOKINETIC");
+        if (!isNaN(parseFloat(lowValue))) {
+            prop.setLow(lowValue);
+            console.log('set low value: ' + lowValue);
+        }
+        else {
+            console.log('omitted low value' );
+        }
+        if (!isNaN(parseFloat(highValue))) {
+            prop.setHigh(highValue);
+            console.log('set high value: ' + highValue);
+        }
+        else {
+            console.log('omitted high value');
+        }
+        if (!isNaN(parseFloat(averageValue))) {
+            prop.setAverage(averageValue);
+            console.log('set avg value: ' + averageValue);
+        }
+        else {
+            console.log('omitted avg value');
+        }
+        if (units) prop.setUnits(units);
+        if (!dataPublic) prop.setAccess(["restricted"]);
+
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (s) {
+                var substance;
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                s0 = substance;
+                return substance.full();
+            })
+            .andThen(function(s){
+                return s0.fetch("references")
+                .andThen(function (refs) {
+                _.forEach(refs, function (ref) {
+                    if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                        console.log('Duplicate reference found! Will skip creation of new one.');
+                        reference = ref;
+                        return false;
+                    }
+                });
+                if (reference) {
+                    prop.addReference(reference);
+                }
+                return s0.patch()
+                    .addData(prop)
+                    .add("/changeReason", args['change reason'].getValue())
+                    .apply()
+                    .andThen(_.identity);
+                    });
             });
     })
     .useFor(function (s) {

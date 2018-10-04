@@ -281,7 +281,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
-    <Content Include="etc\bootstrap.min.js" />
     <Content Include="etc\g-srs-config.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
