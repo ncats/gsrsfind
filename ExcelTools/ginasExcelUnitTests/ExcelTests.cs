@@ -198,7 +198,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            Worksheet sheet = (Worksheet)workbook.Sheets["Sheet1"];
             Range range = sheet.Range["B2", "B9"];
 
             List<Callback> callbacks = new List<Callback>();
@@ -238,7 +238,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet) workbook.Worksheets[2];
+            Worksheet sheet = (Worksheet) workbook.Worksheets["Sheet1"];
             Range range = sheet.Range["A1", "A1000"];
             retriever.SetSelection(range);
             
@@ -265,7 +265,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet) workbook.Worksheets[2];
+            Worksheet sheet = (Worksheet) workbook.Worksheets["1000 CAS"];
             Range range = sheet.Range["A1", "A10"];
             retriever.SetSelection(range);
 
@@ -289,7 +289,7 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet) workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets.Item["Sheet1"];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
             
@@ -316,7 +316,7 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet) workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets.Item["Sheet1"];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
 
@@ -704,8 +704,9 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets[1];
-            sheet.Select();
+
+            Worksheet sheet = (Worksheet)workbook.Sheets.Item["Sheet1"];
+            Console.WriteLine("Sheet: " + sheet.Name);
             Range selectedRange = sheet.Range["B2", "B9"];
             selectedRange.Select();
             retriever.SetExcelWindow(excel.ActiveWindow);

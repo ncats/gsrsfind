@@ -141,8 +141,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     for (int row = 1; row <= numberOfRows; row++)
                     {
                         Range vocabCell = cell.Offset[row, 0];
-                        log.DebugFormat("Will add {0} total vocabulary items to {1}", vocabItems.Count,
-                            vocabCell.Address);
+                        log.DebugFormat("Will add {0} total vocabulary items to {1} on row {2}", vocabItems.Count,
+                            vocabCell.Address, row);
                         vocabCell.Validation.Delete();
                         //the string contains a reference to a range of cells in a hidden sheet
                         // that contain the allowed values.
