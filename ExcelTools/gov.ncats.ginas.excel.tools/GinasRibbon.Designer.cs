@@ -117,6 +117,7 @@
             this.groupSDFile.Items.Add(this.buttonAssureColumns);
             this.groupSDFile.Label = "SD File";
             this.groupSDFile.Name = "groupSDFile";
+            this.groupSDFile.Visible = false;
             // 
             // buttonSdFileImport
             // 

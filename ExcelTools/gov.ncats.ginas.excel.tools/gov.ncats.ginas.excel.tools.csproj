@@ -280,6 +280,7 @@
     <None Include="etc\g-srs.config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="get.snk" />
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
     <Content Include="etc\g-srs-config.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -367,7 +368,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>gov.ncats.ginas.excel.tools_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>get.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

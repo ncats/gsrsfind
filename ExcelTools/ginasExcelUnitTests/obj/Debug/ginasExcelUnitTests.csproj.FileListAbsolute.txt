@@ -40,4 +40,9 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\System.Net.Http.
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.csproj.CopyComplete
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.pdb
-C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\g-srs Excel Tools.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Interop.Excel.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Vbe.Interop.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\stdole.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Interop.Excel.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.xml
