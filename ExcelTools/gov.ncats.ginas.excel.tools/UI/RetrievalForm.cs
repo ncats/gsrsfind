@@ -207,6 +207,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
+            DialogResult = DialogResult.Cancel;
             Close();
         }
 
@@ -239,7 +240,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 }
                 _savedDebugInfo = true;
             }
-            else if(CurrentOperationType == OperationType.ShowScripts)
+            else if(CurrentOperationType == OperationType.ShowScripts && DialogResult != DialogResult.Cancel)
             {
                 UIUtils.ShowMessageToUser("Your sheet has been created!");
             }
