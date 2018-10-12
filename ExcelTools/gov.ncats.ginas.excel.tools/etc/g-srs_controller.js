@@ -2506,6 +2506,11 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         required: false
     })
     .addArgument({
+        "key": "allow multiples", name: "ALLOW MULTIPLES",
+        description: "Allow the entry of multiple codes within the same code system",
+        defaultValue: false, required: false
+    })
+    .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
         defaultValue: false, required: false
@@ -2541,6 +2546,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var codeSystem = args['code system'].getValue();
         var codeComments = args['comments'].getValue();
         var codeText = args['code text'].getValue();
+        var allowMultiple = args['allow multiples'].isYessy();
         var url = args['code url'].getValue();
         var dataPublic = args.pd.isYessy();
         var referenceType = args['reference type'].getValue();
@@ -2606,13 +2612,42 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                         code.addReference(reference);
                     })
                     .andThen(function (s2) {
-                        /*use s for patch because s2 has a different structure*/
-                        return substance.patch()
-                            .addData(code)
-                            .add("/changeReason", args['change reason'].getValue())
-                            .apply()
-                            .andThen(_.identity);
-                    })
+                        return substance.fetch("codes")
+                            .andThen(function (codes) {
+                                var valuesOK = true;
+                                var valuesError = '';
+                                _.forEach(codes, function (cd) {
+                                    if (cd.codeSystem === codeSystem) {
+                                        if (allowMultiple) {
+                                            /*use the double equal to allow coercion of values*/
+                                            if (cd.code === codeInput) {
+                                                console.log(' duplicate code detected');
+                                                valuesOK = false;
+                                                valuesError = 'This substance already has the code "'
+                                                    + codeInput + '" for system ' + cd.codeSystem;
+                                                return false;
+                                            }
+                                        }
+                                        else {
+                                            valuesOK = false;
+                                            valuesError = 'This substance already has a code for system '
+                                                + cd.codeSystem;
+                                            return false;
+                                        }
+                                    }
+                                });
+                                if (valuesOK) {
+                                    console.log('Add Code is going to return patch ');
+                                    return rec.patch().addData(code)
+                                        .add("/changeReason", args['change reason'].getValue())
+                                        .apply()
+                                        .andThen(_.identity);
+                                } else {
+                                    console.log('Add Code is going to return message ' + valuesError);
+                                    return { "message": valuesError, "valid": false };
+                                }
+                            });
+                    });
 
             });
     })
@@ -2750,207 +2785,6 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                             .apply()
                             .andThen(_.identity);
                     });
-            });
-    })
-    .useFor(Scripts.addScript);
-
-/*add code via substance name MAM 15 June 2017*/
-Script.builder().mix({
-    name: "Add Code by Name",
-    description: "Adds a code to a substance record when no code of that type already exists"
-})
-    .addArgument({
-        "key": "pt", name: "PT", description: "PT of the substance record", required: true
-    })
-    .addArgument({
-        "key": "code", name: "CODE", description: "Actual code for the new item", required: true
-    })
-    .addArgument({
-        "key": "code system", name: "CODE SYSTEM", description: "Code system of the new code",
-        required: true,
-        opPromise: CVHelper.getTermList("CODE_SYSTEM"),
-        type: "cv",
-        cvType: "CODE_SYSTEM"
-    })
-    .addArgument({
-        "key": "code type", name: "CODE TYPE",
-        description: "Code type of code. For instance, whether it's a primary code",
-        defaultValue: "PRIMARY", required: false,
-        opPromise: CVHelper.getTermList("CODE_TYPE"),
-        type: "cv",
-        cvType: "CODE_TYPE"
-    })
-    .addArgument({
-        "key": "comments", name: "COMMENTS", description: "Description for the new code (free text)",
-        required: false
-    })
-    .addArgument({
-        "key": "code text", name: "CODE TEXT", description: "free text",
-        required: false
-    })
-    .addArgument({
-        "key": "code url", name: "CODE URL",
-        description: "URL to evaluate this code (this is distinct from the reference URL)",
-        required: false
-    })
-    .addArgument({
-        "key": "pd", name: "PD",
-        description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
-    })
-    .addArgument({
-        "key": "reference type", name: "REFERENCE TYPE",
-        description: "Type of reference (must match a vocabulary)",
-        defaultValue: "SYSTEM", required: false,
-        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
-        type: "cv",
-        cvType: "DOCUMENT_TYPE"
-    })
-    .addArgument({
-        "key": "reference citation", name: "REFERENCE CITATION",
-        description: "Citation text for reference", required: false
-    })
-    .addArgument({
-        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
-        required: false
-    })
-    .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
-        description: "Text for the record change", required: false
-    })
-    .addArgument({
-        "key": "reference tags", name: "REFERENCE TAGS",
-        description: "pipe-delimited set of tags for the reference", required: false
-    })
-    .addArgument({
-        "key": "allow multiples", name: "ALLOW MULTIPLES",
-        description: "Allow the entry of multiple codes within the same code system",
-        defaultValue: false, required: false
-    })
-    .setExecutor(function (args) {
-        var pt = args.pt.getValue();
-        var codeInput = args.code.getValue();
-        var codeType = args['code type'].getValue();
-        var codeSystem = args['code system'].getValue();
-        var codeComments = args.comments.getValue();
-        var codeText = args['code text'].getValue();
-        var url = args['code url'].getValue();
-        var dataPublic = args.pd.isYessy();
-        var referenceType = args['reference type'].getValue();
-        var referenceCitation = args['reference citation'].getValue();
-        var referenceUrl = args['reference url'].getValue();
-        var reference = null;
-        var referenceTags = args['reference tags'].getValue();
-        var allowMultipleInput = args['allow multiples'].getValue();
-        var allowMultiple = false;
-        if (allowMultipleInput &&
-            (allowMultipleInput === true ||
-                allowMultipleInput.toUpperCase() === 'TRUE'
-                || allowMultipleInput.toUpperCase().charAt(0) === ('Y'))) {
-            allowMultiple = true;
-        }
-        console.log('allowMultiple: ' + allowMultiple);
-
-        if (referenceType && referenceType.length > 0 && referenceCitation
-            && referenceCitation.length > 0) {
-            reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
-            reference = reference.setUrl(referenceUrl);
-            if (dataPublic) {
-                reference.setPublic(true);
-                reference.setPublicDomain(true);
-            } else {
-                reference.setPublic(false);
-                reference.setPublicDomain(false);
-            }
-            if (referenceTags && referenceTags.length > 0) {
-                var tags = referenceTags.split("|");
-                var tagSet = [];
-                _.forEach(tags, function (tag) {
-                    tagSet.push(tag);
-                });
-                reference.tags = tagSet;
-            }
-        }
-
-        var code = Code.builder()
-            .setCode(codeInput)
-            .setType(codeType)
-            .setCodeSystem(codeSystem)
-            .setPublic(dataPublic);
-
-        if (url) {
-            code.setUrl(url);
-        }
-        if (codeComments) {
-            code.setCodeText(codeComments);
-        }
-        if (codeText) {
-            code.setCodeComments(codeText);
-        }
-
-        return GGlob.SubstanceFinder.searchByExactNameOrCode(pt)
-            .andThen(function (resp) {
-                if (resp.content && resp.content.length >= 1) {
-                    var rec = resp.content[0];
-                    var substance = GGlob.SubstanceBuilder.fromSimple(rec);
-                    console.log('Found a substance with PT: ' + pt);
-                    return substance.fetch("references")
-                        .andThen(function (refs) {
-                            console.log('retrieved refs: ' + JSON.stringify(refs));
-                            _.forEach(refs, function (ref) {
-                                if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-                                    console.log('Duplicate reference found! Will skip creation of new one.');
-                                    reference = ref;
-                                    return false;
-                                }
-                            });
-                            if (reference) {
-                                code.addReference(reference);
-                            }
-                        })
-                        .andThen(function (s) {
-                            return substance.fetch("codes")
-                                .andThen(function (codes) {
-                                    var valuesOK = true;
-                                    var valuesError = '';
-                                    _.forEach(codes, function (cd) {
-                                        if (cd.codeSystem === codeSystem) {
-                                            if (allowMultiple) {
-                                                /*use the double equal to allow coercion of values*/
-                                                if (cd.code === codeInput) {
-                                                    console.log(' duplicate code detected');
-                                                    valuesOK = false;
-                                                    valuesError = 'This substance already has the code "'
-                                                        + codeInput + '" for system ' + cd.codeSystem;
-                                                    return false;
-                                                }
-                                            }
-                                            else {
-                                                valuesOK = false;
-                                                valuesError = 'This substance already has a code for system '
-                                                    + cd.codeSystem;
-                                                return false;
-                                            }
-                                        }
-                                    });
-                                    if (valuesOK) {
-                                        console.log('Add Code by Name is going to return patch ');
-                                        return rec.patch().addData(code)
-                                            .add("/changeReason", args['change reason'].getValue())
-                                            .apply()
-                                            .andThen(_.identity);
-                                    } else {
-                                        console.log('Add Code by Name is going to return message ' + valuesError);
-                                        return { "message": valuesError, "valid": false };
-                                    }
-                                });
-                        });
-                } else {
-                    console.log('resp: ' + JSON.stringify(resp));
-                    console.log('Did not locate substance based on ' + pt);
-                    /*MAM: testing adding full resp to output*/
-                    return { "message": "Did not locate substance based on " + pt, "valid": false, "extra": resp };
-                }
             });
     })
     .useFor(Scripts.addScript);
