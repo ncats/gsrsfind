@@ -37,6 +37,7 @@
             this.labelStatus = new System.Windows.Forms.Label();
             this.checkBoxNewSheet = new System.Windows.Forms.CheckBox();
             this.buttonDebugDOM = new System.Windows.Forms.Button();
+            this.labelServerURL = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // webBrowser1
@@ -52,7 +53,7 @@
             // 
             // buttonResolve
             // 
-            this.buttonResolve.Location = new System.Drawing.Point(125, 349);
+            this.buttonResolve.Location = new System.Drawing.Point(131, 347);
             this.buttonResolve.Margin = new System.Windows.Forms.Padding(2);
             this.buttonResolve.Name = "buttonResolve";
             this.buttonResolve.Size = new System.Drawing.Size(71, 19);
@@ -65,7 +66,7 @@
             // 
             this.buttonAddStructure.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonAddStructure.Enabled = false;
-            this.buttonAddStructure.Location = new System.Drawing.Point(250, 349);
+            this.buttonAddStructure.Location = new System.Drawing.Point(257, 347);
             this.buttonAddStructure.Margin = new System.Windows.Forms.Padding(2);
             this.buttonAddStructure.Name = "buttonAddStructure";
             this.buttonAddStructure.Size = new System.Drawing.Size(93, 19);
@@ -78,7 +79,7 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(400, 349);
+            this.buttonCancel.Location = new System.Drawing.Point(405, 347);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(2);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(56, 19);
@@ -90,7 +91,7 @@
             // checkBoxSaveDiagnostic
             // 
             this.checkBoxSaveDiagnostic.AutoSize = true;
-            this.checkBoxSaveDiagnostic.Location = new System.Drawing.Point(106, 407);
+            this.checkBoxSaveDiagnostic.Location = new System.Drawing.Point(106, 421);
             this.checkBoxSaveDiagnostic.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxSaveDiagnostic.Name = "checkBoxSaveDiagnostic";
             this.checkBoxSaveDiagnostic.Size = new System.Drawing.Size(196, 17);
@@ -101,7 +102,7 @@
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(270, 381);
+            this.labelStatus.Location = new System.Drawing.Point(270, 394);
             this.labelStatus.Name = "labelStatus";
             this.labelStatus.Size = new System.Drawing.Size(69, 13);
             this.labelStatus.TabIndex = 5;
@@ -110,7 +111,7 @@
             // checkBoxNewSheet
             // 
             this.checkBoxNewSheet.AutoSize = true;
-            this.checkBoxNewSheet.Location = new System.Drawing.Point(357, 407);
+            this.checkBoxNewSheet.Location = new System.Drawing.Point(357, 421);
             this.checkBoxNewSheet.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxNewSheet.Name = "checkBoxNewSheet";
             this.checkBoxNewSheet.Size = new System.Drawing.Size(135, 17);
@@ -121,7 +122,7 @@
             // buttonDebugDOM
             // 
             this.buttonDebugDOM.Enabled = false;
-            this.buttonDebugDOM.Location = new System.Drawing.Point(492, 381);
+            this.buttonDebugDOM.Location = new System.Drawing.Point(492, 394);
             this.buttonDebugDOM.Margin = new System.Windows.Forms.Padding(2);
             this.buttonDebugDOM.Name = "buttonDebugDOM";
             this.buttonDebugDOM.Size = new System.Drawing.Size(88, 19);
@@ -131,12 +132,21 @@
             this.buttonDebugDOM.Visible = false;
             this.buttonDebugDOM.Click += new System.EventHandler(this.buttonDebugDOM_Click);
             // 
+            // labelServerURL
+            // 
+            this.labelServerURL.AutoSize = true;
+            this.labelServerURL.Location = new System.Drawing.Point(13, 372);
+            this.labelServerURL.Name = "labelServerURL";
+            this.labelServerURL.Size = new System.Drawing.Size(0, 13);
+            this.labelServerURL.TabIndex = 8;
+            // 
             // RetrievalForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(593, 431);
+            this.ClientSize = new System.Drawing.Size(593, 442);
+            this.Controls.Add(this.labelServerURL);
             this.Controls.Add(this.buttonDebugDOM);
             this.Controls.Add(this.checkBoxNewSheet);
             this.Controls.Add(this.labelStatus);
@@ -164,5 +174,6 @@
         private System.Windows.Forms.Label labelStatus;
         private System.Windows.Forms.CheckBox checkBoxNewSheet;
         private System.Windows.Forms.Button buttonDebugDOM;
+        private System.Windows.Forms.Label labelServerURL;
     }
 }

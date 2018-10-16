@@ -3568,227 +3568,227 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
     });
 
 
-//Script.builder().mix({
-//    name: "Create Substance from SD File",
-//    description: "Creates a brand new substance record using data read in from an SD file"
-//})
-//    .addArgument({
-//        "key": "pt", name: "PT", description: "Preferred Term of the new substance", required: true,
-//        "validator": function (val, cargs) {
-//            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
-//                .andThen(function (resp) {
-//                    if (resp.content && resp.content.length >= 1) {
-//                        return { valid: false, message: "The PT for this record already exists" };
-//                    } else {
-//                        return { valid: true };
-//                    }
-//                });
-//        }
-//    })
-//    .addArgument({
-//        "key": "pt language", name: "PT LANGUAGE",
-//        description: "language for Preferred Term",
-//        required: true, defaultValue: "English",
-//        opPromise: CVHelper.getTermList("LANGUAGE"),
-//        type: "cv",
-//        cvType: "LANGUAGE"
-//    })
-//    .addArgument({
-//        "key": "pt name type", name: "PT NAME TYPE",
-//        description: "2/3-letter name type (e.g., cn, of) for Preferred Term",
-//        required: true, defaultValue: "cn",
-//        opPromise: CVHelper.getTermList("NAME_TYPE"),
-//        type: "cv",
-//        cvType: "NAME_TYPE"
-//    })
-//    .addArgument({
-//        "key": "substance class", name: "SUBSTANCE CLASS",
-//        description: "Category", required: true,
-//        defaultValue: "chemical",
-//        opPromise: CVHelper.getTermList("SUBSTANCE_CLASS"),
-//        type: "cv",
-//        cvType: "SUBSTANCE_CLASS"
-//    })
-//    .addArgument({
-//        "key": "smiles", name: "SMILES", description: "Structure as SMILES",
-//        required: false
-//    })
-//    .addArgument({
-//        "key": "molfile", name: "MOLFILE", description: "Structure as molfile",
-//        required: false
-//    })
-//    .addArgument({
-//        "key": "reference type", name: "REFERENCE TYPE",
-//        description: "Type of reference (must match a vocabulary)",
-//        defaultValue: "SYSTEM", required: false,
-//        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
-//        type: "cv",
-//        cvType: "DOCUMENT_TYPE"
-//    })
-//    .addArgument({
-//        "key": "reference citation", name: "REFERENCE CITATION",
-//        description: "Citation text for reference", required: true
-//    })
-//    .addArgument({
-//        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
-//        required: false
-//    })
-//    .addArgument({
-//        "key": "change reason", name: "CHANGE REASON",
-//        defaultValue: "Creating new substance", description: "Text for the record change",
-//        required: false
-//    })
-//    .addArgument({
-//        "key": "pd", name: "PD",
-//        description: "Public Domain status of the code (sets access for reference as well)",
-//        defaultValue: false, required: false
-//    })
-//    .addArgument({
-//        "key": "cas", name: "CAS",
-//        description: "CAS number",
-//        defaultValue: false, required: false
-//    })
-//    .setExecutor(function (args) {
-//        console.log('Starting in Create Substance executor');
+Script.builder().mix({
+    name: "Create Substance from SD File",
+    description: "Creates a brand new substance record using data read in from an SD file"
+})
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the new substance", required: true,
+        "validator": function (val, cargs) {
+            return GGlob.SubstanceFinder.searchByExactNameOrCode(val)
+                .andThen(function (resp) {
+                    if (resp.content && resp.content.length >= 1) {
+                        return { valid: false, message: "The PT for this record already exists" };
+                    } else {
+                        return { valid: true };
+                    }
+                });
+        }
+    })
+    .addArgument({
+        "key": "pt language", name: "PT LANGUAGE",
+        description: "language for Preferred Term",
+        required: true, defaultValue: "en",
+        opPromise: CVHelper.getTermList("LANGUAGE"),
+        type: "cv",
+        cvType: "LANGUAGE"
+    })
+    .addArgument({
+        "key": "pt name type", name: "PT NAME TYPE",
+        description: "2/3-letter name type (e.g., cn, of) for Preferred Term",
+        required: true, defaultValue: "cn",
+        opPromise: CVHelper.getTermList("NAME_TYPE"),
+        type: "cv",
+        cvType: "NAME_TYPE"
+    })
+    .addArgument({
+        "key": "substance class", name: "SUBSTANCE CLASS",
+        description: "Category", required: true,
+        defaultValue: "chemical",
+        opPromise: CVHelper.getTermList("SUBSTANCE_CLASS"),
+        type: "cv",
+        cvType: "SUBSTANCE_CLASS"
+    })
+    .addArgument({
+        "key": "smiles", name: "SMILES", description: "Structure as SMILES",
+        required: false
+    })
+    .addArgument({
+        "key": "molfile", name: "MOLFILE", description: "Structure as molfile",
+        required: false
+    })
+    .addArgument({
+        "key": "reference type", name: "REFERENCE TYPE",
+        description: "Type of reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        type: "cv",
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: true
+    })
+    .addArgument({
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON",
+        defaultValue: "Creating new substance", description: "Text for the record change",
+        required: false
+    })
+    .addArgument({
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the code (sets access for reference as well)",
+        defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "cas", name: "CAS",
+        description: "CAS number",
+        defaultValue: false, required: false
+    })
+    .setExecutor(function (args) {
+        console.log('Starting in Create Substance executor');
 
-//        var pt = args.pt.getValue();
-//        var substanceClass = args['substance class'].getValue();
-//        var dataPublic = args.pd.isYessy();
-//        var referenceType = args['reference type'].getValue();
-//        var referenceCitation = args['reference citation'].getValue();
-//        var referenceUrl = args['reference url'].getValue();
-//        var smiles = args.smiles.getValue();
-//        var molfileText = args.molfile.getValue();
-//        console.log('got molfile');
-//        var nameType = args['pt name type'].getValue();
-//        console.log('nameType: ' + nameType);
-//        var nameLang = args['pt language'].getValue();
+        var pt = args.pt.getValue();
+        var substanceClass = args['substance class'].getValue();
+        var dataPublic = args.pd.isYessy();
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
+        var referenceUrl = args['reference url'].getValue();
+        var smiles = args.smiles.getValue();
+        var molfileText = args.molfile.getValue();
+        console.log('got molfile');
+        var nameType = args['pt name type'].getValue();
+        console.log('nameType: ' + nameType);
+        var nameLang = args['pt language'].getValue();
 
-//        var refuuid = GSRSAPI.builder().UUID.randomUUID();
-//        var casno = args.cas.getValue();
-//        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
-//        if (referenceUrl && referenceUrl.length > 0) {
-//            reference = reference.setUrl(referenceUrl);
-//        }
-//        if (dataPublic) {
-//            reference.setPublic(true);
-//            reference.setPublicDomain(true);
-//        } else {
-//            reference.setPublic(false);
-//            reference.setPublicDomain(false);
-//        }
-//        reference.uuid = refuuid;
+        var refuuid = GSRSAPI.builder().UUID.randomUUID();
+        var casno = args.cas.getValue();
+        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
+        if (referenceUrl && referenceUrl.length > 0) {
+            reference = reference.setUrl(referenceUrl);
+        }
+        if (dataPublic) {
+            reference.setPublic(true);
+            reference.setPublicDomain(true);
+        } else {
+            reference.setPublic(false);
+            reference.setPublicDomain(false);
+        }
+        reference.uuid = refuuid;
 
-//        var langs = [];
-//        langs.push(nameLang);
-//        console.log('pushed ' + nameLang + ' onto langs');
-//        var name = Name.builder().setName(pt)
-//            .setType(nameType)
-//            .setPublic(dataPublic)
-//            .setPreferred(true)
-//            .setLanguages(langs)
-//            .addReference(reference);
-//        console.log('created name');
-//        var simpleSub = {
-//            substanceClass: substanceClass,
-//            access: ["protected"],
-//            names: [],
-//            references: [],
-//            properties: []
-//        };
-//        var code = null;
-//        if (casno) {
-//            code= Code.builder().setCode(casno)
-//                .setType("PRIMARY")
-//                .setCodeSystem("CAS")
-//                .setPublic(dataPublic);
-//        }
-//        simpleSub.names.push(name);
-//        simpleSub.references.push(reference);
+        var langs = [];
+        langs.push(nameLang);
+        console.log('pushed ' + nameLang + ' onto langs');
+        var name = Name.builder().setName(pt)
+            .setType(nameType)
+            .setPublic(dataPublic)
+            .setPreferred(true)
+            .setLanguages(langs)
+            .addReference(reference);
+        console.log('created name');
+        var simpleSub = {
+            substanceClass: substanceClass,
+            access: ["protected"],
+            names: [],
+            references: [],
+            properties: []
+        };
+        var code = null;
+        if (casno) {
+            code= Code.builder().setCode(casno)
+                .setType("PRIMARY")
+                .setCodeSystem("CAS")
+                .setPublic(dataPublic);
+        }
+        simpleSub.names.push(name);
+        simpleSub.references.push(reference);
 
-//        for (var arg in args) {
-//            console.log('arg name ' + arg + ' = ' + args[arg].getValue());
-//            if (arg.toUpperCase().indexOf("PROPERTY:") > -1 && args[arg].getValue()) {
-//                var tokens = arg.split(":");
+        for (var arg in args) {
+            console.log('arg name ' + arg + ' = ' + args[arg].getValue());
+            if (arg.toUpperCase().indexOf("PROPERTY:") > -1 && args[arg].getValue()) {
+                var tokens = arg.split(":");
 
-//                var propName = tokens[1];
-//                var propInterpretation = '';
-//                var units = '';
-//                if (tokens.length >= 3) propInterpretation = tokens[2];
-//                if (tokens.length >= 4) units = tokens[3];
+                var propName = tokens[1];
+                var propInterpretation = '';
+                var units = '';
+                if (tokens.length >= 3) propInterpretation = tokens[2];
+                if (tokens.length >= 4) units = tokens[3];
 
-//                console.log("Creating property " + propName);
-//                var prop = Property.builder().setName(propName);
-//                var floatVal = parseFloat(args[arg].getValue());
-//                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT'))
-//                {
-//                    prop.setPropertyStringValue(args[arg].getValue());
-//                }
-//                else {
-//                    if (propInterpretation) {
-//                        if (propInterpretation.toUpperCase() === "HIGH") {
-//                            console.log('setting high value');
-//                            prop.setHigh(floatVal);
-//                        }
-//                        else if (propInterpretation.toUpperCase() === "LOW") {
-//                            console.log('setting low value');
-//                            prop.setLow(floatVal);
-//                        }
-//                        else {
-//                            console.log('setting average value');
-//                            prop.setAverage(floatVal);
-//                        }
-//                    }
-//                    else {
-//                        console.log('setting average value (default)');
-//                        prop.setAverage(floatVal);
-//                    }
-//                }
-//                if (units) prop.setUnits(units);
+                console.log("Creating property " + propName);
+                var prop = Property.builder().setName(propName);
+                var floatVal = parseFloat(args[arg].getValue());
+                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT'))
+                {
+                    prop.setPropertyStringValue(args[arg].getValue());
+                }
+                else {
+                    if (propInterpretation) {
+                        if (propInterpretation.toUpperCase() === "HIGH") {
+                            console.log('setting high value');
+                            prop.setHigh(floatVal);
+                        }
+                        else if (propInterpretation.toUpperCase() === "LOW") {
+                            console.log('setting low value');
+                            prop.setLow(floatVal);
+                        }
+                        else {
+                            console.log('setting average value');
+                            prop.setAverage(floatVal);
+                        }
+                    }
+                    else {
+                        console.log('setting average value (default)');
+                        prop.setAverage(floatVal);
+                    }
+                }
+                if (units) prop.setUnits(units);
                     
-//                simpleSub.properties.push(prop);
-//            }
-//        }
+                simpleSub.properties.push(prop);
+            }
+        }
 
-//        if ((smiles && smiles.length > 0) || (molfileText && molfileText.length > 0)) {
-//            console.log('Processing SMILES/molfile');
-//            var structure = {};
-//            structure.smiles = smiles;
-//            if (molfileText && molfileText.length > 0) {
-//                console.log('molfileText not null.');
-//                structure.molfile = molfileText;
-//            } else {
-//                console.log('molfileText null.');
-//                structure.molfile = smiles;
-//            }
-//            structure.references = [];
-//            structure.references.push(refuuid);
-//            simpleSub.structure = structure;
-//        }
+        if ((smiles && smiles.length > 0) || (molfileText && molfileText.length > 0)) {
+            console.log('Processing SMILES/molfile');
+            var structure = {};
+            structure.smiles = smiles;
+            if (molfileText && molfileText.length > 0) {
+                console.log('molfileText not null.');
+                structure.molfile = molfileText;
+            } else {
+                console.log('molfileText null.');
+                structure.molfile = smiles;
+            }
+            structure.references = [];
+            structure.references.push(refuuid);
+            simpleSub.structure = structure;
+        }
 
-//        var sub = SubstanceBuilder.fromSimple(simpleSub);
-//        if (code) {
-//            sub.codes = [];
-//            sub.codes.push(code);
-//            console.log("Adding CAS number");
-//        }
+        var sub = SubstanceBuilder.fromSimple(simpleSub);
+        if (code) {
+            sub.codes = [];
+            sub.codes.push(code);
+            console.log("Adding CAS number");
+        }
 
-//        var p = sub.patch();
-//        if (args['change reason'] && args['change reason'].getValue()) {
-//            p.add("/changeReason", args['change reason'].getValue());
-//        }
-//        return p.apply()
-//            .andThen(function (resp) {
-//                /*if (typeof (resp) == 'object')
-//                    console.log('response to patch: ' + JSON.stringify(resp));
-//                else
-//                    console.log('response to patch: ' + resp);*/
-//                return resp;
-//            });
-//    })
-//    .useFor(function (s) {
-//        Scripts.addScript(s);
-//});
+        var p = sub.patch();
+        if (args['change reason'] && args['change reason'].getValue()) {
+            p.add("/changeReason", args['change reason'].getValue());
+        }
+        return p.apply()
+            .andThen(function (resp) {
+                /*if (typeof (resp) == 'object')
+                    console.log('response to patch: ' + JSON.stringify(resp));
+                else
+                    console.log('response to patch: ' + resp);*/
+                return resp;
+            });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+});
 
 
 /*Touch Record - retrieve a record and save again without making any changes to trigger update processing*/

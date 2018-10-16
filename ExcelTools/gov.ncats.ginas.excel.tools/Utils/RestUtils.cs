@@ -108,5 +108,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             get;
             set;
         }
+
+        public static bool IsValidHttpUrl(string urlText)
+        {
+            Uri uriResult;
+            return Uri.TryCreate(urlText, UriKind.Absolute, out uriResult)
+                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        }
     }
 }

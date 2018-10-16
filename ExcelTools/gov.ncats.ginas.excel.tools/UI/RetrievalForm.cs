@@ -83,6 +83,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             _configuration = FileUtils.GetGinasConfiguration();
             log.Debug("Loaded configuration ");
             log.Debug(" selected url:" + _configuration.SelectedServer.ServerUrl);
+            labelServerURL.Text = string.Empty;
             JSTools tools = new JSTools();
             string initURL = _configuration.SelectedServer.ServerUrl + "cache";
             _baseUrl = _configuration.SelectedServer.ServerUrl;
@@ -305,6 +306,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 checkBoxNewSheet.Enabled = false;
                 checkBoxNewSheet.Visible = false;
                 ExecuteScript("setMode('update');");
+                labelServerURL.Text ="Loading URL: " +  _configuration.SelectedServer.ServerUrl;
                 Controller.ContinueSetup();
                 Visible = true;
                 Text = "Data Loader";

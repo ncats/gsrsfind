@@ -315,7 +315,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("Error creating update callback: {0}", ex.Message, ex);
+                log.ErrorFormat("Error creating update callback: {0}", ex.Message);
+                log.Debug(ex.StackTrace);
                 message = ex.Message;
             }
 

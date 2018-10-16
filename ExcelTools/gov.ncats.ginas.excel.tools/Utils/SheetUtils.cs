@@ -395,8 +395,21 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     log.DebugFormat("Setting header {0} to {1}", newRangeAddress, parmName);
                 }
             }
-            UIUtils.ShowMessageToUser("Your sheet now has the required columns for creating a new substance\nPlease fill in any values and use 'Load data' to complete the process");
+            List<string> messages = new List<string>();
+            messages.Add("Your sheet now has the required columns for creating a new substance.");
+            messages.Add("Please fill in any values and use 'Load data' to complete the process");
+
+            if( !columnHeaders.Contains("PT"))
+            {
+                messages.Add("Note: you must also add or designate a 'PT' column!");
+            }
+            UIUtils.ShowMessageToUser(string.Join("\n", messages));
         }
+
+        public static bool IsSheetBlank(Worksheet sheet)
+        {
+            return sheet.Application.WorksheetFunction.CountA(sheet.UsedRange) == 0;
+       }
 
         private static List<string> GetColumnHeaders(Worksheet worksheet)
         {
@@ -453,5 +466,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             cell.Font.TintAndShade = -4.99893185216834E-02;
 
         }
+
     }
 }

@@ -233,7 +233,6 @@ namespace ginasExcelUnitTests
             string key = "gsrs_zkbcdorqhl";
             Retriever retriever = new Retriever();
 
-
             string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             
@@ -720,6 +719,21 @@ namespace ginasExcelUnitTests
             int expectedRangeCount = 1;
 
             Assert.AreEqual( expectedRangeCount, actualRangeCount);
+        }
+
+        [TestMethod]
+        public void IsSheetBlankTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets["Sheet1"];
+            Assert.IsFalse(SheetUtils.IsSheetBlank(sheet));
+
+            Worksheet newSheet = (Worksheet)workbook.Sheets.Add();
+            Assert.IsTrue(SheetUtils.IsSheetBlank(newSheet));
+            workbook.Close(false);
         }
 
         private Workbook ReadDefaultExcelWorkbook()

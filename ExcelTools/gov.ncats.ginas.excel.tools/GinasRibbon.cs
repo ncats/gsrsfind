@@ -19,7 +19,7 @@ namespace gov.ncats.ginas.excel.tools
 
         private void ginas_Load(object sender, RibbonUIEventArgs e)
         {
-            
+           
         }
 
         private void button1_Click(object sender, RibbonControlEventArgs e)
@@ -107,13 +107,21 @@ namespace gov.ncats.ginas.excel.tools
 
         private void buttonSdFileImport_Click(object sender, RibbonControlEventArgs e)
         {
+            Excel.Window window = e.Control.Context;
+            if ( !SheetUtils.IsSheetBlank( (Excel.Worksheet)window.Application.ActiveSheet))
+            { 
+                if( !UIUtils.GetUserYesNo("The current sheet already has data. Are you sure you want to overwrite it?"))
+                {
+                    return;
+                }
+            }
+
             string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
                 "Select one SD file");
             
             if (string.IsNullOrEmpty(sdFilePath)) return;
 
             SDFileUtils sDFileUtils = new SDFileUtils();
-            Excel.Window window = e.Control.Context;
             sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
         }
 

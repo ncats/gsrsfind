@@ -99,6 +99,11 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
             {
+                if( !Utils.RestUtils.IsValidHttpUrl(comboBoxURLs.Text))
+                {
+                    Utils.UIUtils.ShowMessageToUser("Please make sure the URL starts with 'http://' or 'https://' ");
+                    return;
+                }
                 GinasServer newServer = new GinasServer();
                 newServer.ServerUrl = comboBoxURLs.Text;
                 if (!newServer.ServerUrl.EndsWith("/")) newServer.ServerUrl = newServer.ServerUrl + "/";
