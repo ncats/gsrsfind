@@ -20,13 +20,21 @@ namespace ginasExcelUnitTests
     [TestClass]
     public class ExcelTests
     {
+
         Application excel;
+
+        public GinasToolsConfiguration CurrentConfiguration
+        {
+            get;
+            set;
+        }
 
         [TestInitialize]
         public void SetUp()
         {
             excel = new Application();
             Console.WriteLine("Started Excel");
+            this.CurrentConfiguration = FileUtils.GetGinasConfiguration();
         }
 
         [TestCleanup]
@@ -736,6 +744,19 @@ namespace ginasExcelUnitTests
             workbook.Close(false);
         }
 
+        [TestMethod]
+        public void CheckSDSheetForDuplicates()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\import sd data1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets["SDData"];
+
+            List<string> messages = new List<string>();
+            SheetUtils.CheckSDSheetForDuplicates(sheet, messages, CurrentConfiguration.SelectedServer.ServerUrl);
+            Assert.AreEqual(0, messages.Count);
+        }
         private Workbook ReadDefaultExcelWorkbook()
         {
 

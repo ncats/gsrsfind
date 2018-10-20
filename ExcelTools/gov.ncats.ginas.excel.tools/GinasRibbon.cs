@@ -123,6 +123,10 @@ namespace gov.ncats.ginas.excel.tools
 
             SDFileUtils sDFileUtils = new SDFileUtils();
             sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
+            if( UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
+            {
+                SheetUtils.SetupRemainingColumns((Excel.Worksheet)window.ActiveSheet);
+            }
         }
 
         private void buttonSelectPT_Click(object sender, RibbonControlEventArgs e)

@@ -27,15 +27,17 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             SheetUtils sheetUtils = new SheetUtils();
             List<string> fieldNames = GetUniqueFieldNames(fileData);
-            log.DebugFormat("total unique fields: {0}", fieldNames.Count);
+            fieldNames.Insert(0, "BATCH:" + SD_LOADING_SCRIPT_NAME);
+            fieldNames.Add("Duplicates?");
+
             Dictionary<string, int> fieldNamesToColumns = new Dictionary<string, int>();
             int col = 1;
             foreach (string fieldName in fieldNames)
             {
-                fieldNamesToColumns.Add(fieldName, ++col);
+                fieldNamesToColumns.Add(fieldName, col++);
             }
-            fieldNames.Insert(0, "BATCH:" + SD_LOADING_SCRIPT_NAME);
-            //todo: make sure the sheet has no data!
+            log.DebugFormat("total columns: {0}", fieldNames.Count);
+
             ImageOps imageOps = new ImageOps();
             //create a title row
             sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);

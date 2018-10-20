@@ -216,6 +216,7 @@
     <Compile Include="Model\ScriptParameter.cs" />
     <Compile Include="Model\SDFileRecord.cs" />
     <Compile Include="Model\SearchValue.cs" />
+    <Compile Include="Model\StructureQueryResult.cs" />
     <Compile Include="Model\StructureReturn.cs" />
     <Compile Include="Model\Vocab.cs" />
     <Compile Include="Model\VocabContent.cs" />
@@ -237,6 +238,9 @@
       <DependentUpon>GinasRibbon.cs</DependentUpon>
     </Compile>
     <Compile Include="Providers\RangeWrapperFactory.cs" />
+    <Compile Include="Ribbon.cs">
+      <XmlRibbon>true</XmlRibbon>
+    </Compile>
     <Compile Include="UI\ConfigurationForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -259,6 +263,7 @@
     <Compile Include="Utils\SheetUtils.cs" />
     <Compile Include="Utils\UIUtils.cs" />
     <Compile Include="Utils\VocabUtils.cs" />
+    <EmbeddedResource Include="Ribbon.xml" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>

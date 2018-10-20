@@ -30,7 +30,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
 
 
-        public static async Task<string> SaveMolfileAndDisplay(string molfile, Range cell, string serverUrl)
+        public static async Task<string> SaveMolfileAndDisplay(string molfile, Range cell, string serverUrl,
+            Range idCell)
         {
             molfile = Regex.Replace(molfile, "[^\x0d\x0a\x20-\x7e\t]", "");
             if (molfile.Contains("\r")) log.Debug("molfile contains CR");
@@ -46,7 +47,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 {
                     try
                     {
-                        //string result = await response.Content.ReadAsStringAsync();
                         StructureReturn r = await response.Content.ReadAsAsync<StructureReturn>();
                         if (r.Structure != null)
                         {
@@ -55,6 +55,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                                 string structureImageUrl = serverUrl + "img/" + r.Structure.Id + ".png";
                                 log.DebugFormat("using structure URL {0}", structureImageUrl);
                                 ImageOps.AddImageCaption(cell, structureImageUrl, 300);
+                            }
+                            if (idCell != null)
+                            {
+                                log.DebugFormat("structure id {0} for cell {1}", r.Structure.Id, idCell.Address);
+                                SearchMolfile(r.Structure.Id, serverUrl, idCell);
                             }
                             return r.Structure.Id;
                         }
@@ -115,5 +120,111 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return Uri.TryCreate(urlText, UriKind.Absolute, out uriResult)
                 && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         }
+
+        public static async Task<StructureQueryResult> SearchMolfile(string molfile, string serverUrl,
+            Range cellForResults = null)
+        {
+            molfile = Regex.Replace(molfile, "[^\x0d\x0a\x20-\x7e\t]", "");
+            if (molfile.Length < 100) log.DebugFormat("molfile: {0}", molfile);
+
+            if (RestClient.BaseAddress == null) RestClient.BaseAddress = new Uri(serverUrl);
+            string fullUrl = serverUrl + "api/v1/substances/structureSearch?type=exact&sync=true&q=" + molfile;
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
+            message.Content = new StringContent(molfile, Encoding.UTF8);
+
+            using (HttpResponseMessage response = await RestClient.GetAsync(fullUrl))
+            //using (HttpResponseMessage response = await RestClient.SendAsync(message))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    try
+                    {
+                        StructureQueryResult r = await response.Content.ReadAsAsync<StructureQueryResult>();
+                        if(cellForResults != null)
+                        {
+                            if (r.Content.Length == 1)
+                            {
+                                cellForResults.FormulaR1C1 = "structure has 1 duplicate";
+                            }
+                            else if( r.Content.Length > 1)
+                            {
+                                cellForResults.FormulaR1C1 = string.Format("structure has {0} duplicates", r.Content.Length);
+                            }
+                            else
+                            {
+                                cellForResults.FormulaR1C1 = "unique";
+                            }
+                        }
+                        return r;
+                        //log.Debug("Error saving structure: " + response.ReasonPhrase);
+                        //return string.Empty;
+                    }
+                    catch (Exception e2)
+                    {
+                        log.ErrorFormat("Error during structure post: " + e2.Message);
+                        throw e2;
+                    }
+                }
+                else
+                {
+                    throw new Exception(response.ReasonPhrase);
+                }
+            }
+        }
+
+        //public async Task<string> RunStructureQuery(string serverUrl, string[] molfiles)
+        //{
+        //    string data = null;
+        //    try
+        //    {
+        //        int timeout = 10;
+        //        log.DebugFormat("Using timeout: {0}", timeout);
+        //        RestClient.Timeout = new TimeSpan(TimeSpan.TicksPerSecond * timeout);
+        //        RestClient.BaseAddress = new Uri(serverUrl);
+        //        if (serverUrl.StartsWith("https"))
+        //        {
+        //            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //        }
+
+        //        string searchUrl = "api/v1/substances/structureSearch/substances/structureSearch";
+
+        //        HttpResponseMessage response = await RestClient.SendAsync
+        //            .GetAsync(searchUrl);
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            data = await response.Content.ReadAsStringAsync();
+        //        }
+        //        else
+        //        {
+        //            data = "error";
+        //        }
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        data = "Error: " + ex.Message;
+        //        log.ErrorFormat("Error contacting URL. message: {0}", ex.Message);
+        //        try
+        //        {
+        //            if (ex.InnerException != null)
+        //            {
+        //                log.ErrorFormat("Inner error: {0}", ex.InnerException.Message);
+        //                if (ex.InnerException.InnerException != null)
+        //                {
+        //                    log.ErrorFormat("Second inner error: {0}",
+        //                        ex.InnerException.InnerException.Message);
+        //                }
+        //            }
+
+        //        }
+        //        catch (Exception secondary)
+        //        {
+        //            log.ErrorFormat("Error while processing other error: {0}", secondary.Message);
+        //            log.Debug(secondary.StackTrace);
+        //        }
+        //    }
+        //    return data;
+        //}
+
     }
 }

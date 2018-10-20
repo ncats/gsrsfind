@@ -135,13 +135,13 @@ namespace gov.ncats.ginas.excel.tools.Model
 
         }
 
-        public void CreateMolfileImage(Range cell, string molfile)
+        public void CreateMolfileImage(Range cell, string molfile, Range cellForId)
         {
             string cleanMolfile = molfile.Replace("\r", "");
             string structureImageUrl = string.Empty;
             try
             {
-                RestUtils.SaveMolfileAndDisplay(cleanMolfile, cell, configuration.SelectedServer.ServerUrl);
+                RestUtils.SaveMolfileAndDisplay(cleanMolfile, cell, configuration.SelectedServer.ServerUrl, cellForId);
                 //string structureId = structureidTask.Result;
                 //if (!string.IsNullOrEmpty(structureId))
                 //{

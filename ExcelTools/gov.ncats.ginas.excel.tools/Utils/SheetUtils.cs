@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using gov.ncats.ginas.excel.tools.Model;
 
 using Microsoft.Office.Interop.Excel;
@@ -324,15 +325,21 @@ namespace gov.ncats.ginas.excel.tools.Utils
             int dataRow,
             ImageOps imageOps, Worksheet worksheet)
         {
+            log.DebugFormat("In {0}, columns.Keys.Count: {1}", MethodBase.GetCurrentMethod().Name,
+                columns.Keys.Count);
             foreach(string fieldName in data.Keys)
             {
                 int column = columns[fieldName];
                 string cellId = GetColumnName(column) + dataRow;
                 Range currentCell = worksheet.Range[cellId];
+                
                 currentCell.FormulaR1C1 = data[fieldName];
                 if( fieldName.Equals(SDFileUtils.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    imageOps.CreateMolfileImage(currentCell, data[fieldName]);
+                    string cellForStructureIdName = GetColumnName(columns.Keys.Count) + dataRow;
+                    log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
+                    Range cellForStructureID = worksheet.Range[cellForStructureIdName];
+                    imageOps.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
                 }
             }
             return string.Empty;
@@ -452,6 +459,53 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 }
             }
             return 1;
+        }
+
+        public static void CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
+        {
+            string molfileFieldName = "Molfile";
+            string importStatusFieldName = "Import Status";
+            Range firstRow = (Range)worksheet.Rows[1];
+            int molfileColumn = 0;
+            int statusColumn = 0;
+            foreach (Range cell in firstRow.Cells)
+            {
+                if( cell.Value2 != null && cell.Value2.Equals(molfileFieldName))
+                {
+                    molfileColumn = cell.Column;
+                }
+                else if(cell.Value2 != null && cell.Value2.Equals(importStatusFieldName))
+                {
+                    statusColumn = cell.Column;
+                }
+                if (molfileColumn > 0 && statusColumn > 0) break;
+            }
+            if( molfileColumn == 0)
+            {
+                messages.Add("No molfile column located");
+                return;
+            }
+            //temp hack:
+            if( statusColumn ==0)
+            {
+                statusColumn = 20;
+            }
+            Range molfileColumnRange = (Range) worksheet.Columns[0, molfileColumn];
+            Range fullMolfileRange = molfileColumnRange.EntireColumn;
+            fullMolfileRange = worksheet.Application.Intersect(fullMolfileRange, worksheet.UsedRange);
+            foreach(Range cell in fullMolfileRange)
+            {
+                if( cell.Value2 != null )
+                {
+                    Task<StructureQueryResult> results = RestUtils.SearchMolfile((string) cell.Value2, serverUrl);
+                    string message = "";
+                    if (results.Result.Content.Length == 0) message = "Unique";
+                    else message = "At least one duplicate: " + results.Result.Content[0].PrimaryTerm;
+
+                    worksheet.Range[cell.Row, statusColumn].FormulaR1C1 = message;
+                }
+            }
+            
         }
 
         private static void FormatCellForParameter(Range cell)

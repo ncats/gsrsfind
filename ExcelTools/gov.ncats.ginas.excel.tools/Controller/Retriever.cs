@@ -326,7 +326,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             scriptBuilder.Append(".list(");
             scriptBuilder.Append(arrayedNames);
             scriptBuilder.Append(")");
-            //scriptBuilder.Append(".list('$NAMES$'.split('\n'))");
             scriptBuilder.Append(".fetchers(_.map($('div.checkop input:checked'), 'name'))");
             scriptBuilder.Append(".consumer(function(row){cresults['");
             scriptBuilder.Append(key);
