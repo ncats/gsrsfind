@@ -39,13 +39,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.DebugFormat("total columns: {0}", fieldNames.Count);
 
             ImageOps imageOps = new ImageOps();
+            sheetUtils.ImageOpsHandle = imageOps;
             //create a title row
             sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);
 
             int row = 1;
             foreach(SDFileRecord record in fileData)
             {
-                sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, imageOps, worksheet);
+                sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, worksheet);
             }
             sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 25);
             sheetUtils.SetRowHeights(worksheet, 15);

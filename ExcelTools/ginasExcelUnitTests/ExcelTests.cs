@@ -217,7 +217,7 @@ namespace ginasExcelUnitTests
 
                 CursorBasedResolverCallback cursorBasedResolverCallback = CallbackFactory.CreateCursorBasedResolverCallback(wrapper);
                 cursorBasedResolverCallback.OriginalRow = row;
-                cursorBasedResolverCallback.setKey("key" + row);
+                cursorBasedResolverCallback.SetKey("key" + row);
                 callbacks.Add(cursorBasedResolverCallback);
             }
             BatchCallback batchCallback = new BatchCallback(callbacks);

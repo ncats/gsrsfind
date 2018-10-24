@@ -121,11 +121,21 @@ namespace gov.ncats.ginas.excel.tools
             
             if (string.IsNullOrEmpty(sdFilePath)) return;
 
-            SDFileUtils sDFileUtils = new SDFileUtils();
+            SDFileProcessor sDFileUtils = new SDFileProcessor();
+            
+            RetrievalForm form = new RetrievalForm();
+            sDFileUtils.SetScriptExecutor(form);
+            form.CurrentOperationType = OperationType.ProcessSdFile;
+            form.Controller = sDFileUtils;
+            form.Visible = false;
+            form.SetSize(1);
+            form.Show();
+            sDFileUtils.SetStatusUpdater(form);
             sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
             if( UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
             {
                 SheetUtils.SetupRemainingColumns((Excel.Worksheet)window.ActiveSheet);
+                form.Close();
             }
         }
 

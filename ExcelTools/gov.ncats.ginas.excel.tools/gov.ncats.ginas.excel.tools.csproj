@@ -200,12 +200,16 @@
     <Compile Include="Controller\DataLoader.cs" />
     <Compile Include="Controller\IController.cs" />
     <Compile Include="Controller\Retriever.cs" />
+    <Compile Include="Controller\SDFileProcessor.cs" />
     <Compile Include="Model\Callbacks\BatchCallback.cs" />
     <Compile Include="Model\Callbacks\Callback.cs" />
+    <Compile Include="Model\Callbacks\DoubleCursorBasedResolverCallback.cs" />
     <Compile Include="Model\Callbacks\CursorBasedResolverCallback.cs" />
     <Compile Include="Model\Callbacks\ImgCallback.cs" />
+    <Compile Include="Model\Callbacks\TwoRangeWrapper.cs" />
     <Compile Include="Model\Callbacks\RangeWrapper.cs" />
     <Compile Include="Model\Callbacks\ResolverCallback.cs" />
+    <Compile Include="Model\Callbacks\Update2Callback.cs" />
     <Compile Include="Model\Callbacks\UpdateCallback.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\GinasResult.cs" />

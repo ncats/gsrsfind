@@ -29,15 +29,26 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void test_RandomIdentifier()
         {
-            string newIdString = gov.ncats.ginas.excel.tools.Utils.JSTools.RandomIdentifier();
+            string newIdString = JSTools.RandomIdentifier();
             Console.WriteLine("newId: " + newIdString);
             Assert.IsNotNull(newIdString);
             int expectedLength = 10 + 5;
             Assert.AreEqual(expectedLength, newIdString.Length);
-
         }
 
-        
+        [TestMethod]
+        public void RandomIdentifierMutlipleTest()
+        {
+            string prevIdString = JSTools.RandomIdentifier();
+            for (int i = 0; i < 10000; i++)
+            {
+                string newIdString = JSTools.RandomIdentifier();
+                Assert.AreNotEqual(prevIdString, newIdString, string.Format("Expect different values on iteration {0}",i));
+                prevIdString = newIdString;
+            }
+        }
+
+
         [TestMethod]
         public void getTempFile_test()
         {
@@ -166,7 +177,7 @@ namespace ginasExcelUnitTests
             MethodInfo methodInfo = retriever.GetType().GetMethod(methodName, 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             Callback callback = new Callback();
-            callback.setKey("unique key");
+            callback.SetKey("unique key");
             List<string> searchValues = new List<string>(new string[] { "aspirin", "ibuprofen", "naproxen" });
             object[] parms = new object[2];
             parms[0] = callback;
@@ -293,10 +304,10 @@ namespace ginasExcelUnitTests
             BatchCallback batchCallback = new BatchCallback(new List<Callback>());
             
             Callback cb1 = new Callback();
-            cb1.setKey("a");
+            cb1.SetKey("a");
             batchCallback.AddCallback(cb1);
             Callback cb2 = new Callback();
-            cb2.setKey("B");
+            cb2.SetKey("B");
             batchCallback.AddCallback(cb2);
             return batchCallback;
         }

@@ -15,6 +15,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         const int id_length = 10;
         const String id_prefix = "gsrs_";
+        static Random rnd = new Random();
 
         public static string RandomIdentifier(int length  = id_length, bool foundDupe = false)
         {
@@ -22,7 +23,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             String alpha;
             ident = "";
             alpha = "abcdefghijklmnopqrstuvwxyz";
-            Random rnd = new Random(DateTime.Now.Millisecond);
             //(foundDupe ) ? DateTime.Now.Millisecond+1 : DateTime.Now.Millisecond
 
             int i;
@@ -30,6 +30,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             for( int j = 0; j < length; j++)
             {
                 i = rnd.Next(alpha.Length);
+                Console.WriteLine("i: " + i);
                 ident = ident + alpha.Substring(i, 1);
             }
             return id_prefix + ident;

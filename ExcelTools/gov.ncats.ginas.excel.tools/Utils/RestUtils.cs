@@ -64,6 +64,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                             return r.Structure.Id;
                         }
                         log.Debug("Error saving structure: " + response.ReasonPhrase);
+                        if (idCell != null)
+                        {
+                            if (molfile.Contains("V3000")) idCell.FormulaR1C1 = "V 3000 Molfiles fail duplicate checks but may register OK";
+                            else  idCell.FormulaR1C1 = "Error processing this structure (it may still register OK)";
+                        }
                         return string.Empty;
                     }
                     catch (Exception e2)

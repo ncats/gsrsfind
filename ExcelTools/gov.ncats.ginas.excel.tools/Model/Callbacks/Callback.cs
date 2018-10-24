@@ -33,7 +33,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             return this;
         }
 
-        public Callback setKey(String tkey)
+        public Callback SetKey(String tkey)
         {
             key = tkey;
             return this;

@@ -7,7 +7,8 @@
         Loading = 2,
         ShowScripts =3,
         GetStructures =4,
-        Other = 5
+        ProcessSdFile = 5,
+        Other = 6
     }
 
     public enum DialogYesNoCancel

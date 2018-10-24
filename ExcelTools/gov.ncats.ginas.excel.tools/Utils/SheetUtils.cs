@@ -5,7 +5,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using gov.ncats.ginas.excel.tools.Model;
-
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using gov.ncats.ginas.excel.tools.Providers;
 using Microsoft.Office.Interop.Excel;
 
 namespace gov.ncats.ginas.excel.tools.Utils
@@ -23,6 +24,17 @@ namespace gov.ncats.ginas.excel.tools.Utils
             set;
         }
 
+        public IScriptExecutor ScriptExecutor
+        {
+            get;
+            set;
+        }
+
+        public ImageOps ImageOpsHandle
+        {
+            get;
+            set;
+        }
         //from http://stackoverflow.com/questions/10373561/convert-a-number-to-a-letter-in-c-sharp-for-use-in-microsoft-excel
         public static string GetColumnName(int index)
         {
@@ -321,10 +333,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return string.Empty;
         }
 
-        public string TransferSDDataToRow(Dictionary<string,string> data, Dictionary<string, int> columns, 
-            int dataRow,
-            ImageOps imageOps, Worksheet worksheet)
+        public TwoRangeWrapper TransferSDDataToRow(Dictionary<string,string> data, Dictionary<string, int> columns, 
+            int dataRow,  Worksheet worksheet)
         {
+            log.DebugFormat("starting in {0}",
+                MethodBase.GetCurrentMethod().Name);
+            TwoRangeWrapper rangeWrapper = null;
+
             log.DebugFormat("In {0}, columns.Keys.Count: {1}", MethodBase.GetCurrentMethod().Name,
                 columns.Keys.Count);
             foreach(string fieldName in data.Keys)
@@ -334,15 +349,16 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 Range currentCell = worksheet.Range[cellId];
                 
                 currentCell.FormulaR1C1 = data[fieldName];
-                if( fieldName.Equals(SDFileUtils.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
+                if( fieldName.Equals(SDFileProcessor.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
                 {
                     string cellForStructureIdName = GetColumnName(columns.Keys.Count) + dataRow;
                     log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
                     Range cellForStructureID = worksheet.Range[cellForStructureIdName];
-                    imageOps.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
+                    rangeWrapper = RangeWrapperFactory.CreateTwoRangeWrapper(currentCell, cellForStructureID);
+                    //ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
                 }
             }
-            return string.Empty;
+            return rangeWrapper;
         }
 
         public void SetColumnWidths(Worksheet sheet, List<int> columns, int width)

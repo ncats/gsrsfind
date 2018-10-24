@@ -58,23 +58,23 @@ var GSRSAPI = {
             g_api.httpProcess = function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
-                    if (b) {
+                    if (b && !req.noJson) {
                         b = JSON.stringify(b);
                     } else {
                         b = req._q;
-                    };
+                    }
                     if (req._url.match(/.*[?]/)) {
                         req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
                     } else {
                         req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
-                    };
+                    }
 
                     g_api.GlobalSettings.authenticate(req);
 
                     console.log("going to call url: " + req._url);
                     if (req._q && req._q.q) {
                         console.log("   with query: " + req._q.q);
-                    };
+                    }
                     var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
                     window[cbackname] = function (response) {
                         console.log('ajax call success (1)');
@@ -404,9 +404,9 @@ var GSRSAPI = {
                 sfinder.searchByExactNameOrCode = function (q) {
                     if (UUID.isUUID(q)) {
                         return sfinder.get(q).andThen(function (s) {
-                            return { "content": [s] }
+                            return { "content": [s] };
                         });
-                    };
+                    }
                     return sfinder.search("root_names_name:\"^" + q + "$\" OR " +
                         "root_approvalID:\"^" + q + "$\" OR " +
                         "root_codes_code:\"^" + q + "$\"");
@@ -420,6 +420,20 @@ var GSRSAPI = {
                             type: "exact",
                             sync: "true" /*shouldn't be sync*/
                         });
+                    return g_api.httpProcess(req).andThen(function (tmp) {
+                        return tmp;
+                    });
+                };
+                sfinder.saveTemporaryStructure = function (smi) {
+                    var url = g_api.GlobalSettings.getBaseURL();
+                    var pos = url.indexOf("api");
+                    url = url.substring(0, pos) + "structure";
+                    console.log('saveTemporaryStructure using URL ' + url);
+                    var req = g_api.Request.builder()
+                        .url(url)
+                        .method("POST")
+                        .setNoJson("false")
+                        .body(smi);
                     return g_api.httpProcess(req).andThen(function (tmp) {
                         return tmp;
                     });
@@ -932,7 +946,12 @@ var GSRSAPI = {
                     rq.body = function (b) {
                         rq._b = b;
                         return rq;
+                    },
+                    rq.setNoJson = function (a) {
+                    rq.noJson = a;
+                    return rq;
                     };
+                
                 return rq;
             }
         };
@@ -4067,6 +4086,29 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                     .andThen(_.identity);
                     });
             });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+Script.builder().mix({ name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)" })
+    .addArgument({
+        "key": "molfile", name: "Molfile", description: "structure to save", required: true
+    })
+    .setExecutor(function (args) {
+        var structure = args.molfile.getValue();
+        return GGlob.SubstanceFinder.saveTemporaryStructure(structure)
+            .andThen(function (s) {
+                console.log("saveTemporaryStructure script received s: " + JSON.stringify(s));
+                if (typeof s === 'string' && s.indexOf('<html>') > -1) {
+                    return "Error: not authenticated";
+                }
+                if (typeof s === 'object' && !s.valid) {
+                    return s.message;
+                }
+                return s.Structure.Id;
+            });
+
     })
     .useFor(function (s) {
         Scripts.addScript(s);

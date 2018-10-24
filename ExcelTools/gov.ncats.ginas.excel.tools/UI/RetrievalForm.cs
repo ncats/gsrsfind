@@ -46,6 +46,11 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
         }
 
+        public void SetSize(int size)
+        {
+            this.Height = size;
+            this.Width = size;
+        }
         public IController Controller
         {
             get;
@@ -337,6 +342,12 @@ namespace gov.ncats.ginas.excel.tools.UI
                 {
                     ExecuteScript(_scriptToRunUponCompletion);
                 }
+            }
+            else if( CurrentOperationType == OperationType.ProcessSdFile)
+            {
+                Visible = false;
+                Controller.StartOperation();
+                return;
             }
             buttonDebugDOM.Enabled = false; 
             buttonDebugDOM.Visible = false;
