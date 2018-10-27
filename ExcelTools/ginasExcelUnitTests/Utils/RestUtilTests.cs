@@ -20,10 +20,40 @@ namespace ginasExcelUnitTests.Utils
 
             string molfileText = File.ReadAllText(molfilePath);
             molfileText = molfileText.Replace("\r", "");
-            var saved = RestUtils.SaveMolfileAndDisplay(molfileText, null, configuration.SelectedServer.ServerUrl);
+            var saved = RestUtils.SaveMolfileAndDisplay(molfileText, null, configuration.SelectedServer.ServerUrl, null);
             string id = saved.Result;
             Console.WriteLine("id of molfile: " + id);
             Assert.IsFalse(string.IsNullOrEmpty(id));
+        }
+
+        [TestMethod]
+        public void SearchMolfileTestFound()
+        {
+            string molfilePath = @"..\..\..\Test_Files\cyclohexane.mol";
+            molfilePath = Path.GetFullPath(molfilePath);
+
+            string molfileText = File.ReadAllText(molfilePath);
+            molfileText = molfileText.Replace("\r", "");
+            //string smiles = "CC(=O)NCCCCCC(O)=O";
+            var result = RestUtils.SearchMolfile(molfileText, configuration.SelectedServer.ServerUrl).Result;
+            
+            Console.WriteLine("result of molfile search: " + result);
+            Console.WriteLine("first term: " + result.Content[0].PrimaryTerm);
+            Assert.IsTrue(result.Content.Length > 0);
+        }
+
+        [TestMethod]
+        public void SearchMolfileTestNotFound()
+        {
+            string molfilePath = @"..\..\..\Test_Files\improbable.mol";
+            molfilePath = Path.GetFullPath(molfilePath);
+
+            string molfileText = File.ReadAllText(molfilePath);
+            molfileText = molfileText.Replace("\r", "");
+            var result = RestUtils.SearchMolfile(molfileText, configuration.SelectedServer.ServerUrl).Result;
+
+            Console.WriteLine("result of molfile search: " + result);
+            Assert.AreEqual(0, result.Content.Length);
         }
 
         [TestMethod]

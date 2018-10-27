@@ -38,6 +38,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             if (RestClient.BaseAddress == null) RestClient.BaseAddress = new Uri(serverUrl);
             string fullUrl = serverUrl + "structure";
+            log.DebugFormat("{0} using URL {1}", MethodBase.GetCurrentMethod().Name, fullUrl);
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
             message.Content = new StringContent(molfile, Encoding.UTF8);
 

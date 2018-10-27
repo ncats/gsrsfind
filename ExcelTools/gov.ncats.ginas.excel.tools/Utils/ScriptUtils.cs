@@ -206,6 +206,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void StartOneLoad(Dictionary<string, string> parameterValues, string loadingKey)
         {
+            log.DebugFormat("{0} handling loadingKey: {1}", MethodBase.GetCurrentMethod().Name,
+                loadingKey);
             string runnerName = "tmpRunner";
             
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");

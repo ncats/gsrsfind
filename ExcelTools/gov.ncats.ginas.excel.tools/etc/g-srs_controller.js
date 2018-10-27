@@ -54,11 +54,26 @@ var GSRSAPI = {
                 return GlobalSettings._errorMessage;
             }
         },
+            g_api.isJson = function (str) {
+                try {
+                    JSON.parse(str);
+                }
+                catch (e) {
+                    console.log('error in isJson: ' + e);
+                    return false;
+                }
+                return true;
+            },
+
             /*TODO: should be its own service*/
             g_api.httpProcess = function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
-                    if (b && !req.noJson) {
+                    if (b) console.log('we have b');
+                    else console.log('no b');
+
+                    console.log('in httpProcess, req.skipJson: ' + req.skipJson);
+                    if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
                         b = req._q;
@@ -95,16 +110,6 @@ var GSRSAPI = {
                                 });
                             }
                         },
-                        isJson: function (str) {
-                            try {
-                                JSON.parse(str);
-                            }
-                            catch (e) {
-                                console.log('	error in isJson: ' + e);
-                                return false;
-                            }
-                            return true;
-                        },
                         success: function (response) {
                             console.log('ajax call success ');
                             console.log('	at ' + _.now());
@@ -127,8 +132,8 @@ var GSRSAPI = {
                                     console.log('500 error');
                                 } else {
                                     GlobalSettings.setStatus("ERROR " + response.status);
-                                };
-                            };
+                                }
+                            }
                             GlobalSettings._errorMessage = error;
                             /*figure out the message that will be displayed to the user in Excel*/
                             if (response.responseText) {
@@ -138,7 +143,7 @@ var GSRSAPI = {
                                 var retMsg = { valid: false };
                                 console.log('	initialized retMsg');
                                 /*detect a complex, nested error message*/
-                                if (typeof (response.responseText) === 'string' && this.isJson(response.responseText)) {
+                                if (typeof response.responseText === 'string' && g_api.isJson(response.responseText)) {
                                     var responseRestored = JSON.parse(response.responseText);
                                     console.log(' parsed JSON');
                                     if (responseRestored.validationMessages && responseRestored.validationMessages.length > 0) {
@@ -428,13 +433,14 @@ var GSRSAPI = {
                     var url = g_api.GlobalSettings.getBaseURL();
                     var pos = url.indexOf("api");
                     url = url.substring(0, pos) + "structure";
-                    console.log('saveTemporaryStructure using URL ' + url);
                     var req = g_api.Request.builder()
                         .url(url)
                         .method("POST")
-                        .setNoJson("false")
-                        .body(smi);
-                    return g_api.httpProcess(req).andThen(function (tmp) {
+                        .setSkipJson(true)
+                        .setContents({ "q": smi });
+                    return g_api.httpProcess(req)
+                        .andThen(function (tmp) {
+                            console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));
                         return tmp;
                     });
                 };
@@ -562,7 +568,7 @@ var GSRSAPI = {
 
                     if (!simple.uuid) {
                         p = p.setMethod("POST");
-                    };
+                    }
 
                     /*patch overrides but calls the base method*/
                     p._oldApply = p.apply;
@@ -929,7 +935,8 @@ var GSRSAPI = {
         g_api.Request = {
             builder: function () {
                 var rq = {
-                    _method: "GET"
+                    _method: "GET",
+                    skipJson: false
                 };
                 rq.url = function (url) {
                     rq._url = url;
@@ -947,8 +954,12 @@ var GSRSAPI = {
                         rq._b = b;
                         return rq;
                     },
-                    rq.setNoJson = function (a) {
-                    rq.noJson = a;
+                    rq.setSkipJson = function (a) {
+                        rq.skipJson = a;
+                        return rq;
+                    },
+                    rq.setContents = function (c) {
+                        rq.contents = c;
                     return rq;
                     };
                 
@@ -962,15 +973,16 @@ var GSRSAPI = {
                 sfinder.postSmiles = function (smi) {
                     var url = g_api.GlobalSettings.getBaseURL();
                     var pos = url.lastIndexOf("app/");
-                    url = url.substring(0, pos + 3) + "structure";
+                    url = url.substring(0, pos + 4) + "structure";
                     console.log("postSmiles using URL " + url);
                     var req = g_api.Request.builder()
                         .url(url )
+                        .method("POST")
                         .queryStringData({
                             "body":smi                            
                         });
                     return g_api.httpProcess(req).andThen(function (tmp) {
-                        if (isJson(tmp)) {
+                        if (g_api.isJson(tmp)) {
                             var obj = JSON.parse(tmp);
                             console.log("Parsed object out of JSON");
                             console.log(" going to return id " + obj.structure.id);
@@ -1274,11 +1286,12 @@ var GSRSAPI = {
                 scr.addArgument = function (arg) {
                     if (arg._type !== "argument") {
                         arg = Argument.builder().mix(arg);
-                    };
+                    }
                     scr.arguments.push(arg);
                     scr.argMap[arg.getKey()] = arg;
                     return scr;
                 };
+                scr.validForSheetCreation = true;
                 scr.setKey = function (key) {
                     scr.key = key;
                     return scr;
@@ -1304,7 +1317,7 @@ var GSRSAPI = {
 
                 scr.getArgumentByName = function (narg) {
                     var l = _.filter(scr.arguments, function (a) {
-                        return a.name === narg
+                        return a.name === narg;
                     });
                     if (l.length === 0)
                         return undefined;
@@ -1357,7 +1370,6 @@ var GSRSAPI = {
                         args: {}
                     };
                     cargs.clearValues = function () {
-                        console.log('clearValues');
                         argSet = this.args;
                         _.forEach(this.args, function (val, key) {
                             argSet[key].value = argSet[key].defaultValue;
@@ -1368,7 +1380,7 @@ var GSRSAPI = {
                         var darg = scr.getArgument(key);
                         if (!darg) {
                             throw "No such argument '" + key + "' in script '" + scr.name + "'";
-                        };
+                        }
                         cargs.args[key] = Argument.builder().mix(scr.getArgument(key)).setValue(value);
                         return cargs;
                     };
@@ -1999,7 +2011,8 @@ function validate4Params(args) {
         return GGlob.JPromise.of(function (cb) {
             cb({
                 "valid": false, "message": "At least one of these arguments must have values: UUID, PT and BDNUM",
-            "overall": true});
+                "overall": true
+            });
         });
     }
     if (args.uuid.getValue()) {
@@ -2031,7 +2044,8 @@ function validate4Params(args) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
                         return {
                             "valid": false, "message": "The PT does not match the value for this record",
-                            "overall": true};
+                            "overall": true
+                        };
                     }
 
                     if (args.bdnum.getValue()) {
@@ -2064,7 +2078,8 @@ function validate4Params(args) {
                 } else {
                     return {
                         "valid": false, "message": "Could not find record with that UUID",
-                        "overall": true};
+                        "overall": true
+                    };
                 }
             });
     }
@@ -2114,7 +2129,8 @@ function validate4Params(args) {
                 } else {
                     return {
                         "valid": false, "message": "Could not find record with that PT",
-                        "overall": true};
+                        "overall": true
+                    };
                 }
             });
 
@@ -3589,7 +3605,8 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
 
 Script.builder().mix({
     name: "Create Substance from SD File",
-    description: "Creates a brand new substance record using data read in from an SD file"
+    description: "Creates a brand new substance record using data read in from an SD file",
+    validForSheetCreation: false
 })
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the new substance", required: true,
@@ -3739,8 +3756,7 @@ Script.builder().mix({
                 console.log("Creating property " + propName);
                 var prop = Property.builder().setName(propName);
                 var floatVal = parseFloat(args[arg].getValue());
-                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT'))
-                {
+                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT')) {
                     prop.setPropertyStringValue(args[arg].getValue());
                 }
                 else {
@@ -4091,7 +4107,9 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
         Scripts.addScript(s);
     });
 
-Script.builder().mix({ name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)" })
+Script.builder().mix({
+    name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
+        validForSheetCreation: false})
     .addArgument({
         "key": "molfile", name: "Molfile", description: "structure to save", required: true
     })
@@ -4104,7 +4122,8 @@ Script.builder().mix({ name: "Save Temporary Structure", description: "Saves a m
                     return "Error: not authenticated";
                 }
                 if (typeof s === 'object' && !s.valid) {
-                    return s.message;
+                    if (s.message) return s.message;
+                    else return "an error occurred";
                 }
                 return s.Structure.Id;
             });

@@ -45,5 +45,9 @@ namespace gov.ncats.ginas.excel.tools.Providers
             return new ImgCallback(t);
         }
 
+        public static Update2Callback CreateUpdate2Callback(Range r1, Range r2)
+        {
+            return new Update2Callback(r1, r2);
+        }
     }
 }

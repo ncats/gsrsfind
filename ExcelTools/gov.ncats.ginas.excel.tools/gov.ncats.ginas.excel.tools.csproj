@@ -278,6 +278,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\ConfigurationForm.resx">
       <DependentUpon>ConfigurationForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\RetrievalForm.resx">
       <DependentUpon>RetrievalForm.cs</DependentUpon>
@@ -289,6 +290,10 @@
     <None Include="etc\g-srs.config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="etc\g-srs_controller.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="etc\g-srs_controller.js.safe" />
     <None Include="get.snk" />
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
     <Content Include="etc\g-srs-config.txt">
@@ -339,9 +344,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="etc\g-srs_controller.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="etc\g-srs_controller.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="etc\g-srs_controller.html">
