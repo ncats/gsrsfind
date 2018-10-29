@@ -757,6 +757,98 @@ namespace ginasExcelUnitTests
             SheetUtils.CheckSDSheetForDuplicates(sheet, messages, CurrentConfiguration.SelectedServer.ServerUrl);
             Assert.AreEqual(0, messages.Count);
         }
+
+        [TestMethod]
+        public void HandleSDFileImportTest()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet) workbook.Sheets.Item[1];
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            SDFileProcessor processor = new SDFileProcessor();
+            try
+            {
+
+
+                processor.SetScriptExecutor(scriptExecutorMock);
+                string sdFilePath = @"..\..\..\Test_Files\INN_119 first 2.sdf";
+                string fullSdFilePath = Path.GetFullPath(sdFilePath);
+
+                string[] fileFieldNames = { "Molfile", "Formula", "MolWeight", "MolfileName", "cas_rn", "cas_index_name", SDFileProcessor.FIELD_NAME_UNIQUENESS };
+
+                processor.HandleSDFileImport(fullSdFilePath, worksheet);
+                string expectedFirstCellData = "BATCH:" + SDFileProcessor.SD_LOADING_SCRIPT_NAME;
+                string actualFirstCellData = worksheet.Range["A1"].FormulaR1C1.ToString();
+                Assert.AreEqual(expectedFirstCellData, actualFirstCellData);
+                for (int col = 2; col < fileFieldNames.Length + 1; col++)
+                {
+                    string cellAddress = SheetUtils.GetColumnName(col) + "1";
+                    Range range = worksheet.Range[cellAddress];
+                    string actual = range.FormulaR1C1.ToString();
+                    Assert.AreEqual(fileFieldNames[col - 2], actual);
+                }
+            }
+            finally
+            {
+                workbook.Close(false);
+            }
+            
+        }
+
+        [TestMethod]
+        public void SDFileProcessorStartOperationTest()
+        {
+            string filePath = @"..\..\..\Test_Files\INN_119.sdf";
+            filePath = Path.GetFullPath(filePath);
+
+            SDFileUtils sDFileUtils = new SDFileUtils();
+            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(filePath);
+
+            SheetUtils sheetUtils = new SheetUtils();
+            SDFileProcessor sDFileProcessor = new SDFileProcessor();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            sDFileProcessor.SetScriptExecutor(scriptExecutorMock);
+
+            FieldInfo sheetUtilInfo = sDFileProcessor.GetType().GetField("_sheetUtils", BindingFlags.NonPublic | BindingFlags.Instance);
+            sheetUtilInfo.SetValue(sDFileProcessor, sheetUtils);
+
+            Dictionary<string, int> fieldNamesToColumn = new Dictionary<string, int>();
+            fieldNamesToColumn.Add("Molfile", 2);
+            fieldNamesToColumn.Add("Formula", 3);
+            fieldNamesToColumn.Add("MolWeight", 4);
+            fieldNamesToColumn.Add("MolfileName", 5);
+            fieldNamesToColumn.Add("cas_rn", 6);
+            fieldNamesToColumn.Add("cas_index_name", 7);
+            FieldInfo fieldNamesToColumnsInfo = sDFileProcessor.GetType().GetField("_fieldNamesToColumns", BindingFlags.NonPublic 
+                | BindingFlags.Instance);
+            fieldNamesToColumnsInfo.SetValue(sDFileProcessor, fieldNamesToColumn);
+
+            ImageOps imageOps = new ImageOps();
+            sheetUtils.ImageOpsHandle = imageOps;
+            FieldInfo fileDataInfo = sDFileProcessor.GetType().GetField("_fileData", BindingFlags.NonPublic | BindingFlags.Instance);
+            fileDataInfo.SetValue(sDFileProcessor, sDFileRecords);
+
+            PropertyInfo configuratioInfo = sDFileProcessor.GetType().BaseType.GetProperty("GinasConfiguration", BindingFlags.NonPublic |
+                BindingFlags.Instance);
+            configuratioInfo.SetValue(sDFileProcessor, FileUtils.GetGinasConfiguration());
+            FieldInfo callbackInfo = sDFileProcessor.GetType().BaseType.GetField("Callbacks", BindingFlags.NonPublic | BindingFlags.Instance);
+            callbackInfo.SetValue(sDFileProcessor, new Dictionary<string, Callback>());
+            Workbook workbook = excel.Workbooks.Add();
+            try
+            {
+                Worksheet sheet = (Worksheet)workbook.Sheets.Item[1];
+                FieldInfo sheetInfo = sDFileProcessor.GetType().GetField("_worksheet", BindingFlags.NonPublic | BindingFlags.Instance);
+                sheetInfo.SetValue(sDFileProcessor, sheet);
+                sDFileProcessor.StartOperation();
+                
+                Dictionary<string, Callback> callbacks = (Dictionary<string, Callback>)callbackInfo.GetValue(sDFileProcessor);
+                Assert.AreEqual(sDFileRecords.Count, callbacks.Count);
+            }
+            finally
+            {
+                workbook.Close(false);
+            }
+        }
+
         private Workbook ReadDefaultExcelWorkbook()
         {
 
@@ -765,6 +857,7 @@ namespace ginasExcelUnitTests
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             return workbook;
         }
+
 
         internal  Workbook ReadExcelWorkbook(string filePath)
         {

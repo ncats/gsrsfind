@@ -70,13 +70,13 @@ var GSRSAPI = {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
                     if (b) console.log('we have b');
-                    else console.log('no b');
+                    else console.log('initially no b');
 
                     console.log('in httpProcess, req.skipJson: ' + req.skipJson);
                     if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
-                        b = req._q;
+                        b = b ? b : req._q;
                     }
                     if (req._url.match(/.*[?]/)) {
                         req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
@@ -96,6 +96,7 @@ var GSRSAPI = {
                         console.log(' at ' + _.now());
                         cb(response);
                     };
+                    console.log('b: ' + JSON.stringify(b));
                     $.ajax({
                         url: req._url,
                         /*jsonp: cbackname,*/
@@ -437,7 +438,8 @@ var GSRSAPI = {
                         .url(url)
                         .method("POST")
                         .setSkipJson(true)
-                        .setContents({ "q": smi });
+                        .body(smi )
+                        .setContents({ "body": smi });
                     return g_api.httpProcess(req)
                         .andThen(function (tmp) {
                             console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));

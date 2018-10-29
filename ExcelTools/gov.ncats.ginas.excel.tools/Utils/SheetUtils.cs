@@ -355,7 +355,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
                     Range cellForStructureID = worksheet.Range[cellForStructureIdName];
                     rangeWrapper = RangeWrapperFactory.CreateTwoRangeWrapper(currentCell, cellForStructureID);
-                    //ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
+                    ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
                 }
             }
             return rangeWrapper;
@@ -477,22 +477,30 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return 1;
         }
 
-        public static void CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
+        public static async Task CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
         {
             string molfileFieldName = "Molfile";
             string importStatusFieldName = "Import Status";
+            string UniquenessFieldName = "Uniqueness";
+
             Range firstRow = (Range)worksheet.Rows[1];
             int molfileColumn = 0;
             int statusColumn = 0;
+            int uniquenessColumn = 0;
+            firstRow = worksheet.Application.Intersect(firstRow, worksheet.UsedRange);
             foreach (Range cell in firstRow.Cells)
             {
                 if( cell.Value2 != null && cell.Value2.Equals(molfileFieldName))
                 {
                     molfileColumn = cell.Column;
                 }
-                else if(cell.Value2 != null && cell.Value2.Equals(importStatusFieldName))
+                else if(cell.Value2 != null && cell.Value2.ToString().Equals(importStatusFieldName, StringComparison.CurrentCultureIgnoreCase))
                 {
                     statusColumn = cell.Column;
+                }
+                else if( cell.Value2 != null && cell.Value2.ToString().Equals(UniquenessFieldName, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    uniquenessColumn = cell.Column;
                 }
                 if (molfileColumn > 0 && statusColumn > 0) break;
             }
@@ -506,19 +514,22 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 statusColumn = 20;
             }
-            Range molfileColumnRange = (Range) worksheet.Columns[0, molfileColumn];
+            Range molfileColumnRange = (Range) worksheet.Columns[ molfileColumn];
             Range fullMolfileRange = molfileColumnRange.EntireColumn;
             fullMolfileRange = worksheet.Application.Intersect(fullMolfileRange, worksheet.UsedRange);
             foreach(Range cell in fullMolfileRange)
             {
-                if( cell.Value2 != null )
+                if( cell.Value2 != null && !cell.Value2.Equals("Molfile"))
                 {
-                    Task<StructureQueryResult> results = RestUtils.SearchMolfile((string) cell.Value2, serverUrl);
-                    string message = "";
-                    if (results.Result.Content.Length == 0) message = "Unique";
-                    else message = "At least one duplicate: " + results.Result.Content[0].PrimaryTerm;
+                    string cellIdUniqueness = GetColumnName(uniquenessColumn) + cell.Row;
+                    Range uniquenessCell = worksheet.Range[cellIdUniqueness];
+                    string structureId = await RestUtils.SaveMolfileAndDisplay(cell.Value2.ToString(), cell, serverUrl, uniquenessCell);
+                    //Task<StructureQueryResult> results = RestUtils.SearchMolfile(structureId, serverUrl);
+                    //string message = "";
+                    //if (results.Result.Content.Length == 0) message = "Unique";
+                    //else message = "At least one duplicate: " + results.Result.Content[0].PrimaryTerm;
 
-                    worksheet.Range[cell.Row, statusColumn].FormulaR1C1 = message;
+                    //worksheet.Range[cell.Row, statusColumn].FormulaR1C1 = message;
                 }
             }
             

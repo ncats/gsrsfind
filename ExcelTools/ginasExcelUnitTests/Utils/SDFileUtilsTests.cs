@@ -6,8 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Reflection;
 
 using gov.ncats.ginas.excel.tools.Model;
+using ginasExcelUnitTests.Model;
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 namespace gov.ncats.ginas.excel.tools.Utils.Tests
 {
@@ -20,17 +23,17 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             string input1 = ">  <Formula> (1)";
             string expectedName = "Formula";
             SDFileUtils sDFileUtils = new SDFileUtils();
-            string actualName = sDFileUtils.GetFieldName(input1);
+            string actualName = SDFileUtils.GetFieldName(input1);
             Assert.AreEqual(expectedName, actualName);
 
             string input2 = ">  <MolfileName>";
             expectedName = "MolfileName";
-            actualName = sDFileUtils.GetFieldName(input2);
+            actualName = SDFileUtils.GetFieldName(input2);
             Assert.AreEqual(expectedName, actualName);
 
             string input3 = ">  <cas_index_name> (2)";
             expectedName = "cas_index_name";
-            actualName = sDFileUtils.GetFieldName(input3);
+            actualName = SDFileUtils.GetFieldName(input3);
             Assert.AreEqual(expectedName, actualName);
         }
 
@@ -107,9 +110,11 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             expectedFieldNames.AddRange(expectedNamesArray);
 
             SDFileUtils sDFileUtils = new SDFileUtils();
-            List<string> actualFieldNames = sDFileUtils.GetUniqueFieldNames(records);
+            List<string> actualFieldNames = SDFileUtils.GetUniqueFieldNames(records);
             Assert.AreEqual(expectedFieldNames.Count, actualFieldNames.Count);
             expectedFieldNames.ForEach(n => Assert.IsTrue(actualFieldNames.Contains(n)));
         }
+
+
     }
 } 
