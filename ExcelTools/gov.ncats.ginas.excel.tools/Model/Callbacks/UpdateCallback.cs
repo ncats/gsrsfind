@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
 using Microsoft.Office.Interop.Excel;
 
@@ -10,6 +10,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 {
     public class UpdateCallback : Callback
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Range statusRange;
         const XlRgbColor COLOR_STARTING = XlRgbColor.rgbGreen;
         const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbYellow;
@@ -20,7 +21,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             statusRange = status;
         }
 
-        public new void Execute(dynamic res)
+        public new virtual void Execute(dynamic res)
         {
             base.is_executed = true;
             if (res is string)
@@ -31,6 +32,11 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             {
                 GinasResult result = res as GinasResult;
                 SetRangeText(result.message);
+            }
+            else if( res is Dictionary<string, string> data )
+            {
+                //log.DebugFormat("processing object of type " + ((object)res).GetType().Name);
+                SetRangeText(data.Values.First());
             }
         }
 

@@ -345,11 +345,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-        private void EndProcessNotification()
+        protected override void EndProcessNotification()
         {
             //dialog itself will handle saving of debug info.
             StatusUpdater.UpdateStatus("Completed");
-            this._notified = true;
+            _notified = true;
         }
 
         public void CheckAllCallbacks(Object source, ElapsedEventArgs e)

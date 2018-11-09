@@ -81,6 +81,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 HandleDebugInfoSave();
             }
+            if( CurrentOperationType == OperationType.ProcessSdFile)
+            {
+                this.Close();
+            }
         }
 
         internal void LoadStartup()
@@ -123,6 +127,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
+                log.Warn("detected NAVIGATION_CANCELED");
                 string html = FileUtils.GetErrorHtml();
                 html = html.Replace("$MESSAGE1$", "Error loading initial ginas page");
 
@@ -132,6 +137,11 @@ namespace gov.ncats.ginas.excel.tools.UI
                 webBrowser1.DocumentText = html;
                 webBrowser1.Visible = true;
                 Visible = true;
+                if (CurrentOperationType == OperationType.ProcessSdFile)
+                {
+                    Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
+                }
+
             }
         }
 

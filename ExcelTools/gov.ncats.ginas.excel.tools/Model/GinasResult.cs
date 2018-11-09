@@ -25,5 +25,11 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         }
+
+        public object[] matches
+        {
+            get;
+            set;
+        }
     }
 }

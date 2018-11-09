@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.Office.Interop.Excel;
@@ -10,10 +11,18 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 {
     public class Update2Callback :UpdateCallback
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Range molfileRange;
         const XlRgbColor COLOR_STARTING = XlRgbColor.rgbGreen;
-        const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbAntiqueWhite;
-        const XlRgbColor COLOR_ERROR = XlRgbColor.rgbAquamarine;
+        const XlRgbColor COLOR_ERROR = XlRgbColor.rgbAntiqueWhite;
+        const XlRgbColor COLOR_HAS_MATCHES = XlRgbColor.rgbIndianRed;
+        const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbAquamarine;
+
+        public GinasToolsConfiguration GinasConfiguration
+        {
+            get;
+            set;
+        }
 
         public Update2Callback(Range statusRange) : base(statusRange)
         {
@@ -26,5 +35,41 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
             molfileRange = molfileRangeParm;
         }
 
+        public override void Execute(dynamic o)
+        {
+            if (o is GinasResult result)
+            {
+                string message = result.message;
+                string structIdIntro = "structureid=";
+                int pos = message.IndexOf(structIdIntro);
+                if (pos > -1)
+                {
+                    string structureId = message.Substring(pos + structIdIntro.Length);
+                    log.DebugFormat("Isolated structure ID: {0}", structureId);
+
+                    string structureImageUrl = GinasConfiguration.SelectedServer.ServerUrl 
+                        + "img/" + structureId + ".png";
+                    log.DebugFormat("using structure URL {0}", structureImageUrl);
+                    ImageOps.AddImageCaption(molfileRange, structureImageUrl, 
+                        GinasConfiguration.StructureImageSize);
+                    if (result.matches == null || result.matches.Length == 0)
+                    {
+                        base.Execute("Unique");
+                        molfileRange.EntireRow.Interior.Color = COLOR_SUCCESS;
+                    }
+                    else
+                    {
+                        base.Execute("Duplicate(s) found");
+                        molfileRange.EntireRow.Interior.Color = COLOR_HAS_MATCHES;
+                    }
+                }
+                else
+                {
+                    base.Execute("Error looking up this structure");
+                    molfileRange.EntireRow.Interior.Color = COLOR_ERROR;
+                }
+            }
+
+        }
     }
 }

@@ -121,22 +121,17 @@ namespace gov.ncats.ginas.excel.tools
             
             if (string.IsNullOrEmpty(sdFilePath)) return;
 
-            SDFileProcessor sDFileUtils = new SDFileProcessor();
+            SDFileProcessor sDFileProcessor = new SDFileProcessor();
             
             RetrievalForm form = new RetrievalForm();
-            sDFileUtils.SetScriptExecutor(form);
+            sDFileProcessor.SetScriptExecutor(form);
             form.CurrentOperationType = OperationType.ProcessSdFile;
-            form.Controller = sDFileUtils;
+            form.Controller = sDFileProcessor;
             form.Visible = false;
             form.SetSize(1);
             form.Show();
-            sDFileUtils.SetStatusUpdater(form);
-            sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
-            if( UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
-            {
-                SheetUtils.SetupRemainingColumns((Excel.Worksheet)window.ActiveSheet);
-                form.Close();
-            }
+            sDFileProcessor.SetStatusUpdater(form);
+            sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
         }
 
         private void buttonSelectPT_Click(object sender, RibbonControlEventArgs e)
@@ -148,7 +143,17 @@ namespace gov.ncats.ginas.excel.tools
         private void buttonAssureColumns_Click(object sender, RibbonControlEventArgs e)
         {
             Excel.Window window = e.Control.Context;
-            SheetUtils.SetupRemainingColumns((Excel.Worksheet) window.ActiveSheet);
+            SDFileProcessor sDFileProcessor = new SDFileProcessor();
+
+            RetrievalForm form = new RetrievalForm();
+            sDFileProcessor.SetScriptExecutor(form);
+            form.CurrentOperationType = OperationType.ProcessSdFile;
+            form.Controller = sDFileProcessor;
+            //form.Visible = false;
+            //form.SetSize(1);
+            form.Show();
+            sDFileProcessor.SetStatusUpdater(form);
+            sDFileProcessor.ManageSetupRemainingColumns();
         }
     }
 }

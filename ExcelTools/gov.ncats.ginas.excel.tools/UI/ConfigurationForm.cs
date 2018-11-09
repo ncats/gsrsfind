@@ -81,7 +81,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             checkBoxSortVocabs.Checked = CurrentConfiguration.SortVocabsAlphabetically;
             comboBoxURLs.SelectedIndexChanged += ComboBoxURLs_SelectedIndexChanged;
             comboBoxURLs.TextChanged += ComboBoxURLs_TextChanged;
-            
+
+            textBoxImageSize.Text = CurrentConfiguration.StructureImageSize.ToString();
         }
 
         private void ComboBoxURLs_TextChanged(object sender, EventArgs e)
@@ -126,7 +127,12 @@ namespace gov.ncats.ginas.excel.tools.UI
                 log.WarnFormat("Unable to get a number from text box value {0}",
                     textBoxExpirationOffset.Text);
             }
-            
+
+            if( float.TryParse(textBoxImageSize.Text, out tempFloat))
+            {
+                int structureImageSize = Convert.ToInt32( Math.Round(tempFloat));
+                CurrentConfiguration.StructureImageSize = structureImageSize;
+            }
             Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
 
             DialogResult = DialogResult.OK;

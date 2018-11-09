@@ -355,7 +355,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
                     Range cellForStructureID = worksheet.Range[cellForStructureIdName];
                     rangeWrapper = RangeWrapperFactory.CreateTwoRangeWrapper(currentCell, cellForStructureID);
-                    ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
+                    //MAM 6 November, really
+                    //ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
                 }
             }
             return rangeWrapper;
@@ -401,7 +402,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
-        public static void SetupRemainingColumns(Worksheet worksheet)
+        public void SetupRemainingColumns(Worksheet worksheet, ScriptUtils scriptUtils = null)
         {
             List<string> columnHeaders = GetColumnHeaders(worksheet);
             string[] requiredParms = {  "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS",
@@ -418,6 +419,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     log.DebugFormat("Setting header {0} to {1}", newRangeAddress, parmName);
                 }
             }
+            if (scriptUtils == null)
+            {
+                scriptUtils = new ScriptUtils();
+            }
+            scriptUtils.ScriptName = SDFileProcessor.SD_LOADING_SCRIPT_NAME;
+            scriptUtils.ScriptExecutor = ScriptExecutor;
+            scriptUtils.StartVocabularyRetrievals();
+
             List<string> messages = new List<string>();
             messages.Add("Your sheet now has the required columns for creating a new substance.");
             messages.Add("Please fill in any values and use 'Load data' to complete the process");
@@ -523,7 +532,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 {
                     string cellIdUniqueness = GetColumnName(uniquenessColumn) + cell.Row;
                     Range uniquenessCell = worksheet.Range[cellIdUniqueness];
-                    string structureId = await RestUtils.SaveMolfileAndDisplay(cell.Value2.ToString(), cell, serverUrl, uniquenessCell);
+                    //MAM 6 November
+                    //string structureId = await RestUtils.SaveMolfileAndDisplay(cell.Value2.ToString(), cell, serverUrl, uniquenessCell);
                     //Task<StructureQueryResult> results = RestUtils.SearchMolfile(structureId, serverUrl);
                     //string message = "";
                     //if (results.Result.Content.Length == 0) message = "Unique";

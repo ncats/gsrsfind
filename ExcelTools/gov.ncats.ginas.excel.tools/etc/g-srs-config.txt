@@ -26,5 +26,6 @@
   "SortVocabsAlphabetically": true,
   "BatchSize": 50,
   "ExpirationOffset" :  200,
-  "ApiPath" : "api/v1/"
+  "ApiPath" : "api/v1/",
+  "StructureImageSize" : 200;
 }

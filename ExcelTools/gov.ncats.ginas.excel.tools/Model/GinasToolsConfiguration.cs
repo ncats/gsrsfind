@@ -75,6 +75,12 @@ namespace gov.ncats.ginas.excel.tools.Model
 
             return stringBuilder.ToString();
         }
+
+        public int StructureImageSize
+        {
+            get;
+            set;
+        }
     }
 
     public class GinasServer

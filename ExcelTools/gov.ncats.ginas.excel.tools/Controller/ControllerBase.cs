@@ -71,6 +71,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             set;
         }
 
+        public virtual void CancelOperation(string reason)
+        {
+
+        }
+
         protected IStatusUpdater StatusUpdater;
 
         public void SetStatusUpdater(IStatusUpdater statusUpdater)

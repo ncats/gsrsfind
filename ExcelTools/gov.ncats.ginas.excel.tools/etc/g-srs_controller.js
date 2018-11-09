@@ -72,11 +72,14 @@ var GSRSAPI = {
                     if (b) console.log('we have b');
                     else console.log('initially no b');
 
+                    var contentType = 'application/json';
+
                     console.log('in httpProcess, req.skipJson: ' + req.skipJson);
                     if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
                         b = b ? b : req._q;
+                        contentType = 'text/plain';
                     }
                     if (req._url.match(/.*[?]/)) {
                         req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
@@ -101,7 +104,7 @@ var GSRSAPI = {
                         url: req._url,
                         /*jsonp: cbackname,*/
                         dataType: GlobalSettings.httpType(),
-                        contentType: 'application/json',
+                        contentType: contentType,
                         type: req._method,
                         data: b,
                         beforeSend: function (request) {
@@ -3687,8 +3690,7 @@ Script.builder().mix({
         defaultValue: false, required: false
     })
     .setExecutor(function (args) {
-        console.log('Starting in Create Substance executor');
-
+        console.log('Starting in Create Substance from SD File executor');
         var pt = args.pt.getValue();
         var substanceClass = args['substance class'].getValue();
         var dataPublic = args.pd.isYessy();
@@ -3949,8 +3951,7 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
     });
 
 
-
-/*Add a volume of distributino*/
+/*Add a volume of distribution*/
 Script.builder().mix({ name: "Volume of Distribution", description: "Add values to Volume of Distribution Property for a substance record" })
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
@@ -4123,11 +4124,21 @@ Script.builder().mix({
                 if (typeof s === 'string' && s.indexOf('<html>') > -1) {
                     return "Error: not authenticated";
                 }
-                if (typeof s === 'object' && !s.valid) {
+                if (typeof s === 'object' && (!s.valid && !s.structure)) {
+                    console.log('detected error');
                     if (s.message) return s.message;
                     else return "an error occurred";
                 }
-                return s.Structure.Id;
+                console.log('going to return s.structure.id ' + s.structure.id);
+                return SubstanceFinder.getExactStructureMatches(s.structure.id)
+                    .andThen(function (searchResult) {
+                        console.log('searchResult: ' + JSON.stringify(searchResult));
+                        var msg = {
+                            valid: true, message: "structureid=" + s.structure.id,
+                            matches: searchResult.content
+                        };
+                        return msg;
+                });
             });
 
     })
