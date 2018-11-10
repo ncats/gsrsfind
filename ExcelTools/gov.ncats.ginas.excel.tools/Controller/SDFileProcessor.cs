@@ -21,6 +21,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         internal const string SDF_RECORD_DELIM = "$$$$";
         internal const string MOLFILE_FIELD_NAME = "Molfile";
         internal const string SD_LOADING_SCRIPT_NAME = "Create Substance from SD File";
+        internal const string DEFAULT_SUBSTANCE_TYPE = "chemical";
         internal const string FIELD_NAME_UNIQUENESS = "Uniqueness";
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ScriptUtils scriptUtils = new ScriptUtils();
@@ -242,8 +243,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 log.DebugFormat("{0} instantiated scriptUtilities", MethodBase.GetCurrentMethod().Name);
                 scriptUtils = new ScriptUtils();
             }
+            scriptUtils.ScriptName = SD_LOADING_SCRIPT_NAME;
+            scriptUtils.ScriptExecutor = ScriptExecutor;
             _sheetUtils.ScriptExecutor = ScriptExecutor;
-            _sheetUtils.SetupRemainingColumns(_worksheet, scriptUtils);
+            scriptUtils.StartVocabularyRetrievals();
+            
         }
 
         public override void CancelOperation(string reason)
@@ -272,6 +276,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 vocabName, scriptUtils.ExpectedVocabularies.Count);
             if (scriptUtils.ExpectedVocabularies.Count == 0)
             {
+                _sheetUtils.SetupRemainingColumns(_worksheet, ScriptExecutor, scriptUtils);
                 EndProcessNotification();
             }
         }

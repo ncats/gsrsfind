@@ -149,10 +149,11 @@ namespace gov.ncats.ginas.excel.tools
             sDFileProcessor.SetScriptExecutor(form);
             form.CurrentOperationType = OperationType.ProcessSdFile;
             form.Controller = sDFileProcessor;
-            //form.Visible = false;
-            //form.SetSize(1);
+            form.Visible = false;
+            form.SetSize(1);
             form.Show();
             sDFileProcessor.SetStatusUpdater(form);
+            sDFileProcessor.SetScriptExecutor(form);
             sDFileProcessor.ManageSetupRemainingColumns();
         }
     }

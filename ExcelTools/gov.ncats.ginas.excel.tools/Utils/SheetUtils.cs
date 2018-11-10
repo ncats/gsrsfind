@@ -147,39 +147,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 cell.Font.ThemeColor = XlThemeColor.xlThemeColorDark1;
                 cell.Font.TintAndShade = -4.99893185216834E-02;
                 //see about a controlled vocabulary
-                string vocabularyName = scriptUtils.GetVocabName( i);
-                List<VocabItem> vocabItems = scriptUtils.GetVocabItems(vocabularyName);
-                if (vocabItems.Count > 0)
-                {
-                    for (int row = 1; row <= numberOfRows; row++)
-                    {
-                        Range vocabCell = cell.Offset[row, 0];
-                        log.DebugFormat("Will add {0} total vocabulary items to {1} on row {2}", vocabItems.Count,
-                            vocabCell.Address, row);
-                        vocabCell.Validation.Delete();
-                        //the string contains a reference to a range of cells in a hidden sheet
-                        // that contain the allowed values.
-                        string vocabString = CreateVocabularyList(workbook, vocabularyName,
-                            vocabItems.Select(v => v.Display).ToList(), sortAlpha);
-                        log.Debug("using vocabString: " + vocabString);
-                        try
-                        {
-                            vocabCell.Validation.Add(XlDVType.xlValidateList,
-                                XlDVAlertStyle.xlValidAlertStop,
-                                XlFormatConditionOperator.xlEqual, vocabString);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error(ex);
-                        }
-                        vocabCell.Validation.IgnoreBlank = true;
-                        vocabCell.Validation.InCellDropdown = true;
-                        vocabCell.Validation.InputTitle = "";
-                        vocabCell.Validation.ErrorMessage = "Please select one of the values listed and preserve text case!";
-                        vocabCell.Validation.ShowError = true;
-                        vocabCell.Validation.ShowInput = true;
-                    }
-                }
+                string vocabularyName = scriptUtils.GetVocabName(i);
+
+                AddVocabulary(workbook, scriptUtils, scriptExecutor, sortAlpha, vocabularyName,
+                    numberOfRows, cell);
             }
 
             topCorner.Offset[0, argListLength + 1].FormulaR1C1 = "IMPORT STATUS";
@@ -191,6 +162,43 @@ namespace gov.ncats.ginas.excel.tools.Utils
             nsheet.Activate();
         }
 
+        public void AddVocabulary(Workbook workbook, ScriptUtils scriptUtils,
+                IScriptExecutor scriptExecutor, bool sortAlpha, string vocabularyName,
+                int numberOfRows, Range cell)
+        {
+            List<VocabItem> vocabItems = scriptUtils.GetVocabItems(vocabularyName);
+            if (vocabItems.Count > 0)
+            {
+                for (int row = 1; row <= numberOfRows; row++)
+                {
+                    Range vocabCell = cell.Offset[row, 0];
+                    log.DebugFormat("Will add {0} total vocabulary items to {1} on row {2}", vocabItems.Count,
+                        vocabCell.Address, row);
+                    vocabCell.Validation.Delete();
+                    //the string contains a reference to a range of cells in a hidden sheet
+                    // that contain the allowed values.
+                    string vocabString = CreateVocabularyList(workbook, vocabularyName,
+                        vocabItems.Select(v => v.Display).ToList(), sortAlpha);
+                    log.Debug("using vocabString: " + vocabString);
+                    try
+                    {
+                        vocabCell.Validation.Add(XlDVType.xlValidateList,
+                            XlDVAlertStyle.xlValidAlertStop,
+                            XlFormatConditionOperator.xlEqual, vocabString);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
+                    vocabCell.Validation.IgnoreBlank = true;
+                    vocabCell.Validation.InCellDropdown = true;
+                    vocabCell.Validation.InputTitle = "";
+                    vocabCell.Validation.ErrorMessage = "Please select one of the values listed and preserve text case!";
+                    vocabCell.Validation.ShowError = true;
+                    vocabCell.Validation.ShowInput = true;
+                }
+            }
+        }
         public string GetNewSheetName(Workbook workbook, string suggest)
         {
             string nsuggest = suggest;
@@ -252,13 +260,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string headerCellLabel = GetColumnName(column) + VOCABULARY_TEST_ROW;
             Range headerCell = vocabSheet.Range[headerCellLabel];//.Offset[(VOCABULARY_TEST_ROW - 1), (column - 1)];
             headerCell.FormulaR1C1 = vocabularyName;
-            if( sortAlpha)
+            if (sortAlpha)
             {
                 vocabularyItems.Sort(StringComparer.CurrentCultureIgnoreCase);
             }
             for (int item = 0; item < vocabularyItems.Count; item++)
             {
-                vocabSheet.Range["A1"].Offset[(item + 1), (column - 1)].FormulaR1C1 = 
+                vocabSheet.Range["A1"].Offset[(item + 1), (column - 1)].FormulaR1C1 =
                     vocabularyItems[item];
             }
             StringBuilder vocabRefStringBuilder = new StringBuilder();
@@ -292,7 +300,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 }
                 column++;
             }
-
             return 0;
         }
 
@@ -308,10 +315,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 string cellId = GetColumnName(column) + dataRow;
                 string result = data[part];
                 if (string.IsNullOrWhiteSpace(result) || result.Equals("[object Object]")) continue;
-                
+
                 if (ImageOps.IsImageUrl(result))
                 {
-                    if( Configuration.SelectedServer.LooksLikeSingleSignon()
+                    if (Configuration.SelectedServer.LooksLikeSingleSignon()
                         || ImageOps.RemoteFileExists(result))
                     {
                         log.Debug("(image)");
@@ -333,8 +340,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return string.Empty;
         }
 
-        public TwoRangeWrapper TransferSDDataToRow(Dictionary<string,string> data, Dictionary<string, int> columns, 
-            int dataRow,  Worksheet worksheet)
+        public TwoRangeWrapper TransferSDDataToRow(Dictionary<string, string> data, Dictionary<string, int> columns,
+            int dataRow, Worksheet worksheet)
         {
             log.DebugFormat("starting in {0}",
                 MethodBase.GetCurrentMethod().Name);
@@ -342,14 +349,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             log.DebugFormat("In {0}, columns.Keys.Count: {1}", MethodBase.GetCurrentMethod().Name,
                 columns.Keys.Count);
-            foreach(string fieldName in data.Keys)
+            foreach (string fieldName in data.Keys)
             {
                 int column = columns[fieldName];
                 string cellId = GetColumnName(column) + dataRow;
                 Range currentCell = worksheet.Range[cellId];
-                
+
                 currentCell.FormulaR1C1 = data[fieldName];
-                if( fieldName.Equals(SDFileProcessor.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
+                if (fieldName.Equals(SDFileProcessor.MOLFILE_FIELD_NAME, StringComparison.CurrentCultureIgnoreCase))
                 {
                     string cellForStructureIdName = GetColumnName(columns.Keys.Count) + dataRow;
                     log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
@@ -364,7 +371,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void SetColumnWidths(Worksheet sheet, List<int> columns, int width)
         {
-            foreach(int column in columns)
+            foreach (int column in columns)
             {
                 string cellID = GetColumnName(column) + "1";
                 Range cell = sheet.Range[cellID];
@@ -374,7 +381,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void SetRowHeights(Worksheet sheet, int height)
         {
-            foreach(Range row in sheet.UsedRange.Rows)
+            foreach (Range row in sheet.UsedRange.Rows)
             {
                 row.RowHeight = height;
             }
@@ -386,7 +393,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string columnName = GetColumnName(column);
             string message = "Mark Column " + columnName + "(" + column + ") as the Preferred Term ?";
 
-            if ( UIUtils.GetUserYesNoCancel( message, "Yes=Continue; No,Cancel=forget about it")
+            if (UIUtils.GetUserYesNoCancel(message, "Yes=Continue; No,Cancel=forget about it")
                 == DialogYesNoCancel.Yes)
             {
                 string selectionRangeAddress = GetColumnName(column + 2) + "1";
@@ -396,42 +403,58 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 Range ptLangHeader = activeRange.Worksheet.Range[newRangeAddress];
                 ptLangHeader.FormulaR1C1 = "PT";
                 FormatCellForParameter(ptLangHeader);
-
-           
-
             }
         }
 
-        public void SetupRemainingColumns(Worksheet worksheet, ScriptUtils scriptUtils = null)
+        public void SetupRemainingColumns(Worksheet worksheet, 
+            IScriptExecutor scriptExecutor, ScriptUtils scriptUtils = null)
         {
             List<string> columnHeaders = GetColumnHeaders(worksheet);
+            int numRows = worksheet.UsedRange.Rows.Count - 1;
+
             string[] requiredParms = {  "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS",
                 "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "FORCED", "IMPORT STATUS"};
-            foreach (string parmName in requiredParms)
-            {
-                if (!columnHeaders.Contains(parmName))
-                {
-                    Range lastCol = (Range) worksheet.UsedRange.Columns[worksheet.UsedRange.Columns.Count];
-                    string newRangeAddress = GetColumnName(lastCol.Column+1 ) + "1";
-                    Range headerItem = worksheet.Range[newRangeAddress];
-                    headerItem.FormulaR1C1 = parmName;
-                    FormatCellForParameter(headerItem);
-                    log.DebugFormat("Setting header {0} to {1}", newRangeAddress, parmName);
-                }
-            }
             if (scriptUtils == null)
             {
                 scriptUtils = new ScriptUtils();
             }
-            scriptUtils.ScriptName = SDFileProcessor.SD_LOADING_SCRIPT_NAME;
-            scriptUtils.ScriptExecutor = ScriptExecutor;
-            scriptUtils.StartVocabularyRetrievals();
+            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + SDFileProcessor.SD_LOADING_SCRIPT_NAME 
+                   + "');");
+            object lengthRaw = ScriptExecutor.ExecuteScript("tmpScript.arguments.length");
+            int argListLength = Convert.ToInt32(lengthRaw);
+            for (int i = 0; i < argListLength; i++)
+            {
+                object argNameRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").name");
+                string argName = (string)argNameRaw;
+                if( requiredParms.Contains( argName ) && !columnHeaders.Contains(argName))
+                {
+                    Range lastCol = (Range)worksheet.UsedRange.Columns[worksheet.UsedRange.Columns.Count];
+                    string newRangeAddress = GetColumnName(lastCol.Column + 1) + "1";
+                    Range headerItem = worksheet.Range[newRangeAddress];
+                    headerItem.FormulaR1C1 = argName;
+                    FormatCellForParameter(headerItem);
+                    log.DebugFormat("Setting header {0} to {1}", newRangeAddress, argName);
+                    if( argName.Equals("SUBSTANCE CLASS"))
+                    {
+                        for(int row = 2; row< numRows; row++)
+                        {
+                            string rangeName = GetColumnName(lastCol.Column + 1) + row;
+                            Range range = worksheet.Range[rangeName];
+                            range.FormulaR1C1 = SDFileProcessor.DEFAULT_SUBSTANCE_TYPE;
+                        }
+                    }
 
+                    string vocabularyName = scriptUtils.GetVocabName(i);
+                    AddVocabulary((Workbook)worksheet.Parent, scriptUtils,
+                        scriptExecutor, true, vocabularyName,
+                        numRows, headerItem);
+                }
+            }
             List<string> messages = new List<string>();
             messages.Add("Your sheet now has the required columns for creating a new substance.");
             messages.Add("Please fill in any values and use 'Load data' to complete the process");
 
-            if( !columnHeaders.Contains("PT"))
+            if (!columnHeaders.Contains("PT"))
             {
                 messages.Add("Note: you must also add or designate a 'PT' column!");
             }
@@ -441,7 +464,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static bool IsSheetBlank(Worksheet sheet)
         {
             return sheet.Application.WorksheetFunction.CountA(sheet.UsedRange) == 0;
-       }
+        }
 
         private static List<string> GetColumnHeaders(Worksheet worksheet)
         {
@@ -467,14 +490,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             object numberOfRowsObj = scriptExecutor.ExecuteScript("$('#numberOfRows').val()");
             log.DebugFormat("numberOfRowsObj : {0}", numberOfRowsObj);
-            if ( numberOfRowsObj != null )
+            if (numberOfRowsObj != null)
             {
                 try
                 {
                     int numberOfRows = Convert.ToInt32(numberOfRowsObj);
                     return numberOfRows;
                 }
-                catch(FormatException)
+                catch (FormatException)
                 {
                     log.WarnFormat("Error parsing number from {0}", numberOfRowsObj);
                 }
@@ -499,36 +522,36 @@ namespace gov.ncats.ginas.excel.tools.Utils
             firstRow = worksheet.Application.Intersect(firstRow, worksheet.UsedRange);
             foreach (Range cell in firstRow.Cells)
             {
-                if( cell.Value2 != null && cell.Value2.Equals(molfileFieldName))
+                if (cell.Value2 != null && cell.Value2.Equals(molfileFieldName))
                 {
                     molfileColumn = cell.Column;
                 }
-                else if(cell.Value2 != null && cell.Value2.ToString().Equals(importStatusFieldName, StringComparison.CurrentCultureIgnoreCase))
+                else if (cell.Value2 != null && cell.Value2.ToString().Equals(importStatusFieldName, StringComparison.CurrentCultureIgnoreCase))
                 {
                     statusColumn = cell.Column;
                 }
-                else if( cell.Value2 != null && cell.Value2.ToString().Equals(UniquenessFieldName, StringComparison.CurrentCultureIgnoreCase))
+                else if (cell.Value2 != null && cell.Value2.ToString().Equals(UniquenessFieldName, StringComparison.CurrentCultureIgnoreCase))
                 {
                     uniquenessColumn = cell.Column;
                 }
                 if (molfileColumn > 0 && statusColumn > 0) break;
             }
-            if( molfileColumn == 0)
+            if (molfileColumn == 0)
             {
                 messages.Add("No molfile column located");
                 return;
             }
             //temp hack:
-            if( statusColumn ==0)
+            if (statusColumn == 0)
             {
                 statusColumn = 20;
             }
-            Range molfileColumnRange = (Range) worksheet.Columns[ molfileColumn];
+            Range molfileColumnRange = (Range)worksheet.Columns[molfileColumn];
             Range fullMolfileRange = molfileColumnRange.EntireColumn;
             fullMolfileRange = worksheet.Application.Intersect(fullMolfileRange, worksheet.UsedRange);
-            foreach(Range cell in fullMolfileRange)
+            foreach (Range cell in fullMolfileRange)
             {
-                if( cell.Value2 != null && !cell.Value2.Equals("Molfile"))
+                if (cell.Value2 != null && !cell.Value2.Equals("Molfile"))
                 {
                     string cellIdUniqueness = GetColumnName(uniquenessColumn) + cell.Row;
                     Range uniquenessCell = worksheet.Range[cellIdUniqueness];
@@ -542,7 +565,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     //worksheet.Range[cell.Row, statusColumn].FormulaR1C1 = message;
                 }
             }
-            
+
         }
 
         private static void FormatCellForParameter(Range cell)
@@ -557,6 +580,5 @@ namespace gov.ncats.ginas.excel.tools.Utils
             cell.Font.TintAndShade = -4.99893185216834E-02;
 
         }
-
     }
 }

@@ -20,6 +20,7 @@ namespace ginasExcelUnitTests
     [TestClass]
     public class ExcelTests
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Application excel;
 
@@ -849,6 +850,39 @@ namespace ginasExcelUnitTests
             }
         }
 
+        [TestMethod]
+        public void CreateSheetTest()
+        {
+            Workbook workbook = ReadDefaultExcelWorkbook();
+            int numSheetsBefore = workbook.Sheets.Count;
+            ScriptUtils scriptUtils = new ScriptUtils();
+            scriptUtils.ScriptName = "Add Name";
+            MockRetrievalForm retrievalForm = new MockRetrievalForm();
+            //retrievalForm.Visible = false;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.ShowScripts;
+            retrievalForm.Show();
+            System.Threading.Thread.Sleep(30000);
+
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
+            int numSheetsAfter = workbook.Sheets.Count;
+            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            Worksheet newSheet = (Worksheet) workbook.Sheets["Add Name"];
+            string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
+            string debugInfo = (string)retrievalForm.ExecuteScript(script);
+            log.Debug(debugInfo);
+            Range cell1 = newSheet.Range["A1"];
+            string cell1Actual = (string) cell1.Value2;
+            Assert.AreEqual("BATCH:Add Name", cell1Actual);
+
+            Range cell2 = newSheet.Range["B1"];
+            string cell2Actual = (string)cell2.Value2;
+            Assert.AreEqual("UUID", cell2Actual);
+            //workbook.SaveAs(@"c:\temp\test.xlsx");
+            workbook.Close(false);
+        }
         private Workbook ReadDefaultExcelWorkbook()
         {
 
