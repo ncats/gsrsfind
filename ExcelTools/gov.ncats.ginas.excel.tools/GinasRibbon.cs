@@ -116,22 +116,31 @@ namespace gov.ncats.ginas.excel.tools
                 }
             }
 
-            string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
-                "Select one SD file");
-            
-            if (string.IsNullOrEmpty(sdFilePath)) return;
+            try
+            {
+                string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
+     "Select one SD file");
 
-            SDFileProcessor sDFileProcessor = new SDFileProcessor();
-            
-            RetrievalForm form = new RetrievalForm();
-            sDFileProcessor.SetScriptExecutor(form);
-            form.CurrentOperationType = OperationType.ProcessSdFile;
-            form.Controller = sDFileProcessor;
-            form.Visible = false;
-            form.SetSize(1);
-            form.Show();
-            sDFileProcessor.SetStatusUpdater(form);
-            sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
+                if (string.IsNullOrEmpty(sdFilePath)) return;
+
+                SDFileProcessor sDFileProcessor = new SDFileProcessor();
+
+                RetrievalForm form = new RetrievalForm();
+                sDFileProcessor.SetScriptExecutor(form);
+                form.CurrentOperationType = OperationType.ProcessSdFile;
+                form.Controller = sDFileProcessor;
+                //form.Visible = false;
+                //form.SetSize(1);
+                //form.Show();
+                sDFileProcessor.SetStatusUpdater(form);
+                sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet)window.Application.ActiveSheet);
+
+            }
+            catch(Exception ex)
+            {
+                UIUtils.ShowMessageToUser("Error during SD file import: " + ex.Message);
+                log.Debug(ex.StackTrace);
+            }
         }
 
         private void buttonSelectPT_Click(object sender, RibbonControlEventArgs e)

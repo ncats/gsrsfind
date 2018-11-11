@@ -50,8 +50,33 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
                     string structureImageUrl = GinasConfiguration.SelectedServer.ServerUrl 
                         + "img/" + structureId + ".png";
                     log.DebugFormat("using structure URL {0}", structureImageUrl);
-                    ImageOps.AddImageCaption(molfileRange, structureImageUrl, 
-                        GinasConfiguration.StructureImageSize);
+                    int maxAttempts = 3;
+                    int attempt = 0;
+                    bool addedStructure = false;
+                    while(!addedStructure && attempt < maxAttempts)
+                    {
+                        try
+                        {
+                            ImageOps.AddImageCaption(molfileRange, structureImageUrl,
+                                GinasConfiguration.StructureImageSize);
+                            addedStructure = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error(ex.StackTrace);
+                            if( attempt>= maxAttempts)
+                            {
+                                throw ex;
+                            }
+                            else
+                            {
+                                log.Error("Error adding structure image to cell. Will try again");
+                                System.Threading.Thread.Sleep(3000);
+                                attempt++;
+                            }
+                        }
+
+                    }
                     if (result.matches == null || result.matches.Length == 0)
                     {
                         base.Execute("Unique");

@@ -362,8 +362,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     log.DebugFormat("Using cellForStructureIdName: {0}", cellForStructureIdName);
                     Range cellForStructureID = worksheet.Range[cellForStructureIdName];
                     rangeWrapper = RangeWrapperFactory.CreateTwoRangeWrapper(currentCell, cellForStructureID);
-                    //MAM 6 November, really
-                    //ImageOpsHandle.CreateMolfileImage(currentCell, data[fieldName], cellForStructureID);
                 }
             }
             return rangeWrapper;
@@ -406,19 +404,19 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
-        public void SetupRemainingColumns(Worksheet worksheet, 
+        public void SetupRemainingColumns(Worksheet worksheet,
             IScriptExecutor scriptExecutor, ScriptUtils scriptUtils = null)
         {
             List<string> columnHeaders = GetColumnHeaders(worksheet);
             int numRows = worksheet.UsedRange.Rows.Count - 1;
 
             string[] requiredParms = {  "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS",
-                "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "FORCED", "IMPORT STATUS"};
+                "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "IMPORT STATUS"};
             if (scriptUtils == null)
             {
                 scriptUtils = new ScriptUtils();
             }
-            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + SDFileProcessor.SD_LOADING_SCRIPT_NAME 
+            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + SDFileProcessor.SD_LOADING_SCRIPT_NAME
                    + "');");
             object lengthRaw = ScriptExecutor.ExecuteScript("tmpScript.arguments.length");
             int argListLength = Convert.ToInt32(lengthRaw);
@@ -426,17 +424,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 object argNameRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").name");
                 string argName = (string)argNameRaw;
-                if( requiredParms.Contains( argName ) && !columnHeaders.Contains(argName))
+                if (requiredParms.Contains(argName) && !columnHeaders.Contains(argName))
                 {
-                    Range lastCol = (Range)worksheet.UsedRange.Columns[worksheet.UsedRange.Columns.Count];
-                    string newRangeAddress = GetColumnName(lastCol.Column + 1) + "1";
-                    Range headerItem = worksheet.Range[newRangeAddress];
-                    headerItem.FormulaR1C1 = argName;
-                    FormatCellForParameter(headerItem);
-                    log.DebugFormat("Setting header {0} to {1}", newRangeAddress, argName);
-                    if( argName.Equals("SUBSTANCE CLASS"))
+                    Range lastCol = SetOneHeader(worksheet, argName);
+                    if (argName.Equals("SUBSTANCE CLASS"))
                     {
-                        for(int row = 2; row< numRows; row++)
+                        for (int row = 2; row <= numRows+1; row++)
                         {
                             string rangeName = GetColumnName(lastCol.Column + 1) + row;
                             Range range = worksheet.Range[rangeName];
@@ -445,23 +438,40 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     }
 
                     string vocabularyName = scriptUtils.GetVocabName(i);
+                    Range headerItem = worksheet.Range[GetColumnName(lastCol.Column + 1) + "1"];
                     AddVocabulary((Workbook)worksheet.Parent, scriptUtils,
                         scriptExecutor, true, vocabularyName,
                         numRows, headerItem);
                 }
             }
+            SetOneHeader(worksheet, "IMPORT STATUS");
+            
             List<string> messages = new List<string>();
-            messages.Add("Your sheet now has the required columns for creating a new substance.");
-            messages.Add("Please fill in any values and use 'Load data' to complete the process");
-
             if (!columnHeaders.Contains("PT"))
             {
-                messages.Add("Note: you must also add or designate a 'PT' column!");
+                messages.Add("Your sheet now has most of the required columns for creating a new substance,");
+                messages.Add("but you must add or designate a 'PT' column!");
             }
+            else
+            {
+                messages.Add("Your sheet now has the required columns for creating a new substance.");
+            }
+            messages.Add("Please fill in any data values and use 'Load data' to complete the process");
             UIUtils.ShowMessageToUser(string.Join("\n", messages));
         }
-
-        public static bool IsSheetBlank(Worksheet sheet)
+        
+        private Range SetOneHeader(Worksheet worksheet, string headerText)
+        {
+            Range lastCol = (Range)worksheet.UsedRange.Columns[worksheet.UsedRange.Columns.Count];
+            string newRangeAddress = GetColumnName(lastCol.Column + 1) + "1";
+            Range headerItem = worksheet.Range[newRangeAddress];
+            headerItem.FormulaR1C1 = headerText;
+            FormatCellForParameter(headerItem);
+            log.DebugFormat("Setting header {0} to {1}", newRangeAddress, headerText);
+            return lastCol;
+        }
+            
+            public static bool IsSheetBlank(Worksheet sheet)
         {
             return sheet.Application.WorksheetFunction.CountA(sheet.UsedRange) == 0;
         }

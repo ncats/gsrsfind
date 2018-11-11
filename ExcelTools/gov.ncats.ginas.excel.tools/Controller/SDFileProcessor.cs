@@ -113,7 +113,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             
             GinasResult result = JSTools.GetGinasResultFromString(message);
             Update2Callback callback = Callbacks[resultsKey] as Update2Callback;
-            callback.Execute(result);
+            try
+            {
+                callback.Execute(result);
+            }
+            catch(Exception ex)
+            {
+                UIUtils.ShowMessageToUser("Error during SD File import: " + ex.Message);
+            }
             Callbacks.Remove(resultsKey);
 
             string statusMessage = string.Format("{0} records remain to process", Callbacks.Count);
@@ -130,14 +137,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 }
                 KeepCheckingCallbacks = false;
                 StatusUpdater.UpdateStatus(statusMessage);
-                if (UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
-                {
-                    ManageSetupRemainingColumns();
-                }
-                else
-                {
-                    EndProcessNotification();
-                }
+                ManageSetupRemainingColumns();
+                //if (UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
+                //{
+                //    ManageSetupRemainingColumns();
+                //}
+                //else
+                //{
+                //    EndProcessNotification();
+                //}
 
                 return true;
             }
@@ -180,6 +188,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         private void RunCallback(UpdateCallback updateCallback)
         {
             log.DebugFormat("RunCallback handling key {0}", updateCallback.getKey());
+            if (scriptUtils.ScriptExecutor == null) scriptUtils.ScriptExecutor = ScriptExecutor;
             scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey());
         }
 
