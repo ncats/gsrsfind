@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
@@ -14,6 +15,8 @@ using gov.ncats.ginas.excel.tools.Providers;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 using ginasExcelUnitTests.Model;
+using ginasExcelUnitTests.Utils;
+using gov.ncats.ginas.excel.tools.UI;
 
 namespace ginasExcelUnitTests
 {
@@ -22,30 +25,83 @@ namespace ginasExcelUnitTests
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        Application excel;
+        static Application excel;
+        static MockRetrievalForm retrievalForm = null;
+        static DBQueryUtils dBQueryUtils = new DBQueryUtils();
+        static bool scriptRunnerReady = false;
+        static ScriptUtils scriptUtils = new ScriptUtils();
 
-        public GinasToolsConfiguration CurrentConfiguration
+        private static void StartForm()
+        {
+            log.Debug("Starting in StartForm");
+            retrievalForm = new MockRetrievalForm();
+            System.Windows.Forms.Application.Run(retrievalForm);
+        }
+
+        public static void SetReady()
+        {
+            scriptRunnerReady = true;
+        }
+
+        public static GinasToolsConfiguration CurrentConfiguration
         {
             get;
             set;
         }
 
+        public static void ReceiveVocabulary(string rawVocab)
+        {
+            log.DebugFormat("ReceiveVocabulary will handle vocabulary ");
+            int delim1 = rawVocab.IndexOf(":");
+            int delim2 = rawVocab.IndexOf(":", delim1 + 1);
+            if (delim1 < 0 || delim2 < 0) return;
+            string vocabName = rawVocab.Substring(delim1 + 1, (delim2 - delim1 - 1));
+            rawVocab = rawVocab.Substring(delim2 + 1);
+            Vocab vocab = JSTools.GetVocabFromString(rawVocab);
+
+            scriptUtils.Vocabularies.Add(vocabName, vocab);
+            scriptUtils.MarkVocabArrived(vocabName);
+            log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
+                vocabName, scriptUtils.ExpectedVocabularies.Count);
+            if (scriptUtils.ExpectedVocabularies.Count == 0)
+            {
+                SetReady();
+            }
+        }
+
+
         [TestInitialize]
         public void SetUp()
         {
-            excel = new Application();
-            Console.WriteLine("Started Excel");
-            this.CurrentConfiguration = FileUtils.GetGinasConfiguration();
+
         }
 
         [TestCleanup]
         public void Cleanup()
         {
+        }
+
+        [ClassInitialize]
+        public static void ClassInit( TestContext testContext)
+        {
+
+            Thread formThread = new Thread(StartForm);
+            formThread.SetApartmentState( ApartmentState.STA);
+            formThread.Start();
+
+            excel = new Application();
+            Console.WriteLine("Started Excel");
+            CurrentConfiguration = FileUtils.GetGinasConfiguration();
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
             excel.Workbooks.Close();
             excel.Quit();
             Console.WriteLine("Closed Excel");
+            
         }
-
         [TestMethod]
         public void ImageOps_hasComment_Test()
         {
@@ -853,22 +909,42 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void CreateSheetTest()
         {
+            int iter = 0;
+            int maxIter = 40;
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if(retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+
             Workbook workbook = ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
-            ScriptUtils scriptUtils = new ScriptUtils();
+            
+            scriptUtils.ScriptExecutor = retrievalForm;
             scriptUtils.ScriptName = "Add Name";
-            MockRetrievalForm retrievalForm = new MockRetrievalForm();
-            //retrievalForm.Visible = false;
-            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.ShowScripts;
-            retrievalForm.Show();
-            System.Threading.Thread.Sleep(30000);
+            scriptUtils.StartVocabularyRetrievals();
+            //when there are no vocabularies to retrieve, move to the next step immediately
+            while (scriptUtils.ExpectedVocabularies.Count > 0)
+            {
+                Thread.Sleep(500);
+                System.Windows.Forms.Application.DoEvents();
+            }
 
             //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
-            scriptUtils.ScriptExecutor = retrievalForm;
             SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.ScriptExecutor = retrievalForm;
+            
             sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
             int numSheetsAfter = workbook.Sheets.Count;
-            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            workbook.SaveAs(@"c:\temp\test.xlsx");
+            Assert.AreEqual((numSheetsBefore + 2), numSheetsAfter);
             Worksheet newSheet = (Worksheet) workbook.Sheets["Add Name"];
             string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
             string debugInfo = (string)retrievalForm.ExecuteScript(script);
@@ -876,16 +952,93 @@ namespace ginasExcelUnitTests
             Range cell1 = newSheet.Range["A1"];
             string cell1Actual = (string) cell1.Value2;
             Assert.AreEqual("BATCH:Add Name", cell1Actual);
+            Range cell2 = newSheet.Range["B1"];
+            string cell2Actual = (string)cell2.Value2;
+            Assert.AreEqual("UUID", cell2Actual);
+            string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
+            Console.WriteLine("hostname: " + hostName);
+            
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void CreateSheetTest2()
+        {
+            Workbook workbook = ReadDefaultExcelWorkbook();
+            int numSheetsBefore = workbook.Sheets.Count;
+            ScriptUtils scriptUtils = new ScriptUtils();
+            scriptUtils.ScriptName = "Add Name";
+            //retrievalForm.Visible = false;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.ShowScripts;
+            retrievalForm.Show();
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
+            int numSheetsAfter = workbook.Sheets.Count;
+            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            Worksheet newSheet = (Worksheet)workbook.Sheets["Add Name"];
+            string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
+            string debugInfo = (string)retrievalForm.ExecuteScript(script);
+            log.Debug(debugInfo);
+            Range cell1 = newSheet.Range["A1"];
+            string cell1Actual = (string)cell1.Value2;
+            Assert.AreEqual("BATCH:Add Name", cell1Actual);
 
             Range cell2 = newSheet.Range["B1"];
             string cell2Actual = (string)cell2.Value2;
             Assert.AreEqual("UUID", cell2Actual);
-            //workbook.SaveAs(@"c:\temp\test.xlsx");
+            workbook.SaveAs(@"c:\temp\test2.xlsx");
             workbook.Close(false);
         }
+
+        [TestMethod]
+        public void AddNameTest()
+        {
+            //Workbook workbook = ReadDefaultExcelWorkbook();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string uuidForTest = "cf8df6ce-b0c6-4570-a07a-118cd58a4e90";
+            List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
+
+            string newName = "Name " + Guid.NewGuid();
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Add Name";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('name', '{0}')", newName));
+            scripts.Enqueue("tmpRunner.setValue('name type', 'cn')");
+            scripts.Enqueue("tmpRunner.setValue('language', 'en')");
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'other')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New name added via script')");
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['gsrs_celfgqocjz']=b;window.external.Notify('gsrs_celfgqocjz');})");
+
+            while(scripts.Count >0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            Thread.Sleep(3000);
+            string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
+            Console.WriteLine("hostname: " + hostName);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
+            Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
+            Assert.IsTrue(namesAfter.Contains(newName));
+
+            //workbook.Close(false);
+        }
+
+
         private Workbook ReadDefaultExcelWorkbook()
         {
-
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);

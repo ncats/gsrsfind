@@ -192,6 +192,10 @@ var GSRSAPI = {
                                 }
 
                             }
+                            else if (response.statusText)
+                            {
+                                console.log('statusText: ' + response.statusText);
+                            }
                             else {
                                 console.log('Error missing');
                                 cb(response);

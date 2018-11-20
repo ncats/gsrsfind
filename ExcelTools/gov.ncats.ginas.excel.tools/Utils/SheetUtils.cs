@@ -148,6 +148,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 cell.Font.TintAndShade = -4.99893185216834E-02;
                 //see about a controlled vocabulary
                 string vocabularyName = scriptUtils.GetVocabName(i);
+                log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
+                        vocabularyName);
 
                 AddVocabulary(workbook, scriptUtils, scriptExecutor, sortAlpha, vocabularyName,
                     numberOfRows, cell);
@@ -438,6 +440,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     }
 
                     string vocabularyName = scriptUtils.GetVocabName(i);
+                    log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
+                        vocabularyName);
                     Range headerItem = worksheet.Range[GetColumnName(lastCol.Column + 1) + "1"];
                     AddVocabulary((Workbook)worksheet.Parent, scriptUtils,
                         scriptExecutor, true, vocabularyName,

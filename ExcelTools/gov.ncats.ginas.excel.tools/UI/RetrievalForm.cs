@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
-
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
 using gov.ncats.ginas.excel.tools.Model;
@@ -31,6 +30,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public RetrievalForm()
         {
+            IsReady = false;
             _expectedTitles.Add("InXight API");
             _expectedTitles.Add("g-srs");
             log.Debug("Starting in RetrievalForm");
@@ -56,7 +56,14 @@ namespace gov.ncats.ginas.excel.tools.UI
             get;
             set;
         }
+
         public OperationType CurrentOperationType
+        {
+            get;
+            set;
+        }
+
+        public bool IsReady
         {
             get;
             set;
@@ -91,9 +98,8 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             _configuration = FileUtils.GetGinasConfiguration();
             log.Debug("Loaded configuration ");
-            log.Debug(" selected url:" + _configuration.SelectedServer.ServerUrl);
+            log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
-            JSTools tools = new JSTools();
             string initURL = _configuration.SelectedServer.ServerUrl + "cache";
             _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
@@ -368,6 +374,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
             }            
             webBrowser1.Visible = true;
+            IsReady = true;
         }
 
         

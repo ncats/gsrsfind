@@ -88,6 +88,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 //see about a controlled vocabulary
                 string vocabularyName = GetVocabName(i);
+                log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
+                        vocabularyName);
                 if (!string.IsNullOrWhiteSpace(vocabularyName))
                 {
                     string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {window.external.Notify(s);});";
