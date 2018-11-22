@@ -35,6 +35,9 @@ namespace ginasExcelUnitTests
         {
             log.Debug("Starting in StartForm");
             retrievalForm = new MockRetrievalForm();
+            retrievalForm.Size = new System.Drawing.Size(5, 5);
+            retrievalForm.Visible = false;
+
             System.Windows.Forms.Application.Run(retrievalForm);
         }
 
@@ -863,6 +866,8 @@ namespace ginasExcelUnitTests
             SheetUtils sheetUtils = new SheetUtils();
             SDFileProcessor sDFileProcessor = new SDFileProcessor();
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            StatusUpdaterMock statusUpdaterMock = new StatusUpdaterMock();
+            sDFileProcessor.SetStatusUpdater(statusUpdaterMock);
             sDFileProcessor.SetScriptExecutor(scriptExecutorMock);
 
             FieldInfo sheetUtilInfo = sDFileProcessor.GetType().GetField("_sheetUtils", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -995,7 +1000,22 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void AddNameTest()
         {
-            //Workbook workbook = ReadDefaultExcelWorkbook();
+            int iter = 0;
+            int maxIter = 40;
+
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if (retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+
             ScriptUtils scriptUtils = new ScriptUtils();
             string uuidForTest = "cf8df6ce-b0c6-4570-a07a-118cd58a4e90";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
@@ -1015,7 +1035,7 @@ namespace ginasExcelUnitTests
             scripts.Enqueue(string.Format("tmpRunner.setValue('name', '{0}')", newName));
             scripts.Enqueue("tmpRunner.setValue('name type', 'cn')");
             scripts.Enqueue("tmpRunner.setValue('language', 'en')");
-            scripts.Enqueue("tmpRunner.setValue('reference type', 'other')");
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
             scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
             scripts.Enqueue("tmpRunner.setValue('change reason', 'New name added via script')");
             scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['gsrs_celfgqocjz']=b;window.external.Notify('gsrs_celfgqocjz');})");
@@ -1032,8 +1052,256 @@ namespace ginasExcelUnitTests
             List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
             Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
             Assert.IsTrue(namesAfter.Contains(newName));
+        }
 
-            //workbook.Close(false);
+        [TestMethod]
+        public void AddCodeTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
+
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Add Code";
+            string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
+            string newCodeSystem = "UNIPROT";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
+            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
+            scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')", 
+                newCodeSystem));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
+                "https://www.uniprot.org/uniprot/", newCode));
+            scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
+
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['" + callbackKey 
+                + "']=b;window.external.Notify('" + callbackKey + "');})");
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
+            Assert.AreEqual(codesBefore.Count + 1, codesAfter.Count);
+            Assert.IsTrue(codesAfter.Any(c=>c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+        }
+
+        [TestMethod]
+        public void AddCodeByBdNumTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string bdNumForTest = "0009031AB";
+            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
+
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Add Code";
+            string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
+            string newCodeSystem = "UNIPROT";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('bdnum', '{0}')", bdNumForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
+            scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
+            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
+            scripts.Enqueue("tmpRunner.setValue('code text', 'made-up text to test software')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
+                newCodeSystem));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
+                "https://www.uniprot.org/uniprot/", newCode));
+            scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
+
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['" + callbackKey
+                + "']=b;window.external.Notify('" + callbackKey + "');})");
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
+            Assert.AreEqual(codesBefore.Count + 1, codesAfter.Count);
+            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+        }
+
+
+        [TestMethod]
+        public void AddCodeByUuidTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string uuidForTest = "12a5c348-118b-4892-8e6f-bdfaf0d54be4";
+            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForUuid(uuidForTest);
+
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Add Code";
+            string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
+            string newCodeSystem = "UNIPROT";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
+            scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
+            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
+                newCodeSystem));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
+                "https://www.uniprot.org/uniprot/", newCode));
+            scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
+
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['" + callbackKey
+                + "']=b;window.external.Notify('" + callbackKey + "');})");
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForUuid(uuidForTest);
+            Assert.AreEqual(codesBefore.Count + 1, codesAfter.Count);
+            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+        }
+
+        [TestMethod]
+        public void RemoveNameTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string uuidForTest = "cf8df6ce-b0c6-4570-a07a-118cd58a4e90";
+            List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
+
+            string nameToRemove = namesBefore.FirstOrDefault(n => n.IsPossibleGuidName());
+            if( string.IsNullOrEmpty(nameToRemove))
+            {
+                Assert.Fail("No name suitable to remove found! Run the AddName test first.");
+            }
+            scriptUtils.ScriptName = "Remove Name";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('name', '{0}')", nameToRemove));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'removing name " + nameToRemove +"')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string script = "tmpRunner.execute().get(function(b){cresults['" + callbackKey 
+                +"']=b;window.external.Notify('" + callbackKey + "');})";
+            Console.WriteLine("Key: " + callbackKey);
+            scripts.Enqueue(script);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            Thread.Sleep(3000);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
+            Assert.AreEqual(namesBefore.Count - 1, namesAfter.Count);
+            Assert.IsFalse(namesAfter.Contains(nameToRemove));
+        }
+
+        [TestMethod]
+        public void ReplaceCodeByNameTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
+            
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Replace Code by Name";
+            string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
+            string newCodeSystem = "UNIPROT";
+            string oldCode = codesBefore.First(c => c.Item1.Equals(newCodeSystem)).Item2;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
+            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
+            scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
+                newCodeSystem));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
+                "https://www.uniprot.org/uniprot/", newCode));
+            scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
+
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['" + callbackKey
+                + "']=b;window.external.Notify('" + callbackKey + "');})");
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
+            Assert.AreEqual(codesBefore.Count, codesAfter.Count);
+            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
         }
 
 
@@ -1054,6 +1322,25 @@ namespace ginasExcelUnitTests
         private byte[] getBinaryData(string file)
         {
             return File.ReadAllBytes(file);
+        }
+
+        private void CheckForm()
+        {
+            int iter = 0;
+            int maxIter = 40;
+
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if (retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ginasExcelUnitTests.Utils
     /// </summary>
     internal class DBQueryUtils
     {
-        
+
         private string dbHost = "localhost";
         private string dbName = "ginas_db";
         private string dbUser = "ginas";
@@ -59,7 +59,7 @@ namespace ginasExcelUnitTests.Utils
             command.CommandType = CommandType.Text;
             NpgsqlDataReader reader = command.ExecuteReader();
             // Execute the SQL command and return a reader for navigating the results.
-            
+
 
             // This loop will output the entire contents of the results, iterating
             // through each row and through each field of the row.
@@ -70,5 +70,64 @@ namespace ginasExcelUnitTests.Utils
             reader.Close();
             return names;
         }
+
+        internal List<Tuple<string, string>> GetCodesForName(string name)
+        {
+            string query =
+                string.Format("select code_system, code from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where name = '{0}')",
+                 name);
+            List<Tuple<string, string>> codes = new List<Tuple<string, string>>();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+
+            while (reader.Read() == true)
+            {
+                codes.Add(new Tuple<string, string>(reader.GetString(0), reader.GetString(1)));
+            }
+            reader.Close();
+            return codes;
+        }
+
+        internal List<Tuple<string, string>> GetCodesForBdNum(string bdNum)
+        {
+            string query =
+                string.Format("select code_system, code from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_code where code='{0}' and code_system = 'BDNUM') and code_system != 'BDNUM'",
+                bdNum);
+            List<Tuple<string, string>> codes = new List<Tuple<string, string>>();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            while (reader.Read() == true)
+            {
+                codes.Add(new Tuple<string, string>(reader.GetString(0), reader.GetString(1)));
+            }
+            reader.Close();
+            return codes;
+        }
+
+        internal List<Tuple<string, string>> GetCodesForUuid(string uuid)
+        {
+            string query =
+                string.Format("select code_system, code from ix_ginas_code where owner_uuid = '{0}'",
+                uuid);
+            List<Tuple<string, string>> codes = new List<Tuple<string, string>>();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            while (reader.Read() == true)
+            {
+                codes.Add(new Tuple<string, string>(reader.GetString(0), reader.GetString(1)));
+            }
+            reader.Close();
+            return codes;
+        }
+
     }
 }

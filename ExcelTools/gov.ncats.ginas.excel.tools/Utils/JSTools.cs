@@ -30,7 +30,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             for( int j = 0; j < length; j++)
             {
                 i = rnd.Next(alpha.Length);
-                Console.WriteLine("i: " + i);
                 ident = ident + alpha.Substring(i, 1);
             }
             return id_prefix + ident;

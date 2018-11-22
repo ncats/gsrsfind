@@ -69,9 +69,6 @@ var GSRSAPI = {
             g_api.httpProcess = function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
-                    if (b) console.log('we have b');
-                    else console.log('initially no b');
-
                     var contentType = 'application/json';
 
                     console.log('in httpProcess, req.skipJson: ' + req.skipJson);
@@ -2609,7 +2606,9 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             reference.setPublicDomain(false);
         }
 
-        console.log('Creating code using codeText ' + codeText + '; and comments: ' + codeComments);
+        console.log('Creating code using codeInput ' + codeInput
+            + '; codeSystem ' + codeSystem
+            + '; codeText ' + codeText + '; and comments: ' + codeComments);
         var code = Code.builder().setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
@@ -2626,7 +2625,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 
         var lookupCriterion = uuid;
         if (!uuid || uuid.length === 0) {
-            if (!pt && pt.length > 0) {
+            if (pt && pt.length > 0) {
+                console.log('using pt for lookup');
                 lookupCriterion = pt;
             }
             else {

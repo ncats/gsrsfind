@@ -103,6 +103,7 @@
     <Compile Include="Utils\ScriptUtilsTests.cs" />
     <Compile Include="Utils\SDFileUtilsTests.cs" />
     <Compile Include="Utils\RestUtilTests.cs" />
+    <Compile Include="Utils\StringExtensions.cs" />
     <Compile Include="Utils\VocabUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>
