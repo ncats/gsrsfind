@@ -347,6 +347,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 buttonAddStructure.Enabled = false;
                 buttonAddStructure.Visible = false;
                 buttonCancel.Enabled = true;
+                checkBoxNewSheet.Enabled = false;
                 Visible = true;
                 Text = "Script Selection";
             }

@@ -177,7 +177,10 @@ namespace ginasExcelUnitTests
             {
                 string followupCommand = "cresults.popItem('" + message + "')";
                 object result = ExecuteScript(followupCommand);
-                Controller.HandleResults(message, (string)result);
+                if (Controller != null)
+                {
+                    Controller.HandleResults(message, (string)result);
+                }
 
             }
             else if (message.StartsWith("vocabulary:"))

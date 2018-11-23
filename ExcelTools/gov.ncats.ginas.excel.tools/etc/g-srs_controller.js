@@ -3244,8 +3244,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
                     .apply()
                     .andThen(function (s0) {
                         return s0;
-                    })
-            })
+                    });
+            });
     })
     .useFor(function (s) {
         Scripts.addScript(s);
@@ -3254,8 +3254,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
     name: "Fix Code URLS",
-    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
-})
+    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
     })
@@ -3283,7 +3282,7 @@ Script.builder().mix({
         var pt = args.pt.getValue();
         var urlBase = args['url base'].getValue();
 
-        var searchCrit = (uuid) ? uuid : pt;
+        var searchCrit = uuid ? uuid : pt;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
@@ -3326,7 +3325,7 @@ Script.builder().mix({
                     .andThen(function (arg) {
                         return arg;
                     });
-            })
+            });
     })
     .useFor(function (s) {
         Scripts.addScript(s);

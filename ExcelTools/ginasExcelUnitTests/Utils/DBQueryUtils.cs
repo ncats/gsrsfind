@@ -91,6 +91,32 @@ namespace ginasExcelUnitTests.Utils
             return codes;
         }
 
+        internal List<Tuple<string, string, string, string>> GetCodesEtcForName(string name)
+        {
+            string query =
+                string.Format("select code_system, code, comments, url from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where name = '{0}')",
+                 name);
+            List<Tuple<string, string, string, string>> codes = new List<Tuple<string, string, string, string>>();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+
+            while (reader.Read() == true)
+            {
+                string codeSystem = reader.GetString(0);
+                string code = reader.GetString(1);
+                string url = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                string comments = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                codes.Add(new Tuple<string, string, string, string>(codeSystem, code,
+                    url, comments));
+            }
+            reader.Close();
+            return codes;
+        }
+
+
         internal List<Tuple<string, string>> GetCodesForBdNum(string bdNum)
         {
             string query =
@@ -129,5 +155,39 @@ namespace ginasExcelUnitTests.Utils
             return codes;
         }
 
+        internal string GetUuidForPt(string pt)
+        {
+            string query = string.Format("select owner_uuid from ix_ginas_name n where n.name = '{0}' and preferred = true",
+                pt);
+            string uuid = string.Empty;
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            if (reader.Read())
+            {
+                uuid = reader.GetString(0);
+            }
+            reader.Close();
+            return uuid;
+        }
+
+        internal int GetVersionForUuid(string uuid)
+        {
+            string query = string.Format("select current_version from ix_ginas_substance where uuid ='{0}'", uuid);
+            int version = -1;
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            if (reader.Read())
+            {
+                version = reader.GetInt32(0);
+            }
+            reader.Close();
+            return version;
+        }
     }
 }

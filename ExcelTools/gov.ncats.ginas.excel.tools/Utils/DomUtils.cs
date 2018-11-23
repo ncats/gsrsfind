@@ -67,7 +67,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 divElement.AppendChild(label2);
 
                 bodyElement.AppendChild(divElement);
-                log.Debug("includeScriptMaterial end");
             }
 
             HtmlElement divElement2 = document.CreateElement("div");
@@ -153,7 +152,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement lastScript = document.CreateElement("script");
             lastScript.SetAttribute("text", FileUtils.GetLastJavaScript());
             bodyElement.AppendChild(lastScript);
-            log.Debug("163");
             HtmlElement refresherFrame = document.CreateElement("iframe");
             refresherFrame.SetAttribute("id", "refresher");
             refresherFrame.Style = "height:1px;opacity:0;display: none;" ;
@@ -161,7 +159,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             if (makeDebugVisible)
             {
-                log.Debug("171");
                 HtmlElement consoleScript = document.CreateElement("script");
                 consoleScript.SetAttribute("type", "text/javascript");
 
@@ -169,7 +166,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 consoleScript.SetAttribute("text", "window['oldconsole'] = window['console'];window['console'] = {log: function (r){ GSRSAPI_consoleStack.push(r);}}");//;oldconsole.log(r)
                 bodyElement.AppendChild(consoleScript);
             }
-            log.Debug("179");
             bodyElement.SetAttribute("className", string.Empty);
             bodyElement.Style = "padding-top:10px";
             log.Debug("Completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -257,7 +253,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 
                 MSHTML.HTMLStyleElement htmlStyleElement = (MSHTML.HTMLStyleElement)domStyleElement;
                 htmlStyleElement.styleSheet.cssText = FileUtils.GetCss();
-                //log.Debug("assigned CSS " + htmlStyleElement.styleSheet.cssText);
                 headElement.AppendChild(styleElement);
                 log.Debug("completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             }
