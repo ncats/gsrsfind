@@ -18,11 +18,13 @@ using gov.ncats.ginas.excel.tools.Utils;
 namespace ginasExcelUnitTests
 {
     [ComVisible(true)]
-    public partial class MockRetrievalForm : Form, IStatusUpdater, IScriptExecutor
+    public partial class TestRetrievalForm : Form, IStatusUpdater, IScriptExecutor
     {
         private bool _documentBuilt = false;
-            
-        public MockRetrievalForm()
+        public delegate object HandleResultsDelegate(string key, string result);
+        public HandleResultsDelegate ResultsHandler;
+
+        public TestRetrievalForm()
         {
             IsReady = false;
             InitializeComponent();
@@ -74,6 +76,13 @@ namespace ginasExcelUnitTests
             set;
         }
 
+        public Type ControllerType
+        {
+            get;
+            set;
+        }
+
+
         public bool IsReady
         {
             get;
@@ -89,20 +98,6 @@ namespace ginasExcelUnitTests
         {
             webBrowser1.ObjectForScripting = this;
 
-            //make sure the original document is completely loaded    
-            int iter = 0;
-            /*while (webBrowser1.IsBusy || webBrowser1.Document.Body == null
-                && ++iter < 50)
-            {
-                log.DebugFormat("busy (2) {0}...", iter);
-                System.Threading.Thread.Sleep(1000);
-                if ((iter % 100) == 0)
-                {
-                    Application.DoEvents();
-                }
-            } */
-
-            log.DebugFormat("At the end of {0} iterations, busy state of document: {1}", iter, webBrowser1.IsBusy);
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 true,
@@ -180,6 +175,10 @@ namespace ginasExcelUnitTests
                 if (Controller != null)
                 {
                     Controller.HandleResults(message, (string)result);
+                }
+                else
+                {
+                    ResultsHandler?.Invoke(message, (string)result);
                 }
 
             }

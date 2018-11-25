@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.Text;
 
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
@@ -26,7 +27,7 @@ namespace ginasExcelUnitTests
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static Application excel;
-        static MockRetrievalForm retrievalForm = null;
+        static TestRetrievalForm retrievalForm = null;
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
         static bool scriptRunnerReady = false;
         static ScriptUtils scriptUtils = new ScriptUtils();
@@ -34,7 +35,7 @@ namespace ginasExcelUnitTests
         private static void StartForm()
         {
             log.Debug("Starting in StartForm");
-            retrievalForm = new MockRetrievalForm();
+            retrievalForm = new TestRetrievalForm();
             retrievalForm.Size = new System.Drawing.Size(5, 5);
             retrievalForm.Visible = false;
 
@@ -103,7 +104,8 @@ namespace ginasExcelUnitTests
             excel.Workbooks.Close();
             excel.Quit();
             Console.WriteLine("Closed Excel");
-            
+            retrievalForm.Close();
+            retrievalForm = null;
         }
         [TestMethod]
         public void ImageOps_hasComment_Test()
@@ -1516,9 +1518,7 @@ namespace ginasExcelUnitTests
         public void TouchRecordTest()
         {
             CheckForm();
-
             ScriptUtils scriptUtils = new ScriptUtils();
-
             scriptUtils.ScriptName = "Touch Record";
             string uuidForTest = "1c5387c0-a245-45a4-b0de-ad7fe2573d47";
             string versionComment = "Record change " + Guid.NewGuid().ToString();
@@ -1548,6 +1548,8 @@ namespace ginasExcelUnitTests
             int versionAfter = dBQueryUtils.GetVersionForUuid(uuidForTest);
             Assert.IsTrue(versionAfter > versionBefore);
         }
+
+
 
 
         private Workbook ReadDefaultExcelWorkbook()
@@ -1587,5 +1589,6 @@ namespace ginasExcelUnitTests
                 Assert.Fail("Connection to server is not working");
             }
         }
+
     }
 }

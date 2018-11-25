@@ -4,7 +4,9 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Timers;
+using System.Globalization;
+using System.Text;
+using System.Threading;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
@@ -12,11 +14,96 @@ using ginasExcelUnitTests.Model;
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Controller;
 
+using ginasExcelUnitTests.Utils;
+using Microsoft.Office.Interop.Excel;
+
 namespace ginasExcelUnitTests
 {
+
     [TestClass]
     public class ResolverTests
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        static TestRetrievalForm retrievalForm = null;
+        static DBQueryUtils dBQueryUtils = new DBQueryUtils();
+        private  static  Dictionary<string, string[]> resolverResults = new Dictionary<string, string[]>();
+        
+        private static void StartForm()
+        {
+            log.Debug("Starting in StartForm");
+            retrievalForm = new TestRetrievalForm();
+            retrievalForm.ResultsHandler = HandleResults;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Resolution;
+            retrievalForm.Size = new System.Drawing.Size(5, 5);
+            retrievalForm.Visible = false;
+
+            //this enables event processing within the form
+            System.Windows.Forms.Application.Run(retrievalForm);
+        }
+
+        public static object HandleResults(string resultsKey, string message)
+        {
+
+            log.Debug(string.Format("HandleResults received message {0} for key {1}",
+                message, resultsKey));
+
+            Dictionary<string, string> results = new Dictionary<string, string>();
+
+            Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
+            ImageOps imageOps = new ImageOps();
+
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.Configuration = CurrentConfiguration;
+            foreach (string key in returnedValue.Keys)
+            {
+               log.DebugFormat("Handling result for key {0}", key);
+                string keyResult = "OK";
+                try
+                {
+                    string[] messageParts = returnedValue[key][0].Split('\t');
+                    results.Add(key, keyResult);
+                    if(resolverResults.ContainsKey(key))
+                    {
+                        resolverResults.Remove(key);
+                    }
+                    resolverResults.Add(key, messageParts);
+
+                    System.Windows.Forms.Application.DoEvents();
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Error handling key {0} {1} {2}", key, ex.Message, ex);
+                    results.Add(key, "Exception: " + ex.Message);
+                }
+            }
+            return results;
+        }
+
+
+        [ClassInitialize]
+        public static void ClassInit(TestContext testContext)
+        {
+            Thread formThread = new Thread(StartForm);
+            formThread.SetApartmentState(ApartmentState.STA);
+            formThread.Start();
+            CurrentConfiguration = FileUtils.GetGinasConfiguration();
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            
+            //retrievalForm.Close();
+            retrievalForm = null;
+        }
+
+        public static GinasToolsConfiguration CurrentConfiguration
+        {
+            get;
+            set;
+        }
+
         [TestMethod]
         public void testBatchCallbackExecute()
         {
@@ -277,7 +364,7 @@ namespace ginasExcelUnitTests
             int secondsToMilliseconds = 1000;
             string fieldName = "_timer";
             FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-            fieldInfo.SetValue(retriever, new Timer(40 * secondsToMilliseconds));
+            fieldInfo.SetValue(retriever, new System.Timers.Timer(40 * secondsToMilliseconds));
             retriever.CheckAllCallbacks(null, null);
             Assert.IsNull(fieldInfo.GetValue(retriever));
         }
@@ -310,6 +397,601 @@ namespace ginasExcelUnitTests
             cb2.SetKey("B");
             batchCallback.AddCallback(cb2);
             return batchCallback;
+        }
+
+        [TestMethod]
+        public void SmilesFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string nameForTest = "UREA";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers= new List<string>();
+            resolvers.Add("SMILES");
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            List<StructureProxy> expected = dBQueryUtils.GetStructureForName(nameForTest);
+            
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].SMILES));
+        }
+
+        [TestMethod]
+        public void SmilesEtcFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string nameForTest = "UREA";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("SMILES");
+            resolvers.Add("Molecular Weight");
+            resolvers.Add("Molecular Formula");
+
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            List<StructureProxy> expected = dBQueryUtils.GetStructureForName(nameForTest);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].SMILES));
+            Assert.IsTrue(results.Contains(expected[0].MolFormula));
+
+            bool foundMw = false;
+            double cutoff = 0.001;
+            foreach(string val in results)
+            {
+                double mw;
+                if(double.TryParse(val, out mw))
+                {
+                    if (Math.Abs(mw - expected[0].MWt) < cutoff) foundMw = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(foundMw);
+        }
+
+        [TestMethod]
+        public void CasFetcherTest()
+        {
+            CheckForm();
+            string nameForTest = "OBINEPITIDE";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("CAS Numbers");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            List<CodeProxy> expected = dBQueryUtils.GetCodesOfSystemForName(nameForTest, "CAS");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].Code));
+        }
+
+        [TestMethod]
+        public void bdnumFetcherTest()
+        {
+            CheckForm();
+            string nameForTest = "UREA";// "3-ISOXAZOLIDINONE, 4-AMINO-, (L)-";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("BDNUM Code");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            List<CodeProxy> expected = dBQueryUtils.GetCodesOfSystemForName(nameForTest, "BDNUM");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].Code));
+        }
+
+        [TestMethod]
+        public void EvpdFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string nameForTest = "OXYTOCIN";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("EVMPD Code");
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+            List<CodeProxy> expected = dBQueryUtils.GetCodesOfSystemForName(nameForTest, "EVMPD");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].Code));
+        }
+
+        [TestMethod]
+        public void AtcFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string nameForTest = "LYPRESSIN";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("ATC Code");
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            List<CodeProxy> expected = dBQueryUtils.GetCodesOfSystemForName(nameForTest, "WHO-ATC");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].Code));
+        }
+
+        [TestMethod]
+        public void ActiveMoietyPTFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string nameForTest = "TERLIPRESSIN";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Active Moiety PT");
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(2000);
+            List<RelatedSubstanceProxy> expected = dBQueryUtils.GetRelatedSubstancesForName(nameForTest, "ACTIVE MOIETY");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].RefPName));
+        }
+
+        [TestMethod]
+        public void ActiveMoietyIdFetcherTest()
+        {
+            CheckForm();
+            string nameForTest = "TERLIPRESSIN";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Active Moiety ID");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            List<RelatedSubstanceProxy> expected = dBQueryUtils.GetRelatedSubstancesForName(nameForTest, "ACTIVE MOIETY");
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expected[0].ApprovalId));
+        }
+
+        [TestMethod]
+        public void ProteinSequenceFetcherTest()
+        {
+            CheckForm();
+            string nameForTest = "OXYTOCIN";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            chemNames.Add("TRANSFERRIN ALDIFITOX R EPIMER");
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Protein Sequence");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Assert.IsTrue(resolverResults.ContainsKey(name));
+                string sequence = dBQueryUtils.GetProteinSequence(name);
+                string[] results = resolverResults[name];
+                Assert.IsTrue(results.Contains(sequence));
+            }
+            
+        }
+
+        [TestMethod]
+        public void SubstanceClassTest()
+        {
+            CheckForm();
+            string nameForTest = "TERLIPRESSIN";//protein
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            chemNames.Add("Glycine, N-[(1S,2S)-2-[bis(carboxymethyl)amino]cyclohexyl]-N-[(2R)-2-[bis(car...");
+            chemNames.Add("2,6-di-tert-butyl-4-methylphenol");
+            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("LITENIMOD"); //nucleic acid
+            chemNames.Add("NONOXYNOL-15");//polymer
+            chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
+            chemNames.Add("1643489-24-0"); //a chemical identified by CAS number
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Substance Class");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+            
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach(string name in chemNames)
+            {
+                Console.WriteLine("Procesing results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                SubstanceProxy substance = dBQueryUtils.GetSubstance(name);
+                Assert.IsTrue(results.Contains(substance.Type));
+            }
+        }
+
+        [TestMethod]
+        public void CreatedByLastEditedByUniiTest()
+        {
+            string javaScriptDateFormat = "ddd MMM dd yyyy HH:mm:ss zzz";
+            CheckForm();
+            string nameForTest = "TERLIPRESSIN";//protein
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            chemNames.Add("Glycine, N-[(1S,2S)-2-[bis(carboxymethyl)amino]cyclohexyl]-N-[(2R)-2-[bis(car...");
+            chemNames.Add("2,6-di-tert-butyl-4-methylphenol");
+            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("LITENIMOD"); //nucleic acid
+            chemNames.Add("NONOXYNOL-15");//polymer
+            chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
+            chemNames.Add("1643489-24-0"); //a chemical identified by CAS number
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Substance Class");
+            resolvers.Add("Created By");
+            resolvers.Add("Last Edited By");
+            resolvers.Add("Approval ID (UNII)");
+            resolvers.Add("Created Date");
+            resolvers.Add("Last Edited Date");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                SubstanceProxy substance = dBQueryUtils.GetSubstance(name);
+                Assert.IsTrue(results.Contains(substance.Type));
+                Assert.AreEqual(substance.CreatedBy, results[2]);
+                Assert.AreEqual(substance.LastModifiedBy, results[3]);
+                Assert.AreEqual(substance.ApprovalIdDisplay, results[4]);
+                Console.WriteLine("Created: {0} {1}", substance.Created, results[5]);
+                DateTime created;
+                DateTime lastEdited;
+                string dateToParse = CleanDate( results[5]);
+                if ( DateTime.TryParseExact(dateToParse, javaScriptDateFormat, CultureInfo.CurrentCulture, 
+                    DateTimeStyles.None,
+                    out created))
+                {
+                    Assert.AreEqual(substance.Created.Year, created.Year);
+                    Assert.AreEqual(substance.Created.DayOfYear, created.DayOfYear);
+                    Assert.AreEqual(substance.Created.Hour, created.Hour);
+                    Assert.AreEqual(substance.Created.Minute, created.Minute);
+                    Assert.AreEqual(substance.Created.Second, created.Second);
+                    //ignore sub-second units
+                }
+                else
+                {
+                    Console.WriteLine("Date did not parse!");
+                }
+                dateToParse = CleanDate(results[6]);
+                if (DateTime.TryParseExact(dateToParse, javaScriptDateFormat, CultureInfo.CurrentCulture,
+                    DateTimeStyles.None,
+                    out lastEdited))
+                {
+                    Assert.AreEqual(substance.Created.Year, lastEdited.Year);
+                    Assert.AreEqual(substance.Created.DayOfYear, lastEdited.DayOfYear);
+                    Assert.AreEqual(substance.Created.Hour, lastEdited.Hour);
+                    Assert.AreEqual(substance.Created.Minute, lastEdited.Minute);
+                    Assert.AreEqual(substance.Created.Second, lastEdited.Second);
+                    //ignore sub-second units
+                }
+                else
+                {
+                    Console.WriteLine("Date did not parse!");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SubstanceNamesTest()
+        {
+            CheckForm();
+            List<string> chemNames = new List<string>();
+            chemNames.Add("TERLIPRESSIN");//protein
+            chemNames.Add("Glycine, N-[(1S,2S)-2-[bis(carboxymethyl)amino]cyclohexyl]-N-[(2R)-2-[bis(car...");
+            chemNames.Add("2,6-di-tert-butyl-4-methylphenol");
+            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("LITENIMOD"); //nucleic acid
+            chemNames.Add("NONOXYNOL-15");//polymer
+            chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
+            List<string> resolvers = new List<string>();
+            resolvers.Add("All Names");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                List<string> allNamesFromFetcher = results[1].Split('|').ToList();
+                List<SubstanceNamesProxy> substanceNamesFromDb = dBQueryUtils.GetNamesForName(name);
+                foreach( SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb)
+                {
+                    Assert.IsTrue( allNamesFromFetcher.Contains(oneNameFromDb.Name));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void BracketTermsTest()
+        {
+            CheckForm();
+            List<string> chemNames = new List<string>();
+            chemNames.Add("2-NAPHTHYLAMINE");
+            chemNames.Add("Stamine");
+            chemNames.Add("DICHLOROPROP");
+            chemNames.Add("NSC-70861"); 
+            chemNames.Add("AZIRIDINE, 1-(3-AMINOPROPYL)-");
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Bracket Terms");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                List<string> allNamesFromFetcher = results[1].Split('|').ToList();
+                List<SubstanceNamesProxy> substanceNamesFromDb = dBQueryUtils.GetNamesForName(name);
+                foreach (SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb.Where(n=>n.IsBracketTerm()))
+                {
+                    Assert.IsTrue(allNamesFromFetcher.Contains(oneNameFromDb.Name));
+                }
+            }
+        }
+
+
+        private string MakeSearch(string key, List<string> names, List<string> fetcherNames)
+        {
+            StringBuilder scriptBuilder = new StringBuilder();
+            scriptBuilder.Append("cresults['");
+            scriptBuilder.Append(key);
+            scriptBuilder.Append("']={'keys':function(){return _.keys(this);},'Item':function(k){return this[k];},");
+            scriptBuilder.Append("'add':function(k,v){if(!this[k]){this[k]=[];}this[k].push(v);}};");
+            scriptBuilder.Append("ResolveWorker.builder()");
+            string arrayedNames = JSTools.MakeSearchString(names.ToArray());
+            scriptBuilder.Append(".list(");
+            scriptBuilder.Append(arrayedNames);
+            scriptBuilder.Append(")");
+            //_.map($('div.checkop input:checked'), 'name')
+            string arrayedFetchers = JSTools.MakeSearchString(fetcherNames.ToArray());
+            scriptBuilder.Append(".fetchers(");
+            scriptBuilder.Append(arrayedFetchers);
+            scriptBuilder.Append(")");
+            scriptBuilder.Append(".consumer(function(row){cresults['");
+            scriptBuilder.Append(key);
+            scriptBuilder.Append("'].add(row.split('\t')[0],row);})");
+            scriptBuilder.Append(".finisher(function(){window.external.Notify('");
+            scriptBuilder.Append(key);
+            scriptBuilder.Append("');})");
+            scriptBuilder.Append(".resolve();");
+            return scriptBuilder.ToString();
+        }
+
+        private void CheckForm()
+        {
+            int iter = 0;
+            int maxIter = 40;
+
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if (retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+        }
+
+        private string CleanDate(string inputDate)
+        {
+            string dateToClean = inputDate.Replace("GMT", "");
+            int pos = dateToClean.LastIndexOf("(");
+            dateToClean = dateToClean.Substring(0, pos - 1);
+            return dateToClean;
+        }
+        public void StartOperation()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool StartResolution(bool newSheet)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetExcelWindow(Window window)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetScriptExecutor(IScriptExecutor scriptExecutor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ContinueSetup()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReceiveVocabulary(string rawVocab)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CancelOperation(string reason)
+        {
+            throw new NotImplementedException();
         }
     }
 }

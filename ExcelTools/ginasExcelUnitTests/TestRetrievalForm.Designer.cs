@@ -1,6 +1,6 @@
 ﻿namespace ginasExcelUnitTests
 {
-    partial class MockRetrievalForm
+    partial class TestRetrievalForm
     {
         /// <summary>
         /// Required designer variable.

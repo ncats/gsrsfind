@@ -827,10 +827,11 @@ var GSRSAPI = {
                 var nm = name;
                 if (!nm) {
                     nm = codeSystem + "[CODE]";
-                };
+                }
                 return g_api.FetcherMaker.make(nm, function (simpleSub) {
                     return simpleSub.fetch("codes(codeSystem:" + codeSystem + ")")
                         .andThen(function (cds) {
+                            console.log('cds: ' + JSON.stringify(cds));
                             return _.chain(cds)
                                 .sort(function (a, b) {
                                     if (a.type === "PRIMARY" && b.type !== "PRIMARY") {
@@ -1793,19 +1794,16 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("All Names", function (simpleSub) {
-
         return simpleSub.fetch("names!(name)!join(|)").andThen(function (n) {
             return n.replace(/%7C/g, "|");
         });
     }).addTag("Substance")
 );
 
-FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM").addTag("Identifiers"))
+FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM", "BDNUM Code").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("WHO-ATC", "ATC Code").addTag("Substance"))
     .addFetcher(FetcherMaker.makeCodeFetcher("CAS", "CAS Numbers").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("EVMPD", "EVMPD Code").addTag("Identifiers"));
-
-
 
 FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Term").addTag("Substance"))
     .addFetcher(FetcherMaker.makeScalarFetcher("_approvalIDDisplay", "Approval ID (UNII)").addTag("Identifiers"))
@@ -1817,8 +1815,6 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/formula", "Molecular Formula").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/molfile", "Molfile").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
-
-
 
 /*FetcherRegistry.addFetcher(
     FetcherMaker.make("Structural Modifications", function (simpleSub) {

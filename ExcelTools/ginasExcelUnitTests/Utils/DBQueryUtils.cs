@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Data;
 using System.Data.Odbc;
 using Npgsql;
+using ginasExcelUnitTests.Model;
 
 namespace ginasExcelUnitTests.Utils
 {
@@ -189,5 +190,194 @@ namespace ginasExcelUnitTests.Utils
             reader.Close();
             return version;
         }
+
+        internal List<StructureProxy> GetStructureForName(string name)
+        {
+            List<StructureProxy> structures = new List<StructureProxy>();
+            string query = string.Format("select id, smiles, formula, mwt, stereo, charge from ix_core_structure where id =(SELECT structure_id FROM IX_ginas_Substance WHERE UUID =(select owner_uuid from ix_ginas_name where name = '{0}'))", 
+                name);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            string idValue;
+            string smiles;
+            string formula;
+            double mwt;
+            string stereo;
+            int charge;
+            while(reader.Read())
+            {
+                idValue = reader.GetString(0);
+                smiles = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                formula = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                mwt = reader.IsDBNull(3) ? double.NaN : reader.GetDouble(3);
+                stereo = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                charge = reader.IsDBNull(5) ? int.MinValue : reader.GetInt32(5);
+
+                StructureProxy structureMock = new StructureProxy(idValue, smiles, formula, mwt, stereo, charge);
+                structures.Add(structureMock);
+            }
+            reader.Close();
+            return structures;
+        }
+
+        internal List<CodeProxy> GetCodesOfSystemForName(string name, string codeSystem)
+        {
+            List<CodeProxy> codes = new List<CodeProxy>();
+            string query = string.Format("select uuid, code, code_system, code_text, comments, type, url from ix_ginas_code where code_system = '{0}' and owner_uuid in "
+                   + " (select owner_uuid from ix_ginas_name where name = '{1}') and deprecated = false",
+                   codeSystem, name);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            string uuid;
+            string code;
+            string retrievedCodeSystem;
+            string codeText;
+            string comments;
+            string type;
+            string url;
+            while (reader.Read())
+            {
+                uuid = reader.GetString(0);
+                code = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                retrievedCodeSystem = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                codeText = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                comments = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                type = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
+                url = reader.IsDBNull(6) ? string.Empty : reader.GetString(6);
+
+                CodeProxy codeProxy = new CodeProxy(uuid, code, codeSystem, codeText, comments, type, url);
+                codes.Add(codeProxy);
+            }
+            reader.Close();
+            return codes;
+        }
+
+        internal List<RelatedSubstanceProxy> GetRelatedSubstancesForName(string name, string relType)
+        {
+            List<RelatedSubstanceProxy> substances = new List<RelatedSubstanceProxy>();
+            string query = string.Format("select uuid, ref_pname, refuuid, approval_id from ix_ginas_substanceref where uuid in "
+                + "(select related_substance_uuid  from ix_ginas_relationship where owner_uuid in "
+                + "(select owner_uuid from ix_ginas_name where name = '{0}') and deprecated = false and type = '{1}') ",
+                   name, relType);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            string uuid;
+            string refPName;
+            string refUuid;
+            string approvalId;
+            while (reader.Read())
+            {
+                uuid = reader.GetString(0);
+                refPName= reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                refUuid = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                approvalId = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+
+                RelatedSubstanceProxy substProxy = new RelatedSubstanceProxy(uuid, refPName, refUuid, approvalId);
+                substances.Add(substProxy);
+            }
+            reader.Close();
+            return substances;
+        }
+
+        internal string GetProteinSequence(string name)
+        {
+            string query = string.Format("select uuid, sequence, subunit_index from ix_ginas_subunit where uuid in "
+                + "(select ix_ginas_subunit_uuid from ix_ginas_protein_subunit where ix_ginas_protein_uuid ="
+                + "(select protein_uuid from ix_ginas_substance where uuid = "
+                + " (select owner_uuid from ix_ginas_name where name = '{0}'and deprecated = false))) order by subunit_index",
+                name);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> sequences = new List<string>();
+            while (reader.Read())
+            {
+                string uuid = reader.GetString(0);
+                string sequencePart = reader.GetString(1);
+                int unit_index = reader.GetInt32(2);
+                sequences.Add(sequencePart);
+            }
+            reader.Close();
+
+            return string.Join(";", sequences);
+        }
+
+        internal SubstanceProxy GetSubstance(string nameOrCode)
+        {
+            SubstanceProxy substance = null;
+            string query = string.Format("select uuid, s.dtype, s.created, p1.username, s.last_edited, p2.username, s.deprecated, s.status, "
+                + "   s.structure_id, s.mixture_uuid, s.nucleic_acid_uuid, s.polymer_uuid,"
+                + "   s.protein_uuid, s.specified_substance_uuid, s.structurally_diverse_uuid, s.approval_id"
+                + "   from ix_ginas_substance s, ix_core_principal p1, ix_core_principal p2 "
+                + "   where s.created_by_id = p1.id and s.last_edited_by_id= p2.id and uuid in "
+                + "   ((select owner_uuid from ix_ginas_name where name = '{0}') "
+                + "   union "
+                + "   (select owner_uuid from ix_ginas_code where code like '{0}')) ",
+                    nameOrCode);
+            log.DebugFormat("{0} using SQL: {1}", MethodBase.GetCurrentMethod().Name, query);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                string uuid = reader.GetString(0);
+                string dtype = reader.GetString(1);
+                DateTime created = reader.GetDateTime(2);
+                string createdBy =  reader.GetString(3);
+                DateTime lastEdited = reader.GetDateTime(4);
+                string lastEditedBy = reader.GetString(5);
+                bool deprecated = reader.GetBoolean(6);
+                string status = reader.IsDBNull(7) ? string.Empty : reader.GetString(7);
+                string structureId = reader.IsDBNull(8) ? string.Empty : reader.GetString(8);
+                string mixtureId = reader.IsDBNull(9) ? string.Empty : reader.GetString(9);
+                string nucleicAcidId = reader.IsDBNull(10) ? string.Empty : reader.GetString(10);
+                string polymerId = reader.IsDBNull(11) ? string.Empty : reader.GetString(11);
+                string proteinId = reader.IsDBNull(12) ? string.Empty : reader.GetString(12);
+                string specSubstanceId = reader.IsDBNull(13) ? string.Empty : reader.GetString(13);
+                string structDiverseId = reader.IsDBNull(14) ? string.Empty : reader.GetString(14);
+                string approvalId = reader.IsDBNull(15) ? string.Empty : reader.GetString(15);
+                substance = new SubstanceProxy(uuid, dtype, deprecated, status, created, createdBy, lastEdited,
+                    lastEditedBy, structureId, mixtureId, nucleicAcidId, polymerId, proteinId,
+                    specSubstanceId, structDiverseId, approvalId);
+            }
+            reader.Close();
+            return substance;
+        }
+
+        internal List<SubstanceNamesProxy> GetNamesForName(string name)
+        {
+            List<SubstanceNamesProxy> substanceNames = new List<SubstanceNamesProxy>();
+            string query = string.Format("select name, type, preferred, display_name, languages from ix_ginas_name where owner_uuid = "
+                + " (select owner_uuid from ix_ginas_name where name = '{0}') and deprecated = false",
+                    name);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> sequences = new List<string>();
+            while (reader.Read())
+            {
+                string dbName = reader.GetString(0);
+                string type = reader.GetString(1);
+                bool preferred = reader.GetBoolean(2);
+                bool display = reader.GetBoolean(3);
+                string languages = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+
+                var oneName = new SubstanceNamesProxy(dbName, type, preferred, display, languages);
+                substanceNames.Add(oneName);
+            }
+            reader.Close();
+            return substanceNames;
+        }
+
     }
 }
