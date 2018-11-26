@@ -77,9 +77,12 @@
   <ItemGroup>
     <Compile Include="Controller\DataLoaderTests.cs" />
     <Compile Include="Model\CodeProxy.cs" />
+    <Compile Include="Model\PlantPart.cs" />
     <Compile Include="Model\RelatedSubstanceProxy.cs" />
+    <Compile Include="Model\StructurallyDiverseProxy.cs" />
     <Compile Include="Model\SubstanceNamesProxy.cs" />
     <Compile Include="Model\SubstanceProxy.cs" />
+    <Compile Include="ScriptTests.cs" />
     <Compile Include="TestRetrievalForm.cs">
       <SubType>Form</SubType>
     </Compile>

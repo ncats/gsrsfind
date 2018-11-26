@@ -900,6 +900,131 @@ namespace ginasExcelUnitTests
             }
         }
 
+        [TestMethod]
+        public void LatinBinomialTest()
+        {
+            CheckForm();
+            List<string> chemNames = new List<string>();
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Latin Binomial");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                List<StructurallyDiverseProxy> structurallyDiverseProxies
+                    = dBQueryUtils.GetStructurallDivers(name);
+                Assert.AreEqual(structurallyDiverseProxies[0].LatinBinomial, results[1]);
+                Console.WriteLine("Matched {0}", results[1]);
+            }
+        }
+        [TestMethod]
+        public void PlantPartTest()
+        {
+            CheckForm();
+            List<string> chemNames = new List<string>();
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Part");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(1000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                List<StructurallyDiverseProxy> structurallyDiverseProxies 
+                    = dBQueryUtils.GetStructurallDivers(name);
+                Assert.AreEqual(structurallyDiverseProxies[0].Part, results[1]);
+                Console.WriteLine("Matched {0}", results[1]);
+            }
+        }
+
+        [TestMethod]
+        public void MultipleFetchers1Test()
+        {
+            CheckForm();
+            List<string> chemNames = new List<string>();
+            chemNames.Add("TERLIPRESSIN");//protein
+            chemNames.Add("Glycine, N-[(1S,2S)-2-[bis(carboxymethyl)amino]cyclohexyl]-N-[(2R)-2-[bis(car...");
+            chemNames.Add("2,6-di-tert-butyl-4-methylphenol");
+            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
+            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("LITENIMOD"); //nucleic acid
+            chemNames.Add("NONOXYNOL-15");//polymer
+            chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Substance Class");
+            resolvers.Add("Preferred Term");
+            resolvers.Add("Molecular Formula");
+            resolvers.Add("Protein Sequence");
+            resolvers.Add("Latin Binomial");
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(2000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            foreach (string name in chemNames)
+            {
+                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                string[] results = resolverResults[name];
+                switch (results[1]) // substance class
+                {
+                    case "chemical":
+                        List<StructureProxy> structures = dBQueryUtils.GetStructureForName(name);
+                        Assert.AreEqual(structures[0].MolFormula, results[3]);
+                        Console.WriteLine("MolFormula match: {0} and {1}",
+                            structures[0].MolFormula, results[3]);
+                        break;
+                    case "protein":
+                        string sequence = dBQueryUtils.GetProteinSequence(name);
+                        Assert.AreEqual(sequence, results[4]);
+                        Console.WriteLine("Sequence match: {0} and {1}",
+                            sequence, results[4]);
+                        break;
+                    case "structurallyDiverse":
+                        List<StructurallyDiverseProxy> structurallyDiverse = dBQueryUtils.GetStructurallDivers(name);
+                        Assert.AreEqual(structurallyDiverse[0].LatinBinomial, results[5]);
+                        Console.WriteLine("Latin Binomial match: {0} and {1}",
+                            structurallyDiverse[0].LatinBinomial, results[5]);
+                        break;
+                    default:
+                        Console.WriteLine("Require test for type {0}", results[1]);
+                        break;
+                }
+            }
+        }
 
         private string MakeSearch(string key, List<string> names, List<string> fetcherNames)
         {

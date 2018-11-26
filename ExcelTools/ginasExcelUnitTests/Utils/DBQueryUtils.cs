@@ -92,12 +92,12 @@ namespace ginasExcelUnitTests.Utils
             return codes;
         }
 
-        internal List<Tuple<string, string, string, string>> GetCodesEtcForName(string name)
+        internal List<CodeProxy> GetCodesEtcForName(string name)
         {
             string query =
                 string.Format("select code_system, code, comments, url from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where name = '{0}')",
                  name);
-            List<Tuple<string, string, string, string>> codes = new List<Tuple<string, string, string, string>>();
+            List<CodeProxy> codes = new List<CodeProxy>();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
             command.CommandType = CommandType.Text;
@@ -108,10 +108,14 @@ namespace ginasExcelUnitTests.Utils
             {
                 string codeSystem = reader.GetString(0);
                 string code = reader.GetString(1);
-                string url = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                string comments = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
-                codes.Add(new Tuple<string, string, string, string>(codeSystem, code,
-                    url, comments));
+                string comments = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                string url = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                CodeProxy codeProxy = new CodeProxy();
+                codeProxy.CodeSystem = codeSystem;
+                codeProxy.Code = code;
+                codeProxy.Url = url;
+                codeProxy.Comments = comments;
+                codes.Add(codeProxy);
             }
             reader.Close();
             return codes;
@@ -377,6 +381,40 @@ namespace ginasExcelUnitTests.Utils
             }
             reader.Close();
             return substanceNames;
+        }
+
+        internal List<StructurallyDiverseProxy> GetStructurallDivers(string nameOrCode)
+        {
+            List<StructurallyDiverseProxy> structDiverse = new List<StructurallyDiverseProxy>();
+
+            string query = string.Format("select uuid, source_material_type, organism_family, organism_genus, organism_species, organism_author, part  from ix_ginas_strucdiv "
+                + " where uuid in"
+                + " (select structurally_diverse_uuid from ix_ginas_substance where uuid in"
+                + " ((select owner_uuid from ix_ginas_name where name = '{0}')"
+                + "  union"
+                + " (select owner_uuid from ix_ginas_code where code like '{0}'))) " 
+                + " and deprecated = false ",
+                nameOrCode);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<string> sequences = new List<string>();
+            while (reader.Read())
+            {
+                string uuid = reader.GetString(0);
+                string materialType = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                string family = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                string genus = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                string species = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                string author = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
+                string part = reader.IsDBNull(6) ? string.Empty : reader.GetString(6);
+
+                var oneItem = new StructurallyDiverseProxy(uuid, genus, species, author, part);
+                structDiverse.Add(oneItem);
+            }
+            reader.Close();
+            return structDiverse;
         }
 
     }
