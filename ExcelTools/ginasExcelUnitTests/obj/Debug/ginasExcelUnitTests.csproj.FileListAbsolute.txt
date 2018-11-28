@@ -46,3 +46,15 @@ C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Vbe.In
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\stdole.dll
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Microsoft.Office.Interop.Excel.xml
 C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\office.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\obj\Debug\ginasExcelUnitTests.MockRetrievalForm.resources
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\etc\UtilityWebPage.html
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Npgsql.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Mono.Security.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Npgsql.pdb
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\Npgsql.xml
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\de\Npgsql.resources.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\es\Npgsql.resources.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\fi\Npgsql.resources.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\fr\Npgsql.resources.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\ja\Npgsql.resources.dll
+C:\ginas_source\Excel\CSharpTest2\ginasExcelUnitTests\bin\Debug\zh-CN\Npgsql.resources.dll

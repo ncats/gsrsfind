@@ -9,6 +9,7 @@ using gov.ncats.ginas.excel.tools.Model;
 
 using Excel = Microsoft.Office.Interop.Excel;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using gov.ncats.ginas.excel.tools.Utils;
 
 namespace gov.ncats.ginas.excel.tools.Controller
 {
@@ -16,6 +17,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         protected int _totalBatches;
+
+        public ControllerBase()
+        {
+            GinasConfiguration = FileUtils.GetGinasConfiguration();
+        }
 
         public void SetScriptExecutor(IScriptExecutor scriptExecutor)
         {
@@ -30,6 +36,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
         protected Excel.Range ExcelSelection;
         protected Excel.Window ExcelWindow;
         protected Queue<string> ScriptQueue;
+        protected int _NumTimesFoundNoActives = 0;
+        protected const int MAX_TIMES_NO_ACTIVE = 4;
+        protected const int CONSOLE_CLEARANCE_INTERVAL = 50;
+
+        protected GinasToolsConfiguration GinasConfiguration
+        {
+            get;
+            set;
+        }
 
         protected Dictionary<string, Callback> Callbacks;
 
@@ -56,6 +71,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             set;
         }
 
+        public virtual void CancelOperation(string reason)
+        {
+
+        }
+
         protected IStatusUpdater StatusUpdater;
 
         public void SetStatusUpdater(IStatusUpdater statusUpdater)
@@ -65,9 +85,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public int GetBatchSize()
         {
-            if (ToolsConfiguration != null && ToolsConfiguration.BatchSize > 0)
+            if (GinasConfiguration != null && GinasConfiguration.BatchSize > 0)
             {
-                return ToolsConfiguration.BatchSize;
+                return GinasConfiguration.BatchSize;
             }
 
             int batchSize;
@@ -91,7 +111,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-        public GinasToolsConfiguration ToolsConfiguration = Utils.FileUtils.GetGinasConfiguration();
+        //public GinasToolsConfiguration ToolsConfiguration = Utils.FileUtils.GetGinasConfiguration();
 
         public void LaunchFirstScript()
         {
@@ -150,9 +170,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         protected float GetExpirationOffset()
         {
-            if (ToolsConfiguration.ExpirationOffset > 0)
+            if (GinasConfiguration.ExpirationOffset > 0)
             {
-                return ToolsConfiguration.ExpirationOffset;
+                return GinasConfiguration.ExpirationOffset;
             }
             return 120;
         }
@@ -161,5 +181,122 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
 
         }
+
+        protected virtual void StartFirstUpdateCallback()
+        {
+
+        }
+
+        protected virtual void EndProcessNotification()
+        {
+
+        }
+
+        public void CheckUpdateCallbacks(Object source, ElapsedEventArgs e)
+        {
+            log.Debug("Starting in checkUpdateCallbacks");
+
+            bool haveActive = false;
+
+            List<string> callbackKeysToRemove = new List<string>();
+            log.Debug("Total callbacks at start: " + Callbacks.Count);
+            //'go through individual callbacks
+            foreach (string cbKey in Callbacks.Keys)
+            {
+                Callback cb = Callbacks[cbKey];
+                if (cb.HasStarted())
+                {
+                    if (cb is UpdateCallback)
+                    {
+                        UpdateCallback updateCb = cb as UpdateCallback;
+                        string itemMessage = "looking at updateCallback " + updateCb.getKey();
+                        if (updateCb.IsExpiredNow())
+                        {
+                            itemMessage = itemMessage + " expired; script: " + updateCb.getScript(); ;
+                            callbackKeysToRemove.Add(cbKey);
+                        }
+                        else
+                        {
+                            haveActive = true;
+                            itemMessage = itemMessage + " active";
+                        }
+
+                        log.Debug(itemMessage);
+                    }
+                }
+            }
+
+            KeepCheckingCallbacks = haveActive;
+            if (!haveActive)
+            {
+                log.Debug("No active callbacks detected");
+            }
+            if (callbackKeysToRemove.Count > 0)
+            {
+                foreach (string key in callbackKeysToRemove)
+                {
+                    Callback cb = Callbacks[key];
+                    cb.Execute("Expired");
+                    Callbacks.Remove(key);
+                    DecremementTotalScripts();
+                }
+            }
+            log.DebugFormat("Total callbacks at end: {0}", Callbacks.Count);
+            if (Callbacks.Count == 0)
+            {
+                haveActive = false;
+                KeepCheckingCallbacks = false;
+                _timer.Close();
+                _timer.Stop();
+                _timer.Enabled = false;
+                log.Debug("stopped timer");
+                EndProcessNotification();
+            }
+            else if (!haveActive)
+            {
+                // <N> runs of this check with no active callbacks mean it's ok to start a new callback
+                if (_NumTimesFoundNoActives < MAX_TIMES_NO_ACTIVE)
+                {
+                    log.Debug("; will now call StartFirstUpdateCallback");
+                    StartFirstUpdateCallback();
+                    _NumTimesFoundNoActives = 0;
+                }
+                else
+                {
+                    _NumTimesFoundNoActives++;
+                }
+            }
+
+            log.Debug("end of checkUpdateCallbacks ");
+        }
+
+        protected void DecremementTotalScripts()
+        {
+            if (_totalScripts > 0) _totalScripts--;
+        }
+
+        protected void SaveAndClearDebugInfo()
+        {
+            log.Debug("Starting in SaveAndClearDebugInfo");
+            string fileName = FileUtils.GetTemporaryFilePath("gsrs.excel.log");
+            string content = (string)ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            FileUtils.WriteToFile(fileName, content);
+            ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack=[]");//clear the old stuff
+        }
+
+        protected void Authenticate()
+        {
+            if (!string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.Username)
+                && !string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.PrivateKey))
+            {
+                string script1 = string.Format("GlobalSettings.authKey = '{0}'",
+                    GinasConfiguration.SelectedServer.PrivateKey);
+                ScriptExecutor.ExecuteScript(script1);
+                string script2 = string.Format("GlobalSettings.authUsername = '{0}'",
+                    GinasConfiguration.SelectedServer.Username);
+                ScriptExecutor.ExecuteScript(script2);
+            }
+        }
+
     }
 }

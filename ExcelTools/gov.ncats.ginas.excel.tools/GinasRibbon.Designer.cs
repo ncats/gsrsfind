@@ -136,8 +136,10 @@
             // 
             // buttonAssureColumns
             // 
+            this.buttonAssureColumns.Enabled = false;
             this.buttonAssureColumns.Label = "Assure Required Columns";
             this.buttonAssureColumns.Name = "buttonAssureColumns";
+            this.buttonAssureColumns.Visible = false;
             this.buttonAssureColumns.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAssureColumns_Click);
             // 
             // configurationGroup

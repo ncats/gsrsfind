@@ -62,25 +62,45 @@
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.3.2\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="Npgsql">
+      <HintPath>..\..\..\..\app\Npgsql2.0.1-bin-ms.net3.5sp1\bin\Npgsql.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\DataLoaderTests.cs" />
+    <Compile Include="Model\CodeProxy.cs" />
+    <Compile Include="Model\PlantPart.cs" />
+    <Compile Include="Model\RelatedSubstanceProxy.cs" />
+    <Compile Include="Model\StructurallyDiverseProxy.cs" />
+    <Compile Include="Model\SubstanceNamesProxy.cs" />
+    <Compile Include="Model\SubstanceProxy.cs" />
+    <Compile Include="ScriptTests.cs" />
+    <Compile Include="TestRetrievalForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TestRetrievalForm.Designer.cs">
+      <DependentUpon>TestRetrievalForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\getItemMock.cs" />
     <Compile Include="Model\ggetMock.cs" />
     <Compile Include="Model\ScriptExecutorMock.cs" />
     <Compile Include="Model\StatusUpdaterMock.cs" />
+    <Compile Include="Model\StructureProxy.cs" />
     <Compile Include="ResolverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExcelTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="ModelTests.cs" />
+    <Compile Include="Utils\DBQueryUtils.cs" />
     <Compile Include="Utils\DomUtilsTests.cs" />
     <Compile Include="Utils\FieldMappingDialog.cs">
       <SubType>Form</SubType>
@@ -91,13 +111,21 @@
     <Compile Include="Utils\ScriptUtilsTests.cs" />
     <Compile Include="Utils\SDFileUtilsTests.cs" />
     <Compile Include="Utils\RestUtilTests.cs" />
+    <Compile Include="Utils\StringExtensions.cs" />
     <Compile Include="Utils\VocabUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="etc\LastScript.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="etc\UtilityWebPage.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="log4net.config">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="readme.txt" />
     <None Include="app.config" />
     <None Include="get.snk" />
     <None Include="gov.ncats.ginas.excel.tools_TemporaryKey.pfx" />
@@ -121,6 +149,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="TestRetrievalForm.resx">
+      <DependentUpon>TestRetrievalForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Utils\FieldMappingDialog.resx">
       <DependentUpon>FieldMappingDialog.cs</DependentUpon>
     </EmbeddedResource>

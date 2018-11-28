@@ -54,38 +54,54 @@ var GSRSAPI = {
                 return GlobalSettings._errorMessage;
             }
         },
+            g_api.isJson = function (str) {
+                try {
+                    JSON.parse(str);
+                }
+                catch (e) {
+                    console.log('error in isJson: ' + e);
+                    return false;
+                }
+                return true;
+            },
+
             /*TODO: should be its own service*/
             g_api.httpProcess = function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
-                    if (b) {
+                    var contentType = 'application/json';
+
+                    console.log('in httpProcess, req.skipJson: ' + req.skipJson);
+                    if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
-                        b = req._q;
-                    };
+                        b = b ? b : req._q;
+                        contentType = 'text/plain';
+                    }
                     if (req._url.match(/.*[?]/)) {
                         req._url = req._url + "&cache=" + g_api.UUID.randomUUID();
                     } else {
                         req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
-                    };
+                    }
 
                     g_api.GlobalSettings.authenticate(req);
 
                     console.log("going to call url: " + req._url);
                     if (req._q && req._q.q) {
                         console.log("   with query: " + req._q.q);
-                    };
+                    }
                     var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
                     window[cbackname] = function (response) {
                         console.log('ajax call success (1)');
                         console.log(' at ' + _.now());
                         cb(response);
                     };
+                    console.log('b: ' + JSON.stringify(b));
                     $.ajax({
                         url: req._url,
                         /*jsonp: cbackname,*/
                         dataType: GlobalSettings.httpType(),
-                        contentType: 'application/json',
+                        contentType: contentType,
                         type: req._method,
                         data: b,
                         beforeSend: function (request) {
@@ -94,16 +110,6 @@ var GSRSAPI = {
                                     request.setRequestHeader(k, req.headers[k]);
                                 });
                             }
-                        },
-                        isJson: function (str) {
-                            try {
-                                JSON.parse(str);
-                            }
-                            catch (e) {
-                                console.log('	error in isJson: ' + e);
-                                return false;
-                            }
-                            return true;
                         },
                         success: function (response) {
                             console.log('ajax call success ');
@@ -127,8 +133,8 @@ var GSRSAPI = {
                                     console.log('500 error');
                                 } else {
                                     GlobalSettings.setStatus("ERROR " + response.status);
-                                };
-                            };
+                                }
+                            }
                             GlobalSettings._errorMessage = error;
                             /*figure out the message that will be displayed to the user in Excel*/
                             if (response.responseText) {
@@ -138,7 +144,7 @@ var GSRSAPI = {
                                 var retMsg = { valid: false };
                                 console.log('	initialized retMsg');
                                 /*detect a complex, nested error message*/
-                                if (typeof (response.responseText) === 'string' && this.isJson(response.responseText)) {
+                                if (typeof response.responseText === 'string' && g_api.isJson(response.responseText)) {
                                     var responseRestored = JSON.parse(response.responseText);
                                     console.log(' parsed JSON');
                                     if (responseRestored.validationMessages && responseRestored.validationMessages.length > 0) {
@@ -182,6 +188,10 @@ var GSRSAPI = {
                                     cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
                                 }
 
+                            }
+                            else if (response.statusText)
+                            {
+                                console.log('statusText: ' + response.statusText);
                             }
                             else {
                                 console.log('Error missing');
@@ -404,9 +414,9 @@ var GSRSAPI = {
                 sfinder.searchByExactNameOrCode = function (q) {
                     if (UUID.isUUID(q)) {
                         return sfinder.get(q).andThen(function (s) {
-                            return { "content": [s] }
+                            return { "content": [s] };
                         });
-                    };
+                    }
                     return sfinder.search("root_names_name:\"^" + q + "$\" OR " +
                         "root_approvalID:\"^" + q + "$\" OR " +
                         "root_codes_code:\"^" + q + "$\"");
@@ -421,6 +431,22 @@ var GSRSAPI = {
                             sync: "true" /*shouldn't be sync*/
                         });
                     return g_api.httpProcess(req).andThen(function (tmp) {
+                        return tmp;
+                    });
+                };
+                sfinder.saveTemporaryStructure = function (smi) {
+                    var url = g_api.GlobalSettings.getBaseURL();
+                    var pos = url.indexOf("api");
+                    url = url.substring(0, pos) + "structure";
+                    var req = g_api.Request.builder()
+                        .url(url)
+                        .method("POST")
+                        .setSkipJson(true)
+                        .body(smi )
+                        .setContents({ "body": smi });
+                    return g_api.httpProcess(req)
+                        .andThen(function (tmp) {
+                            console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));
                         return tmp;
                     });
                 };
@@ -548,7 +574,7 @@ var GSRSAPI = {
 
                     if (!simple.uuid) {
                         p = p.setMethod("POST");
-                    };
+                    }
 
                     /*patch overrides but calls the base method*/
                     p._oldApply = p.apply;
@@ -801,10 +827,11 @@ var GSRSAPI = {
                 var nm = name;
                 if (!nm) {
                     nm = codeSystem + "[CODE]";
-                };
+                }
                 return g_api.FetcherMaker.make(nm, function (simpleSub) {
                     return simpleSub.fetch("codes(codeSystem:" + codeSystem + ")")
                         .andThen(function (cds) {
+                            console.log('cds: ' + JSON.stringify(cds));
                             return _.chain(cds)
                                 .sort(function (a, b) {
                                     if (a.type === "PRIMARY" && b.type !== "PRIMARY") {
@@ -915,7 +942,8 @@ var GSRSAPI = {
         g_api.Request = {
             builder: function () {
                 var rq = {
-                    _method: "GET"
+                    _method: "GET",
+                    skipJson: false
                 };
                 rq.url = function (url) {
                     rq._url = url;
@@ -932,7 +960,16 @@ var GSRSAPI = {
                     rq.body = function (b) {
                         rq._b = b;
                         return rq;
+                    },
+                    rq.setSkipJson = function (a) {
+                        rq.skipJson = a;
+                        return rq;
+                    },
+                    rq.setContents = function (c) {
+                        rq.contents = c;
+                    return rq;
                     };
+                
                 return rq;
             }
         };
@@ -943,15 +980,16 @@ var GSRSAPI = {
                 sfinder.postSmiles = function (smi) {
                     var url = g_api.GlobalSettings.getBaseURL();
                     var pos = url.lastIndexOf("app/");
-                    url = url.substring(0, pos + 3) + "structure";
+                    url = url.substring(0, pos + 4) + "structure";
                     console.log("postSmiles using URL " + url);
                     var req = g_api.Request.builder()
                         .url(url )
+                        .method("POST")
                         .queryStringData({
                             "body":smi                            
                         });
                     return g_api.httpProcess(req).andThen(function (tmp) {
-                        if (isJson(tmp)) {
+                        if (g_api.isJson(tmp)) {
                             var obj = JSON.parse(tmp);
                             console.log("Parsed object out of JSON");
                             console.log(" going to return id " + obj.structure.id);
@@ -1255,11 +1293,12 @@ var GSRSAPI = {
                 scr.addArgument = function (arg) {
                     if (arg._type !== "argument") {
                         arg = Argument.builder().mix(arg);
-                    };
+                    }
                     scr.arguments.push(arg);
                     scr.argMap[arg.getKey()] = arg;
                     return scr;
                 };
+                scr.validForSheetCreation = true;
                 scr.setKey = function (key) {
                     scr.key = key;
                     return scr;
@@ -1285,7 +1324,7 @@ var GSRSAPI = {
 
                 scr.getArgumentByName = function (narg) {
                     var l = _.filter(scr.arguments, function (a) {
-                        return a.name === narg
+                        return a.name === narg;
                     });
                     if (l.length === 0)
                         return undefined;
@@ -1338,7 +1377,6 @@ var GSRSAPI = {
                         args: {}
                     };
                     cargs.clearValues = function () {
-                        console.log('clearValues');
                         argSet = this.args;
                         _.forEach(this.args, function (val, key) {
                             argSet[key].value = argSet[key].defaultValue;
@@ -1349,7 +1387,7 @@ var GSRSAPI = {
                         var darg = scr.getArgument(key);
                         if (!darg) {
                             throw "No such argument '" + key + "' in script '" + scr.name + "'";
-                        };
+                        }
                         cargs.args[key] = Argument.builder().mix(scr.getArgument(key)).setValue(value);
                         return cargs;
                     };
@@ -1756,19 +1794,16 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("All Names", function (simpleSub) {
-
         return simpleSub.fetch("names!(name)!join(|)").andThen(function (n) {
             return n.replace(/%7C/g, "|");
         });
     }).addTag("Substance")
 );
 
-FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM").addTag("Identifiers"))
+FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM", "BDNUM Code").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("WHO-ATC", "ATC Code").addTag("Substance"))
     .addFetcher(FetcherMaker.makeCodeFetcher("CAS", "CAS Numbers").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("EVMPD", "EVMPD Code").addTag("Identifiers"));
-
-
 
 FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Term").addTag("Substance"))
     .addFetcher(FetcherMaker.makeScalarFetcher("_approvalIDDisplay", "Approval ID (UNII)").addTag("Identifiers"))
@@ -1780,8 +1815,6 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/formula", "Molecular Formula").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/molfile", "Molfile").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
-
-
 
 /*FetcherRegistry.addFetcher(
     FetcherMaker.make("Structural Modifications", function (simpleSub) {
@@ -1980,7 +2013,8 @@ function validate4Params(args) {
         return GGlob.JPromise.of(function (cb) {
             cb({
                 "valid": false, "message": "At least one of these arguments must have values: UUID, PT and BDNUM",
-            "overall": true});
+                "overall": true
+            });
         });
     }
     if (args.uuid.getValue()) {
@@ -2012,7 +2046,8 @@ function validate4Params(args) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
                         return {
                             "valid": false, "message": "The PT does not match the value for this record",
-                            "overall": true};
+                            "overall": true
+                        };
                     }
 
                     if (args.bdnum.getValue()) {
@@ -2045,7 +2080,8 @@ function validate4Params(args) {
                 } else {
                     return {
                         "valid": false, "message": "Could not find record with that UUID",
-                        "overall": true};
+                        "overall": true
+                    };
                 }
             });
     }
@@ -2095,7 +2131,8 @@ function validate4Params(args) {
                 } else {
                     return {
                         "valid": false, "message": "Could not find record with that PT",
-                        "overall": true};
+                        "overall": true
+                    };
                 }
             });
 
@@ -2565,7 +2602,9 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             reference.setPublicDomain(false);
         }
 
-        console.log('Creating code using codeText ' + codeText + '; and comments: ' + codeComments);
+        console.log('Creating code using codeInput ' + codeInput
+            + '; codeSystem ' + codeSystem
+            + '; codeText ' + codeText + '; and comments: ' + codeComments);
         var code = Code.builder().setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
@@ -2582,7 +2621,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 
         var lookupCriterion = uuid;
         if (!uuid || uuid.length === 0) {
-            if (!pt && pt.length > 0) {
+            if (pt && pt.length > 0) {
+                console.log('using pt for lookup');
                 lookupCriterion = pt;
             }
             else {
@@ -3200,8 +3240,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
                     .apply()
                     .andThen(function (s0) {
                         return s0;
-                    })
-            })
+                    });
+            });
     })
     .useFor(function (s) {
         Scripts.addScript(s);
@@ -3210,8 +3250,7 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
     name: "Fix Code URLS",
-    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
-})
+    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
     })
@@ -3239,7 +3278,7 @@ Script.builder().mix({
         var pt = args.pt.getValue();
         var urlBase = args['url base'].getValue();
 
-        var searchCrit = (uuid) ? uuid : pt;
+        var searchCrit = uuid ? uuid : pt;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
@@ -3282,7 +3321,7 @@ Script.builder().mix({
                     .andThen(function (arg) {
                         return arg;
                     });
-            })
+            });
     })
     .useFor(function (s) {
         Scripts.addScript(s);
@@ -3570,7 +3609,8 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
 
 Script.builder().mix({
     name: "Create Substance from SD File",
-    description: "Creates a brand new substance record using data read in from an SD file"
+    description: "Creates a brand new substance record using data read in from an SD file",
+    validForSheetCreation: false
 })
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the new substance", required: true,
@@ -3649,8 +3689,7 @@ Script.builder().mix({
         defaultValue: false, required: false
     })
     .setExecutor(function (args) {
-        console.log('Starting in Create Substance executor');
-
+        console.log('Starting in Create Substance from SD File executor');
         var pt = args.pt.getValue();
         var substanceClass = args['substance class'].getValue();
         var dataPublic = args.pd.isYessy();
@@ -3720,8 +3759,7 @@ Script.builder().mix({
                 console.log("Creating property " + propName);
                 var prop = Property.builder().setName(propName);
                 var floatVal = parseFloat(args[arg].getValue());
-                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT'))
-                {
+                if (isNaN(floatVal) || (propInterpretation && propInterpretation.toUpperCase() === 'TEXT')) {
                     prop.setPropertyStringValue(args[arg].getValue());
                 }
                 else {
@@ -3912,8 +3950,7 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
     });
 
 
-
-/*Add a volume of distributino*/
+/*Add a volume of distribution*/
 Script.builder().mix({ name: "Volume of Distribution", description: "Add values to Volume of Distribution Property for a substance record" })
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
@@ -4067,6 +4104,42 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                     .andThen(_.identity);
                     });
             });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+Script.builder().mix({
+    name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
+        validForSheetCreation: false})
+    .addArgument({
+        "key": "molfile", name: "Molfile", description: "structure to save", required: true
+    })
+    .setExecutor(function (args) {
+        var structure = args.molfile.getValue();
+        return GGlob.SubstanceFinder.saveTemporaryStructure(structure)
+            .andThen(function (s) {
+                console.log("saveTemporaryStructure script received s: " + JSON.stringify(s));
+                if (typeof s === 'string' && s.indexOf('<html>') > -1) {
+                    return "Error: not authenticated";
+                }
+                if (typeof s === 'object' && (!s.valid && !s.structure)) {
+                    console.log('detected error');
+                    if (s.message) return s.message;
+                    else return "an error occurred";
+                }
+                console.log('going to return s.structure.id ' + s.structure.id);
+                return SubstanceFinder.getExactStructureMatches(s.structure.id)
+                    .andThen(function (searchResult) {
+                        console.log('searchResult: ' + JSON.stringify(searchResult));
+                        var msg = {
+                            valid: true, message: "structureid=" + s.structure.id,
+                            matches: searchResult.content
+                        };
+                        return msg;
+                });
+            });
+
     })
     .useFor(function (s) {
         Scripts.addScript(s);

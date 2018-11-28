@@ -2,7 +2,7 @@
 
 var madeReady = false;
 $(document).ready(function () {
-    handleReady();    
+    handleReady();
 });
 
 function handleReady() {
@@ -18,7 +18,7 @@ function handleReady() {
                 .map("name")
                 .map(function (n) {
                     var completedTemplate = htmltemplate.replace(/\$name\$/g, n);
-                    
+
                     return completedTemplate;
                 })
                 .value()
@@ -64,9 +64,11 @@ function showPreview(runner) {
 
 function showScripts() {
     $("#scriptlist").html("");
-    _.forEach(Scripts.all(), function (script) {
-        $("#scriptlist").append("<option value='" + script.name + "'>" + script.name + "</option>");
-    });
+    _.chain(Scripts.all())
+        .filter(function (s) { return s.validForSheetCreation; })
+        .forEach(function (script) {
+            $("#scriptlist").append("<option value='" + script.name + "'>" + script.name + "</option>");
+        }).value();
     $("#scriptlist").change(function () {
         var script = Scripts.get($("#scriptlist").val());
         $("#scriptdetails").html(script.description);

@@ -6,6 +6,8 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
+using System.Text;
 
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
@@ -14,37 +16,97 @@ using gov.ncats.ginas.excel.tools.Providers;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 using ginasExcelUnitTests.Model;
+using ginasExcelUnitTests.Utils;
+using gov.ncats.ginas.excel.tools.UI;
 
 namespace ginasExcelUnitTests
 {
     [TestClass]
     public class ExcelTests
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        Application excel;
+        static Application excel;
+        static TestRetrievalForm retrievalForm = null;
+        static DBQueryUtils dBQueryUtils = new DBQueryUtils();
+        static bool scriptRunnerReady = false;
+        static ScriptUtils scriptUtils = new ScriptUtils();
 
-        public GinasToolsConfiguration CurrentConfiguration
+        private static void StartForm()
+        {
+            log.Debug("Starting in StartForm");
+            retrievalForm = new TestRetrievalForm();
+            retrievalForm.Size = new System.Drawing.Size(5, 5);
+            retrievalForm.Visible = false;
+
+            System.Windows.Forms.Application.Run(retrievalForm);
+        }
+
+        public static void SetReady()
+        {
+            scriptRunnerReady = true;
+        }
+
+        public static GinasToolsConfiguration CurrentConfiguration
         {
             get;
             set;
         }
 
+        public static void ReceiveVocabulary(string rawVocab)
+        {
+            log.DebugFormat("ReceiveVocabulary will handle vocabulary ");
+            int delim1 = rawVocab.IndexOf(":");
+            int delim2 = rawVocab.IndexOf(":", delim1 + 1);
+            if (delim1 < 0 || delim2 < 0) return;
+            string vocabName = rawVocab.Substring(delim1 + 1, (delim2 - delim1 - 1));
+            rawVocab = rawVocab.Substring(delim2 + 1);
+            Vocab vocab = JSTools.GetVocabFromString(rawVocab);
+
+            scriptUtils.Vocabularies.Add(vocabName, vocab);
+            scriptUtils.MarkVocabArrived(vocabName);
+            log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
+                vocabName, scriptUtils.ExpectedVocabularies.Count);
+            if (scriptUtils.ExpectedVocabularies.Count == 0)
+            {
+                SetReady();
+            }
+        }
+
+
         [TestInitialize]
         public void SetUp()
         {
-            excel = new Application();
-            Console.WriteLine("Started Excel");
-            this.CurrentConfiguration = FileUtils.GetGinasConfiguration();
+
         }
 
         [TestCleanup]
         public void Cleanup()
         {
+        }
+
+        [ClassInitialize]
+        public static void ClassInit( TestContext testContext)
+        {
+
+            Thread formThread = new Thread(StartForm);
+            formThread.SetApartmentState( ApartmentState.STA);
+            formThread.Start();
+
+            excel = new Application();
+            Console.WriteLine("Started Excel");
+            CurrentConfiguration = FileUtils.GetGinasConfiguration();
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
             excel.Workbooks.Close();
             excel.Quit();
             Console.WriteLine("Closed Excel");
+            retrievalForm.Close();
+            retrievalForm = null;
         }
-
         [TestMethod]
         public void ImageOps_hasComment_Test()
         {
@@ -217,7 +279,7 @@ namespace ginasExcelUnitTests
 
                 CursorBasedResolverCallback cursorBasedResolverCallback = CallbackFactory.CreateCursorBasedResolverCallback(wrapper);
                 cursorBasedResolverCallback.OriginalRow = row;
-                cursorBasedResolverCallback.setKey("key" + row);
+                cursorBasedResolverCallback.SetKey("key" + row);
                 callbacks.Add(cursorBasedResolverCallback);
             }
             BatchCallback batchCallback = new BatchCallback(callbacks);
@@ -757,14 +819,195 @@ namespace ginasExcelUnitTests
             SheetUtils.CheckSDSheetForDuplicates(sheet, messages, CurrentConfiguration.SelectedServer.ServerUrl);
             Assert.AreEqual(0, messages.Count);
         }
+
+        [TestMethod]
+        public void HandleSDFileImportTest()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet) workbook.Sheets.Item[1];
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            SDFileProcessor processor = new SDFileProcessor();
+            try
+            {
+
+
+                processor.SetScriptExecutor(scriptExecutorMock);
+                string sdFilePath = @"..\..\..\Test_Files\INN_119 first 2.sdf";
+                string fullSdFilePath = Path.GetFullPath(sdFilePath);
+
+                string[] fileFieldNames = { "Molfile", "Formula", "MolWeight", "MolfileName", "cas_rn", "cas_index_name", SDFileProcessor.FIELD_NAME_UNIQUENESS };
+
+                processor.HandleSDFileImport(fullSdFilePath, worksheet);
+                string expectedFirstCellData = "BATCH:" + SDFileProcessor.SD_LOADING_SCRIPT_NAME;
+                string actualFirstCellData = worksheet.Range["A1"].FormulaR1C1.ToString();
+                Assert.AreEqual(expectedFirstCellData, actualFirstCellData);
+                for (int col = 2; col < fileFieldNames.Length + 1; col++)
+                {
+                    string cellAddress = SheetUtils.GetColumnName(col) + "1";
+                    Range range = worksheet.Range[cellAddress];
+                    string actual = range.FormulaR1C1.ToString();
+                    Assert.AreEqual(fileFieldNames[col - 2], actual);
+                }
+            }
+            finally
+            {
+                workbook.Close(false);
+            }
+            
+        }
+
+        [TestMethod]
+        public void SDFileProcessorStartOperationTest()
+        {
+            string filePath = @"..\..\..\Test_Files\INN_119.sdf";
+            filePath = Path.GetFullPath(filePath);
+
+            SDFileUtils sDFileUtils = new SDFileUtils();
+            List<SDFileRecord> sDFileRecords = sDFileUtils.ReadSdFile(filePath);
+
+            SheetUtils sheetUtils = new SheetUtils();
+            SDFileProcessor sDFileProcessor = new SDFileProcessor();
+            ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
+            StatusUpdaterMock statusUpdaterMock = new StatusUpdaterMock();
+            sDFileProcessor.SetStatusUpdater(statusUpdaterMock);
+            sDFileProcessor.SetScriptExecutor(scriptExecutorMock);
+
+            FieldInfo sheetUtilInfo = sDFileProcessor.GetType().GetField("_sheetUtils", BindingFlags.NonPublic | BindingFlags.Instance);
+            sheetUtilInfo.SetValue(sDFileProcessor, sheetUtils);
+
+            Dictionary<string, int> fieldNamesToColumn = new Dictionary<string, int>();
+            fieldNamesToColumn.Add("Molfile", 2);
+            fieldNamesToColumn.Add("Formula", 3);
+            fieldNamesToColumn.Add("MolWeight", 4);
+            fieldNamesToColumn.Add("MolfileName", 5);
+            fieldNamesToColumn.Add("cas_rn", 6);
+            fieldNamesToColumn.Add("cas_index_name", 7);
+            FieldInfo fieldNamesToColumnsInfo = sDFileProcessor.GetType().GetField("_fieldNamesToColumns", BindingFlags.NonPublic 
+                | BindingFlags.Instance);
+            fieldNamesToColumnsInfo.SetValue(sDFileProcessor, fieldNamesToColumn);
+
+            ImageOps imageOps = new ImageOps();
+            sheetUtils.ImageOpsHandle = imageOps;
+            FieldInfo fileDataInfo = sDFileProcessor.GetType().GetField("_fileData", BindingFlags.NonPublic | BindingFlags.Instance);
+            fileDataInfo.SetValue(sDFileProcessor, sDFileRecords);
+
+            PropertyInfo configuratioInfo = sDFileProcessor.GetType().BaseType.GetProperty("GinasConfiguration", BindingFlags.NonPublic |
+                BindingFlags.Instance);
+            configuratioInfo.SetValue(sDFileProcessor, FileUtils.GetGinasConfiguration());
+            FieldInfo callbackInfo = sDFileProcessor.GetType().BaseType.GetField("Callbacks", BindingFlags.NonPublic | BindingFlags.Instance);
+            callbackInfo.SetValue(sDFileProcessor, new Dictionary<string, Callback>());
+            Workbook workbook = excel.Workbooks.Add();
+            try
+            {
+                Worksheet sheet = (Worksheet)workbook.Sheets.Item[1];
+                FieldInfo sheetInfo = sDFileProcessor.GetType().GetField("_worksheet", BindingFlags.NonPublic | BindingFlags.Instance);
+                sheetInfo.SetValue(sDFileProcessor, sheet);
+                sDFileProcessor.StartOperation();
+                
+                Dictionary<string, Callback> callbacks = (Dictionary<string, Callback>)callbackInfo.GetValue(sDFileProcessor);
+                Assert.AreEqual(sDFileRecords.Count, callbacks.Count);
+            }
+            finally
+            {
+                workbook.Close(false);
+            }
+        }
+
+        [TestMethod]
+        public void CreateSheetTest()
+        {
+            int iter = 0;
+            int maxIter = 40;
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if(retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+
+            Workbook workbook = ReadDefaultExcelWorkbook();
+            int numSheetsBefore = workbook.Sheets.Count;
+            
+            scriptUtils.ScriptExecutor = retrievalForm;
+            scriptUtils.ScriptName = "Add Name";
+            scriptUtils.StartVocabularyRetrievals();
+            //when there are no vocabularies to retrieve, move to the next step immediately
+            while (scriptUtils.ExpectedVocabularies.Count > 0)
+            {
+                Thread.Sleep(500);
+                System.Windows.Forms.Application.DoEvents();
+            }
+
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.ScriptExecutor = retrievalForm;
+            
+            sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
+            int numSheetsAfter = workbook.Sheets.Count;
+            //workbook.SaveAs(@"c:\temp\test.xlsx");
+            Assert.AreEqual((numSheetsBefore + 2), numSheetsAfter);
+            Worksheet newSheet = (Worksheet) workbook.Sheets["Add Name"];
+            string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
+            string debugInfo = (string)retrievalForm.ExecuteScript(script);
+            log.Debug(debugInfo);
+            Range cell1 = newSheet.Range["A1"];
+            string cell1Actual = (string) cell1.Value2;
+            Assert.AreEqual("BATCH:Add Name", cell1Actual);
+            Range cell2 = newSheet.Range["B1"];
+            string cell2Actual = (string)cell2.Value2;
+            Assert.AreEqual("UUID", cell2Actual);
+            string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
+            Console.WriteLine("hostname: " + hostName);
+            
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void CreateSheetTest2()
+        {
+            Workbook workbook = ReadDefaultExcelWorkbook();
+            int numSheetsBefore = workbook.Sheets.Count;
+            ScriptUtils scriptUtils = new ScriptUtils();
+            scriptUtils.ScriptName = "Add Name";
+            //retrievalForm.Visible = false;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.ShowScripts;
+            retrievalForm.Show();
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
+            int numSheetsAfter = workbook.Sheets.Count;
+            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            Worksheet newSheet = (Worksheet)workbook.Sheets["Add Name"];
+            string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
+            string debugInfo = (string)retrievalForm.ExecuteScript(script);
+            log.Debug(debugInfo);
+            Range cell1 = newSheet.Range["A1"];
+            string cell1Actual = (string)cell1.Value2;
+            Assert.AreEqual("BATCH:Add Name", cell1Actual);
+
+            Range cell2 = newSheet.Range["B1"];
+            string cell2Actual = (string)cell2.Value2;
+            Assert.AreEqual("UUID", cell2Actual);
+            //workbook.SaveAs(@"c:\temp\test2.xlsx");
+            workbook.Close(false);
+        }
+
+
         private Workbook ReadDefaultExcelWorkbook()
         {
-
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             return workbook;
         }
+
 
         internal  Workbook ReadExcelWorkbook(string filePath)
         {
@@ -775,5 +1018,25 @@ namespace ginasExcelUnitTests
         {
             return File.ReadAllBytes(file);
         }
+
+        private void CheckForm()
+        {
+            int iter = 0;
+            int maxIter = 40;
+
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if (retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+        }
+
     }
 }
