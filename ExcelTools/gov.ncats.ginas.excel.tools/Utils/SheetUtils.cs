@@ -582,6 +582,59 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         }
 
+        /// <summary>
+        /// return true when sheet contains data within the columns to the right of the specified range
+        /// </summary>
+        /// <param name="toCheck"></param>
+        /// <param name="numColumnsToBeWritten"></param>
+        /// <returns></returns>
+        public static bool ContainsDataInColumnsToBeWritten(Range selectedRange, int numColumnsToBeWritten)
+        {
+            foreach (Range startCell in selectedRange)
+            {
+                for (int c = 1; c <= numColumnsToBeWritten; c++)
+                {
+                    Range cell = startCell.Offset[0, c];
+                    if (cell.Value2 != null && !string.IsNullOrWhiteSpace(cell.Value2.ToString()))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static Range FindFirstCellWithText(Range rangeToSearch, string textToFind)
+        {
+            foreach (Range cell in rangeToSearch.Cells)
+            {
+                if (cell.FormulaR1C1Local != null && cell.FormulaR1C1Local is string )
+                {
+                    string testData = (cell.FormulaR1C1Local as string).Trim();
+                    if(testData.Equals(textToFind, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return cell;
+                    }                    
+                }
+            }
+            return null;
+        }
+
+        public static bool IsRowBlank(Range row)
+        {
+            Range cellsToExamine = row.Application.Intersect(row.Worksheet.UsedRange, row);
+            if (cellsToExamine == null) return true;
+
+            foreach (Range cell in cellsToExamine)
+            {
+                if (cell.Value2 != null && !string.IsNullOrWhiteSpace(cell.Value2.ToString()))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private static void FormatCellForParameter(Range cell)
         {
             cell.ColumnWidth = 21;

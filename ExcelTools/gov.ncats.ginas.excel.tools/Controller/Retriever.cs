@@ -462,6 +462,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return ScriptQueue;
         }
 
+        public bool OkToWrite(int numberOfColumns)
+        {
+            if (!SheetUtils.ContainsDataInColumnsToBeWritten(ExcelWindow.RangeSelection, numberOfColumns) ||
+                    UIUtils.GetUserYesNo("There is data in columns that will be overwritten! Continue with operation?"))
+            {
+                return true;
+            }
+            return false;
+        }
+
         private RangeWrapper GetNewSheetResolverCursor()
         {
             string[] headers;

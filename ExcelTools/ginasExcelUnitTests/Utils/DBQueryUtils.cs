@@ -75,7 +75,7 @@ namespace ginasExcelUnitTests.Utils
         internal List<Tuple<string, string>> GetCodesForName(string name)
         {
             string query =
-                string.Format("select code_system, code from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where name = '{0}')",
+                string.Format("select code_system, code from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
                  name);
             List<Tuple<string, string>> codes = new List<Tuple<string, string>>();
             NpgsqlCommand command = connection.CreateCommand();
@@ -95,7 +95,7 @@ namespace ginasExcelUnitTests.Utils
         internal List<CodeProxy> GetCodesEtcForName(string name)
         {
             string query =
-                string.Format("select code_system, code, comments, url from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where name = '{0}')",
+                string.Format("select code_system, code, comments, url from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
                  name);
             List<CodeProxy> codes = new List<CodeProxy>();
             NpgsqlCommand command = connection.CreateCommand();
@@ -162,7 +162,7 @@ namespace ginasExcelUnitTests.Utils
 
         internal string GetUuidForPt(string pt)
         {
-            string query = string.Format("select owner_uuid from ix_ginas_name n where n.name = '{0}' and preferred = true",
+            string query = string.Format("select owner_uuid from ix_ginas_name n where upper(n.name) = upper('{0}') and preferred = true",
                 pt);
             string uuid = string.Empty;
             NpgsqlCommand command = connection.CreateCommand();
@@ -198,7 +198,7 @@ namespace ginasExcelUnitTests.Utils
         internal List<StructureProxy> GetStructureForName(string name)
         {
             List<StructureProxy> structures = new List<StructureProxy>();
-            string query = string.Format("select id, smiles, formula, mwt, stereo, charge from ix_core_structure where id =(SELECT structure_id FROM IX_ginas_Substance WHERE UUID =(select owner_uuid from ix_ginas_name where name = '{0}'))", 
+            string query = string.Format("select id, smiles, formula, mwt, stereo, charge from ix_core_structure where id =(SELECT structure_id FROM IX_ginas_Substance WHERE UUID =(select owner_uuid from ix_ginas_name where upper(name) = upper('{0}')))", 
                 name);
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
@@ -218,6 +218,7 @@ namespace ginasExcelUnitTests.Utils
                 formula = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
                 mwt = reader.IsDBNull(3) ? double.NaN : reader.GetDouble(3);
                 stereo = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                stereo = stereo.Replace("\"", "");
                 charge = reader.IsDBNull(5) ? int.MinValue : reader.GetInt32(5);
 
                 StructureProxy structureMock = new StructureProxy(idValue, smiles, formula, mwt, stereo, charge);
@@ -266,7 +267,7 @@ namespace ginasExcelUnitTests.Utils
             List<RelatedSubstanceProxy> substances = new List<RelatedSubstanceProxy>();
             string query = string.Format("select uuid, ref_pname, refuuid, approval_id from ix_ginas_substanceref where uuid in "
                 + "(select related_substance_uuid  from ix_ginas_relationship where owner_uuid in "
-                + "(select owner_uuid from ix_ginas_name where name = '{0}') and deprecated = false and type = '{1}') ",
+                + "(select owner_uuid from ix_ginas_name where upper(name) = ('{0}')) and deprecated = false and type = '{1}') ",
                    name, relType);
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
@@ -295,7 +296,7 @@ namespace ginasExcelUnitTests.Utils
             string query = string.Format("select uuid, sequence, subunit_index from ix_ginas_subunit where uuid in "
                 + "(select ix_ginas_subunit_uuid from ix_ginas_protein_subunit where ix_ginas_protein_uuid ="
                 + "(select protein_uuid from ix_ginas_substance where uuid = "
-                + " (select owner_uuid from ix_ginas_name where name = '{0}'and deprecated = false))) order by subunit_index",
+                + " (select owner_uuid from ix_ginas_name where upper(name) = ('{0}') and deprecated = false))) order by subunit_index",
                 name);
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
@@ -322,7 +323,7 @@ namespace ginasExcelUnitTests.Utils
                 + "   s.protein_uuid, s.specified_substance_uuid, s.structurally_diverse_uuid, s.approval_id"
                 + "   from ix_ginas_substance s, ix_core_principal p1, ix_core_principal p2 "
                 + "   where s.created_by_id = p1.id and s.last_edited_by_id= p2.id and uuid in "
-                + "   ((select owner_uuid from ix_ginas_name where name = '{0}') "
+                + "   ((select owner_uuid from ix_ginas_name where upper(name) = upper('{0}')) "
                 + "   union "
                 + "   (select owner_uuid from ix_ginas_code where code like '{0}')) ",
                     nameOrCode);
@@ -360,8 +361,8 @@ namespace ginasExcelUnitTests.Utils
         internal List<SubstanceNamesProxy> GetNamesForName(string name)
         {
             List<SubstanceNamesProxy> substanceNames = new List<SubstanceNamesProxy>();
-            string query = string.Format("select name, type, preferred, display_name, languages from ix_ginas_name where owner_uuid = "
-                + " (select owner_uuid from ix_ginas_name where name = '{0}') and deprecated = false",
+            string query = string.Format("select name, type, preferred, display_name, languages from ix_ginas_name where owner_uuid in "
+                + " (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}')) and deprecated = false",
                     name);
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
@@ -390,7 +391,7 @@ namespace ginasExcelUnitTests.Utils
             string query = string.Format("select uuid, source_material_type, organism_family, organism_genus, organism_species, organism_author, part  from ix_ginas_strucdiv "
                 + " where uuid in"
                 + " (select structurally_diverse_uuid from ix_ginas_substance where uuid in"
-                + " ((select owner_uuid from ix_ginas_name where name = '{0}')"
+                + " ((select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))"
                 + "  union"
                 + " (select owner_uuid from ix_ginas_code where code like '{0}'))) " 
                 + " and deprecated = false ",

@@ -28,5 +28,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         void ReceiveVocabulary(string rawVocab);
 
         void CancelOperation(string reason);
+
+        bool OkToWrite(int numberOfColumns);
     }
 }

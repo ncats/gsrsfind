@@ -26,15 +26,15 @@ var GSRSAPI = {
             authenticate: function (req) {
                 req.headers = {};
                 /*figure out authentication*/
-                if (g_api.GlobalSettings.authUsername 
+                if (g_api.GlobalSettings.authUsername
                     && g_api.GlobalSettings.authUsername.length > 0
-                    && g_api.GlobalSettings.authKey 
+                    && g_api.GlobalSettings.authKey
                     && g_api.GlobalSettings.authKey.length > 0) {
                     req.headers["auth-username"] = g_api.GlobalSettings.authUsername;
                     req.headers["auth-key"] = g_api.GlobalSettings.authKey;
                     console.log("using name/key authentication");
                 }
-                else if (g_api.GlobalSettings.authToken 
+                else if (g_api.GlobalSettings.authToken
                     && g_api.GlobalSettings.authToken.length > 0) {
                     req.headers["auth-token"] = g_api.GlobalSettings.authToken;
                     console.log("using token authentication");
@@ -90,7 +90,7 @@ var GSRSAPI = {
                     if (req._q && req._q.q) {
                         console.log("   with query: " + req._q.q);
                     }
-                    var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
+                    var cbackname = 'jsoncallback' + ++CALLBACK_NUMBER;
                     window[cbackname] = function (response) {
                         console.log('ajax call success (1)');
                         console.log(' at ' + _.now());
@@ -189,8 +189,7 @@ var GSRSAPI = {
                                 }
 
                             }
-                            else if (response.statusText)
-                            {
+                            else if (response.statusText) {
                                 console.log('statusText: ' + response.statusText);
                             }
                             else {
@@ -442,13 +441,13 @@ var GSRSAPI = {
                         .url(url)
                         .method("POST")
                         .setSkipJson(true)
-                        .body(smi )
+                        .body(smi)
                         .setContents({ "body": smi });
                     return g_api.httpProcess(req)
                         .andThen(function (tmp) {
                             console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));
-                        return tmp;
-                    });
+                            return tmp;
+                        });
                 };
 
                 sfinder.searchByExactName = function (q) {
@@ -967,10 +966,66 @@ var GSRSAPI = {
                     },
                     rq.setContents = function (c) {
                         rq.contents = c;
-                    return rq;
+                        return rq;
+                    },
+                    rq.setContentType = function (ct) {
+                        rq.contentType = ct;
+                        return rq;
                     };
-                
+
                 return rq;
+            }
+        };
+
+        g_api.RequestProcessor = {
+            SimpleProcess : function (req) {
+                return g_api.JPromise.of(function (cb) {
+                    var b = req._b;
+                    var contentType = req.contentType;
+                    console.log('in SimpleProcess, req.skipJson: ' + req.skipJson);
+                    if (b && !req.skipJson) {
+                        b = JSON.stringify(b);
+                    } else {
+                        b = b ? b : req._q;
+                        contentType = 'text/plain';
+                    }
+
+                    g_api.GlobalSettings.authenticate(req);
+
+                    console.log("going to call url: " + req._url);
+                    if (req._q && req._q.q) {
+                        console.log("   with query: " + req._q.q);
+                    }
+                    console.log('b: ' + JSON.stringify(b));
+                    $.ajax({
+                        url: req._url,
+                        /*jsonp: cbackname,*/
+                        dataType: GlobalSettings.httpType(),
+                        contentType: contentType,
+                        type: req._method,
+                        data: b,
+                        beforeSend: function (request) {
+                            if (req.headers) {
+                                _.forEach(_.keys(req.headers), function (k) {
+                                    request.setRequestHeader(k, req.headers[k]);
+                                });
+                            }
+                        },
+                        success: function (response) {
+                            console.log('ajax call success ');
+                            console.log('	at ' + _.now());
+                            /*console.log('	with response ' + (typeof (response) == 'string') ? response
+                                : JSON.stringify(response));*/
+                            cb(response);
+                        },
+                        error: function (response, error, t) {
+                            console.log('ajax call error ');
+                            console.log('	at ' + _.now());
+                            console.log('type of error: ' + typeof response);
+                            cb(response);
+                        }
+                    });
+                });
             }
         };
 
@@ -983,10 +1038,10 @@ var GSRSAPI = {
                     url = url.substring(0, pos + 4) + "structure";
                     console.log("postSmiles using URL " + url);
                     var req = g_api.Request.builder()
-                        .url(url )
+                        .url(url)
                         .method("POST")
                         .queryStringData({
-                            "body":smi                            
+                            "body": smi
                         });
                     return g_api.httpProcess(req).andThen(function (tmp) {
                         if (g_api.isJson(tmp)) {
@@ -1195,7 +1250,7 @@ var GSRSAPI = {
                 return prop;
             }
         };
-        
+
         var Reference = {
             builder: function () {
                 var ref = CommonData.builder();
@@ -1627,6 +1682,7 @@ var FetcherRegistry = GGlob.FetcherRegistry;
 var UUID = GGlob.UUID;
 var Request = GGlob.Request;
 var StructureFinder = GGlob.StructureFinder;
+var RequestProcessor = GGlob.RequestProcessor;
 
 /*TODO: Finish this*/
 var Validation = {
@@ -1789,6 +1845,18 @@ FetcherRegistry.addFetcher(
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Record Access", function (simpleSub) {
         return JPromise.ofScalar(simpleSub.access.join(";"));
+    }).addTag("Record")
+);
+
+FetcherRegistry.addFetcher(
+    FetcherMaker.make("Status", function (simpleSub) {
+        return JPromise.of(function (cb) {
+            var returnValue = simpleSub.status;
+            if (simpleSub.status === 'approved') {
+                returnValue = 'Validated (UNII)';
+            }
+            cb(returnValue);
+        });        
     }).addTag("Record")
 );
 
@@ -2008,7 +2076,7 @@ function validate4Params(args) {
      Otherwise, any one is sufficient.
      When more than one is present, those present must agree
      */
-    if  (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
+    if (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
             cb({
@@ -2168,7 +2236,7 @@ function validate3Params(args) {
     }
     if (args.uuid.getValue()) {
         console.log('has UUID');
-        if ( !args.pt.getValue()) {
+        if (!args.pt.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
@@ -2218,7 +2286,7 @@ function validate3Params(args) {
                     var rec = resp.content[0];
                     var pt = rec._name;
                     if (pt !== args.pt.getValue()) {
-                        return { 
+                        return {
                             "valid": false,
                             "message": "The PT of the record does not match the value provided",
                             "overall": true
@@ -2250,7 +2318,7 @@ function validate3Params(args) {
 
 
 function validateOneSubstance(subUUIDArg, subNameArg) {
-    console.log('Starting in validateOneSubstance. ' );
+    console.log('Starting in validateOneSubstance. ');
     if (subUUIDArg && subUUIDArg.getValue()) {
         console.log('has UUID');
         if (!subNameArg || !subNameArg.getValue()) {
@@ -2316,7 +2384,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     console.log(' about to return simple false');
                     return {
                         "valid": false,
-                        "message": "Could not find record PT "+ subNameArg.getValue(),
+                        "message": "Could not find record PT " + subNameArg.getValue(),
                         "overall": true
                     };
                 }
@@ -2630,7 +2698,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             }
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
-        /*return SubstanceFinder.get(uuid)*/
+            /*return SubstanceFinder.get(uuid)*/
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
                     console.log('no results found for query of ' + lookupCriterion);
@@ -2773,7 +2841,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags&& referenceTags.length > 0) {
+            if (referenceTags && referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -2783,12 +2851,12 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             }
         }
 
-        var searchCrit = (uuid) ? uuid: pt;
+        var searchCrit = (uuid) ? uuid : pt;
         var substanceObject;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
                 var rec = s.content[0]; /*can be undefined... todo: handle*/
-                substanceObject= GGlob.SubstanceBuilder.fromSimple(rec);
+                substanceObject = GGlob.SubstanceBuilder.fromSimple(rec);
                 console.log('going to check references');
                 var substance = GGlob.SubstanceBuilder.fromSimple(s);
                 return substanceObject.fetch("references")
@@ -3250,7 +3318,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
     name: "Fix Code URLS",
-    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"})
+    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
+})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
     })
@@ -3737,7 +3806,7 @@ Script.builder().mix({
         };
         var code = null;
         if (casno) {
-            code= Code.builder().setCode(casno)
+            code = Code.builder().setCode(casno)
                 .setType("PRIMARY")
                 .setCodeSystem("CAS")
                 .setPublic(dataPublic);
@@ -3783,7 +3852,7 @@ Script.builder().mix({
                     }
                 }
                 if (units) prop.setUnits(units);
-                    
+
                 simpleSub.properties.push(prop);
             }
         }
@@ -3826,7 +3895,7 @@ Script.builder().mix({
     })
     .useFor(function (s) {
         Scripts.addScript(s);
-});
+    });
 
 
 /*Touch Record - retrieve a record and save again without making any changes to trigger update processing*/
@@ -4057,7 +4126,7 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
             console.log('set low value: ' + lowValue);
         }
         else {
-            console.log('omitted low value' );
+            console.log('omitted low value');
         }
         if (!isNaN(parseFloat(highValue))) {
             prop.setHigh(highValue);
@@ -4084,24 +4153,24 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                 s0 = substance;
                 return substance.full();
             })
-            .andThen(function(s){
+            .andThen(function (s) {
                 return s0.fetch("references")
-                .andThen(function (refs) {
-                _.forEach(refs, function (ref) {
-                    if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-                        console.log('Duplicate reference found! Will skip creation of new one.');
-                        reference = ref;
-                        return false;
-                    }
-                });
-                if (reference) {
-                    prop.addReference(reference);
-                }
-                return s0.patch()
-                    .addData(prop)
-                    .add("/changeReason", args['change reason'].getValue())
-                    .apply()
-                    .andThen(_.identity);
+                    .andThen(function (refs) {
+                        _.forEach(refs, function (ref) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                                return false;
+                            }
+                        });
+                        if (reference) {
+                            prop.addReference(reference);
+                        }
+                        return s0.patch()
+                            .addData(prop)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
                     });
             });
     })
@@ -4111,7 +4180,8 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
 
 Script.builder().mix({
     name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
-        validForSheetCreation: false})
+    validForSheetCreation: false
+})
     .addArgument({
         "key": "molfile", name: "Molfile", description: "structure to save", required: true
     })
@@ -4137,7 +4207,7 @@ Script.builder().mix({
                             matches: searchResult.content
                         };
                         return msg;
-                });
+                    });
             });
 
     })

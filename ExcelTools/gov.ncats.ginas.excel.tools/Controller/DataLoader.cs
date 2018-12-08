@@ -475,6 +475,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
+        public bool OkToWrite(int numberOfColumns)
+        {
+            return true;
+        }
+
         protected override void EndProcessNotification()
         {
             if (!_notified)
