@@ -147,7 +147,6 @@ namespace gov.ncats.ginas.excel.tools.UI
                 {
                     Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
                 }
-
             }
         }
 
@@ -214,6 +213,17 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonResolve_Click(object sender, EventArgs e)
         {
+            //check for overwrite
+            if(CurrentOperationType == OperationType.Resolution && ! checkBoxNewSheet.Checked)
+            {
+                int totalNewColumns = Convert.ToInt32(ExecuteScript("$('div.checkop input:checked').length") as string);
+                log.DebugFormat("click handler detected total number of new columns: " + totalNewColumns);
+                if(!Controller.OkToWrite(totalNewColumns))
+                {
+                    log.Debug("user elected not to overwrite data");
+                    return;
+                }
+            }
             buttonCancel.Enabled = false;
             if (!Controller.StartResolution(checkBoxNewSheet.Checked))
             {

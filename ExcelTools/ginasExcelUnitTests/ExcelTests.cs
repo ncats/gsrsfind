@@ -1000,6 +1000,134 @@ namespace ginasExcelUnitTests
         }
 
 
+        [TestMethod]
+        public void FindFirstCellWithTextTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+            
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            string query = "CYANOCOBALAMIN";
+            string expectedAddress = "$A$6";
+            Range cell = SheetUtils.FindFirstCellWithText(sheet.UsedRange, query);
+            string actualAddress = cell.Address;
+            workbook.Close(false);
+            Assert.AreEqual(expectedAddress, actualAddress);
+        }
+
+        [TestMethod]
+        public void FindFirstCellWithTextTrimTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[3];
+
+            string query = "some data";
+            string expectedAddress = "$B$4";
+            Range cell = SheetUtils.FindFirstCellWithText(sheet.UsedRange, query);
+            string actualAddress = cell.Address;
+            workbook.Close(false);
+            Assert.AreEqual(expectedAddress, actualAddress);
+        }
+
+
+        [TestMethod]
+        public void GetIngredientsTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            List<IngredientInfo> ingredients = applicationProcessor.GetIngredients(sheet);
+            int expectedIngrCount = 3;
+            Assert.AreEqual(expectedIngrCount, ingredients.Count);
+            Assert.AreEqual("ASPIRIN", ingredients[1].IngredientName);
+            Assert.AreEqual("SZR7Z3Q2YH", ingredients[2].BasisOfStrengthUnii);
+        }
+
+        [TestMethod]
+        public void GetProductsTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            List<ProductInfo> products = applicationProcessor.GetProducts(sheet);
+            int expectedProductCount = 2;
+            Assert.AreEqual(expectedProductCount, products.Count);
+            Assert.AreEqual("Product 1", products[0].ProductName);
+            Assert.AreEqual("Oral", products[1].RouteOfAdminstration);
+            Assert.AreEqual("TABLETS", products[1].UnitOfPresention);
+            Assert.AreEqual(2, products[1].Ingredients.Count);
+        }
+
+        [TestMethod]
+        public void GetApplicationTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            ApplicationInfo application = applicationProcessor.GetApplication(sheet);
+
+            int expectedProductCount = 2;
+            Assert.AreEqual("CDER", application.Center);
+            Assert.AreEqual("NDA", application.ApplicationType);
+            Assert.AreEqual("1000A", application.ApplicationNumber);
+            Assert.AreEqual("Smith", application.Sponsor);
+            Assert.AreEqual( expectedProductCount, application.Products.Count);
+            Assert.AreEqual("Product 1", application.Products[0].ProductName);
+            Assert.AreEqual("Oral", application.Products[1].RouteOfAdminstration);
+            Assert.AreEqual("TABLETS", application.Products[1].UnitOfPresention);
+            Assert.AreEqual(2, application.Products[1].Ingredients.Count);
+        }
+
+        [TestMethod]
+        public void CreateApplicationJsonTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            ApplicationInfo application = applicationProcessor.GetApplication(sheet);
+
+            string json = applicationProcessor.CreateApplicationJson(application);
+            Console.WriteLine(json);
+            Assert.IsTrue(json.Length > 10);
+            
+        }
+
+        [TestMethod]
+        public void IsRowBlankTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            Range row3 = sheet.Range["A3"].EntireRow;
+            Assert.IsTrue(SheetUtils.IsRowBlank(row3));
+            Range row4 = sheet.Range["A4"].EntireRow;
+            Assert.IsFalse(SheetUtils.IsRowBlank(row4));
+        }
+
         private Workbook ReadDefaultExcelWorkbook()
         {
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";

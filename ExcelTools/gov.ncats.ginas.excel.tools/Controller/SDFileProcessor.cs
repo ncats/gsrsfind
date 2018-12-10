@@ -289,5 +289,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 EndProcessNotification();
             }
         }
+
+        public bool OkToWrite(int numberOfColumns)
+        {
+            return true;
+        }
     }
 }
