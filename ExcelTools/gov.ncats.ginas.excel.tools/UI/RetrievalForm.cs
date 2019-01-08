@@ -8,7 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+<<<<<<< HEAD
 using System.Diagnostics;
+=======
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
@@ -90,7 +93,11 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 HandleDebugInfoSave();
             }
+<<<<<<< HEAD
             if( CurrentOperationType == OperationType.ProcessSdFile || CurrentOperationType == OperationType.ProcessApplication)
+=======
+            if( CurrentOperationType == OperationType.ProcessSdFile)
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             {
                 this.Close();
             }

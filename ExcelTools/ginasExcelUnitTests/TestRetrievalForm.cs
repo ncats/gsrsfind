@@ -265,11 +265,14 @@ namespace ginasExcelUnitTests
         {
             labelStatus.Text = message;
         }
+<<<<<<< HEAD
 
         public void SetController(IController controller)
         {
             Controller = controller;
         }
 
+=======
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
     }
 }

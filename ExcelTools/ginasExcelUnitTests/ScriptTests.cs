@@ -26,7 +26,10 @@ namespace ginasExcelUnitTests
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
         static bool scriptRunnerReady = false;
         static ScriptUtils scriptUtils = new ScriptUtils();
+<<<<<<< HEAD
         static private int SCRIPT_INTERVAL = 4000;
+=======
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -96,7 +99,11 @@ namespace ginasExcelUnitTests
             {
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
@@ -150,7 +157,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
@@ -203,7 +214,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
@@ -256,7 +271,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForUuid(uuidForTest);
@@ -299,7 +318,11 @@ namespace ginasExcelUnitTests
             {
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
@@ -350,7 +373,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
@@ -406,7 +433,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
@@ -457,7 +488,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
@@ -510,7 +545,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
@@ -559,7 +598,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             string uuid = dBQueryUtils.GetUuidForPt(ptForTest);
@@ -594,7 +637,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+<<<<<<< HEAD
             Thread.Sleep(SCRIPT_INTERVAL);
+=======
+            Thread.Sleep(3000);
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             int versionAfter = dBQueryUtils.GetVersionForUuid(uuidForTest);

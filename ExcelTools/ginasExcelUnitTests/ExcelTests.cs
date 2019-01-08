@@ -29,6 +29,10 @@ namespace ginasExcelUnitTests
         static Application excel;
         static TestRetrievalForm retrievalForm = null;
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
+<<<<<<< HEAD
+=======
+        static bool scriptRunnerReady = false;
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
         static ScriptUtils scriptUtils = new ScriptUtils();
 
         private static void StartForm()
@@ -41,6 +45,13 @@ namespace ginasExcelUnitTests
             System.Windows.Forms.Application.Run(retrievalForm);
         }
 
+<<<<<<< HEAD
+=======
+        public static void SetReady()
+        {
+            scriptRunnerReady = true;
+        }
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -62,6 +73,13 @@ namespace ginasExcelUnitTests
             scriptUtils.MarkVocabArrived(vocabName);
             log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
                 vocabName, scriptUtils.ExpectedVocabularies.Count);
+<<<<<<< HEAD
+=======
+            if (scriptUtils.ExpectedVocabularies.Count == 0)
+            {
+                SetReady();
+            }
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
         }
 
 
@@ -92,6 +110,7 @@ namespace ginasExcelUnitTests
         [ClassCleanup]
         public static void ClassCleanup()
         {
+<<<<<<< HEAD
             foreach(var workbook in excel.Workbooks)
             {
                 ((Workbook)workbook).Close(false);
@@ -100,6 +119,12 @@ namespace ginasExcelUnitTests
             excel.Quit();
             Console.WriteLine("Closed Excel");
             //retrievalForm.Close();
+=======
+            excel.Workbooks.Close();
+            excel.Quit();
+            Console.WriteLine("Closed Excel");
+            retrievalForm.Close();
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
             retrievalForm = null;
         }
         [TestMethod]
@@ -965,6 +990,7 @@ namespace ginasExcelUnitTests
 
         [TestMethod]
         public void CreateSheetTest2()
+<<<<<<< HEAD
         {
             Workbook workbook = ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
@@ -1013,6 +1039,56 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+=======
+        {
+            Workbook workbook = ReadDefaultExcelWorkbook();
+            int numSheetsBefore = workbook.Sheets.Count;
+            ScriptUtils scriptUtils = new ScriptUtils();
+            scriptUtils.ScriptName = "Add Name";
+            //retrievalForm.Visible = false;
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.ShowScripts;
+            retrievalForm.Show();
+            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
+            int numSheetsAfter = workbook.Sheets.Count;
+            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            Worksheet newSheet = (Worksheet)workbook.Sheets["Add Name"];
+            string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
+            string debugInfo = (string)retrievalForm.ExecuteScript(script);
+            log.Debug(debugInfo);
+            Range cell1 = newSheet.Range["A1"];
+            string cell1Actual = (string)cell1.Value2;
+            Assert.AreEqual("BATCH:Add Name", cell1Actual);
+
+            Range cell2 = newSheet.Range["B1"];
+            string cell2Actual = (string)cell2.Value2;
+            Assert.AreEqual("UUID", cell2Actual);
+            //workbook.SaveAs(@"c:\temp\test2.xlsx");
+            workbook.Close(false);
+        }
+
+
+        [TestMethod]
+        public void FindFirstCellWithTextTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+            
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            string query = "CYANOCOBALAMIN";
+            string expectedAddress = "$A$6";
+            Range cell = SheetUtils.FindFirstCellWithText(sheet.UsedRange, query);
+            string actualAddress = cell.Address;
+            workbook.Close(false);
+            Assert.AreEqual(expectedAddress, actualAddress);
+        }
+
+        [TestMethod]
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
         public void FindFirstCellWithTextTrimTest()
         {
             string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
@@ -1029,6 +1105,88 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expectedAddress, actualAddress);
         }
 
+<<<<<<< HEAD
+=======
+
+        [TestMethod]
+        public void GetIngredientsTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            List<IngredientInfo> ingredients = applicationProcessor.GetIngredients(sheet);
+            int expectedIngrCount = 3;
+            Assert.AreEqual(expectedIngrCount, ingredients.Count);
+            Assert.AreEqual("ASPIRIN", ingredients[1].IngredientName);
+            Assert.AreEqual("SZR7Z3Q2YH", ingredients[2].BasisOfStrengthUnii);
+        }
+
+        [TestMethod]
+        public void GetProductsTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            List<ProductInfo> products = applicationProcessor.GetProducts(sheet);
+            int expectedProductCount = 2;
+            Assert.AreEqual(expectedProductCount, products.Count);
+            Assert.AreEqual("Product 1", products[0].ProductName);
+            Assert.AreEqual("Oral", products[1].RouteOfAdminstration);
+            Assert.AreEqual("TABLETS", products[1].UnitOfPresention);
+            Assert.AreEqual(2, products[1].Ingredients.Count);
+        }
+
+        [TestMethod]
+        public void GetApplicationTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            ApplicationInfo application = applicationProcessor.GetApplication(sheet);
+
+            int expectedProductCount = 2;
+            Assert.AreEqual("CDER", application.Center);
+            Assert.AreEqual("NDA", application.ApplicationType);
+            Assert.AreEqual("1000A", application.ApplicationNumber);
+            Assert.AreEqual("Smith", application.Sponsor);
+            Assert.AreEqual( expectedProductCount, application.Products.Count);
+            Assert.AreEqual("Product 1", application.Products[0].ProductName);
+            Assert.AreEqual("Oral", application.Products[1].RouteOfAdminstration);
+            Assert.AreEqual("TABLETS", application.Products[1].UnitOfPresention);
+            Assert.AreEqual(2, application.Products[1].Ingredients.Count);
+        }
+
+        [TestMethod]
+        public void CreateApplicationJsonTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\applications template1.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+
+            ApplicationProcessor applicationProcessor = new ApplicationProcessor();
+            ApplicationInfo application = applicationProcessor.GetApplication(sheet);
+
+            string json = applicationProcessor.CreateApplicationJson(application);
+            Console.WriteLine(json);
+            Assert.IsTrue(json.Length > 10);
+            
+        }
+
+>>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
         [TestMethod]
         public void IsRowBlankTest()
         {
