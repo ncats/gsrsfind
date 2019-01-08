@@ -39,13 +39,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.DebugFormat("total columns: {0}", fieldNames.Count);
 
             ImageOps imageOps = new ImageOps();
+            sheetUtils.ImageOpsHandle = imageOps;
             //create a title row
             sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);
 
             int row = 1;
             foreach(SDFileRecord record in fileData)
             {
-                sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, imageOps, worksheet);
+                sheetUtils.TransferSDDataToRow(record.RecordData, fieldNamesToColumns, ++row, worksheet);
             }
             sheetUtils.SetColumnWidths(worksheet, fieldNamesToColumns.Values.ToList(), 25);
             sheetUtils.SetRowHeights(worksheet, 15);
@@ -64,13 +65,22 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 string line = sdData[rec];
                 while (!line.StartsWith(MOLFILE_END) && !SDF_FIELD_DELIMS.Any(d=> line.StartsWith(d))
-                    && !line.Equals(SDF_RECORD_DELIM))
+                    && !line.Equals(SDF_RECORD_DELIM) && rec < sdData.Length)
                 {
                     if (currentFieldName.Equals(MOLFILE_FIELD_NAME) || !string.IsNullOrWhiteSpace(line))
                     {
                         oneFieldData.Add(line);
                     }
                     line = sdData[++rec];
+                }
+                if(rec >= (sdData.Length - 1))
+                {
+                    //probably a molfile
+                    oneFieldData.Add(MOLFILE_END);
+                    oneRecord.RecordData.Add(currentFieldName, string.Join("\n", oneFieldData));
+                    data.Add(oneRecord);
+                    log.Debug("molfile?");
+                    break;
                 }
                 if (currentFieldName.Equals(MOLFILE_FIELD_NAME))
                 {
@@ -99,7 +109,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return data;
         }
 
-        public string GetFieldName(string line)
+        public static string GetFieldName(string line)
         {
             int begin = line.IndexOf("<") + 1;
             int end = line.IndexOf(">", begin + 1);
@@ -107,7 +117,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return fieldName;
         }
 
-        public List<string> GetUniqueFieldNames(List<SDFileRecord> sDFileRecords)
+        public static List<string> GetUniqueFieldNames(List<SDFileRecord> sDFileRecords)
         {
             List<string> uniqueFieldNames = new List<string>();
             foreach(SDFileRecord record in sDFileRecords)

@@ -11,5 +11,7 @@ namespace gov.ncats.ginas.excel.tools.Model
         object ExecuteScript(string script);
 
         void SetScript(string script);
+
+        void SetController(Controller.IController controller);
     }
 }

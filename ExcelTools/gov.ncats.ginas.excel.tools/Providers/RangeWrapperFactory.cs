@@ -18,6 +18,13 @@ namespace gov.ncats.ginas.excel.tools.Providers
             wrapped.SetRange(target);
             return wrapped;
         }
-   
+
+        public static TwoRangeWrapper CreateTwoRangeWrapper(Range target1, Range target2)
+        {
+            TwoRangeWrapper wrapped = new TwoRangeWrapper();
+            wrapped.SetRanges(target1, target2);
+            return wrapped;
+        }
+
     }
 }

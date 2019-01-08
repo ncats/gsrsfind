@@ -116,16 +116,30 @@ namespace gov.ncats.ginas.excel.tools
                 }
             }
 
-            string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
-                "Select one SD file");
-            
-            if (string.IsNullOrEmpty(sdFilePath)) return;
-
-            SDFileUtils sDFileUtils = new SDFileUtils();
-            sDFileUtils.HandleSDFileImport(sdFilePath, (Excel.Worksheet) window.Application.ActiveSheet);
-            if( UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
+            try
             {
-                SheetUtils.SetupRemainingColumns((Excel.Worksheet)window.ActiveSheet);
+                string sdFilePath = UIUtils.GetUserFileSelection("SDF files (*.sdf)|*.sdf|SD files (*.sd)|*.sd|All files (*.*)|*.*",
+     "Select one SD file");
+
+                if (string.IsNullOrEmpty(sdFilePath)) return;
+
+                SDFileProcessor sDFileProcessor = new SDFileProcessor();
+
+                RetrievalForm form = new RetrievalForm();
+                sDFileProcessor.SetScriptExecutor(form);
+                form.CurrentOperationType = OperationType.ProcessSdFile;
+                form.Controller = sDFileProcessor;
+                //form.Visible = false;
+                //form.SetSize(1);
+                //form.Show();
+                sDFileProcessor.SetStatusUpdater(form);
+                sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet)window.Application.ActiveSheet);
+
+            }
+            catch(Exception ex)
+            {
+                UIUtils.ShowMessageToUser("Error during SD file import: " + ex.Message);
+                log.Debug(ex.StackTrace);
             }
         }
 
@@ -138,7 +152,18 @@ namespace gov.ncats.ginas.excel.tools
         private void buttonAssureColumns_Click(object sender, RibbonControlEventArgs e)
         {
             Excel.Window window = e.Control.Context;
-            SheetUtils.SetupRemainingColumns((Excel.Worksheet) window.ActiveSheet);
+            SDFileProcessor sDFileProcessor = new SDFileProcessor();
+
+            RetrievalForm form = new RetrievalForm();
+            sDFileProcessor.SetScriptExecutor(form);
+            form.CurrentOperationType = OperationType.ProcessSdFile;
+            form.Controller = sDFileProcessor;
+            form.Visible = false;
+            form.SetSize(1);
+            form.Show();
+            sDFileProcessor.SetStatusUpdater(form);
+            sDFileProcessor.SetScriptExecutor(form);
+            sDFileProcessor.ManageSetupRemainingColumns();
         }
     }
 }

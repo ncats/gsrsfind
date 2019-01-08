@@ -88,12 +88,28 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 //see about a controlled vocabulary
                 string vocabularyName = GetVocabName(i);
+                log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
+                        vocabularyName);
                 if (!string.IsNullOrWhiteSpace(vocabularyName))
                 {
                     string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {window.external.Notify(s);});";
                     ScriptExecutor.ExecuteScript(vocabScript);
                     vocabularyNames.Add(vocabularyName);
                 }
+            }
+            lock (LOCK_OBJECT)
+            {
+                expectedVocabularies = vocabularyNames;
+            }
+            return vocabularyNames;
+        }
+
+        public List<string> StartVocabularyRetrievals(List<string> vocabularyNames)
+        {
+            foreach(string vocabularyName in vocabularyNames)
+            {
+                string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {window.external.Notify(s);});";
+                ScriptExecutor.ExecuteScript(vocabScript);
             }
             lock (LOCK_OBJECT)
             {
@@ -206,6 +222,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void StartOneLoad(Dictionary<string, string> parameterValues, string loadingKey)
         {
+            log.DebugFormat("{0} handling loadingKey: {1}", MethodBase.GetCurrentMethod().Name,
+                loadingKey);
             string runnerName = "tmpRunner";
             
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");

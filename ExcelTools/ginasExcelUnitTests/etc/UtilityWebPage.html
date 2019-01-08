@@ -1,4 +1,199 @@
-﻿var CALLBACK_NUMBER = 0;
+<html class="ng-scope" lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style type="text/css">
+        [uib-typeahead-popup].dropdown-menu {
+            display: block;
+        }
+    </style>
+    <style type="text/css">
+        .uib-time input {
+            width: 50px;
+        }
+    </style>
+    <style type="text/css">
+        [uib-tooltip-popup].tooltip.top-left > .tooltip-arrow, [uib-tooltip-popup].tooltip.top-right > .tooltip-arrow, [uib-tooltip-popup].tooltip.bottom-left > .tooltip-arrow, [uib-tooltip-popup].tooltip.bottom-right > .tooltip-arrow, [uib-tooltip-popup].tooltip.left-top > .tooltip-arrow, [uib-tooltip-popup].tooltip.left-bottom > .tooltip-arrow, [uib-tooltip-popup].tooltip.right-top > .tooltip-arrow, [uib-tooltip-popup].tooltip.right-bottom > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.top-left > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.top-right > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.bottom-left > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.bottom-right > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.left-top > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.left-bottom > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.right-top > .tooltip-arrow, [uib-tooltip-html-popup].tooltip.right-bottom > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.top-left > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.top-right > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.bottom-left > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.bottom-right > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.left-top > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.left-bottom > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.right-top > .tooltip-arrow, [uib-tooltip-template-popup].tooltip.right-bottom > .tooltip-arrow, [uib-popover-popup].popover.top-left > .arrow, [uib-popover-popup].popover.top-right > .arrow, [uib-popover-popup].popover.bottom-left > .arrow, [uib-popover-popup].popover.bottom-right > .arrow, [uib-popover-popup].popover.left-top > .arrow, [uib-popover-popup].popover.left-bottom > .arrow, [uib-popover-popup].popover.right-top > .arrow, [uib-popover-popup].popover.right-bottom > .arrow, [uib-popover-html-popup].popover.top-left > .arrow, [uib-popover-html-popup].popover.top-right > .arrow, [uib-popover-html-popup].popover.bottom-left > .arrow, [uib-popover-html-popup].popover.bottom-right > .arrow, [uib-popover-html-popup].popover.left-top > .arrow, [uib-popover-html-popup].popover.left-bottom > .arrow, [uib-popover-html-popup].popover.right-top > .arrow, [uib-popover-html-popup].popover.right-bottom > .arrow, [uib-popover-template-popup].popover.top-left > .arrow, [uib-popover-template-popup].popover.top-right > .arrow, [uib-popover-template-popup].popover.bottom-left > .arrow, [uib-popover-template-popup].popover.bottom-right > .arrow, [uib-popover-template-popup].popover.left-top > .arrow, [uib-popover-template-popup].popover.left-bottom > .arrow, [uib-popover-template-popup].popover.right-top > .arrow, [uib-popover-template-popup].popover.right-bottom > .arrow {
+            top: auto;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            margin: 0;
+        }
+
+        [uib-popover-popup].popover, [uib-popover-html-popup].popover, [uib-popover-template-popup].popover {
+            display: block !important;
+        }
+    </style>
+    <style type="text/css">
+        .uib-datepicker-popup.dropdown-menu {
+            display: block;
+            float: none;
+            margin: 0;
+        }
+
+        .uib-button-bar {
+            padding: 10px 9px 2px;
+        }
+    </style>
+    <style type="text/css">
+        .uib-position-measure {
+            display: block !important;
+            visibility: hidden !important;
+            position: absolute !important;
+            top: -9999px !important;
+            left: -9999px !important;
+        }
+
+        .uib-position-scrollbar-measure {
+            position: absolute !important;
+            top: -9999px !important;
+            width: 50px !important;
+            height: 50px !important;
+            overflow: scroll !important;
+        }
+
+        .uib-position-body-scrollbar-measure {
+            overflow: scroll !important;
+        }
+    </style>
+    <style type="text/css">
+        .uib-datepicker .uib-title {
+            width: 100%;
+        }
+
+        .uib-day button, .uib-month button, .uib-year button {
+            min-width: 100%;
+        }
+
+        .uib-left, .uib-right {
+            width: 100%
+        }
+    </style>
+    <style type="text/css">
+        .ng-animate.item:not(.left):not(.right) {
+            -webkit-transition: 0s ease-in-out left;
+            transition: 0s ease-in-out left
+        }
+    </style>
+    <style type="text/css">
+        @charset "UTF-8";
+
+        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide:not(.ng-hide-animate) {
+            display: none !important;
+        }
+
+        ng\:form {
+            display: block;
+        }
+
+        .ng-animate-shim {
+            visibility: hidden;
+        }
+
+        .ng-anchor {
+            position: absolute;
+        }
+    </style>
+    <base href="/ginas/app">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--[if lte IE 9]>
+        <style type="text/css">
+    #ie6msg{border:3px solid #c33; margin:8px 0; background:#fcc; color:#000;}
+    #ie6msg h4{margin:8px; padding:0;}
+    #ie6msg p{margin:8px; padding:0;}
+    #ie6msg p a.getie7{font-weight:bold; color:#006;}
+    #ie6msg p a.ie6expl{font-weight:bold; color:#006;}
+        </style>
+        <![endif]-->
+    <title>ginas Tools</title>
+    <link href="/ginas/app/assets/ginas/images/pillIconColor.ico" rel="icon" type="img/ico">
+    <link href="/ginas/app/webjars/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/ginas/app/webjars/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/ginas/app/assets/ginas/css/ng-tags-input.css" rel="stylesheet">
+    <link href="/ginas/app/assets/ginas/css/ng-tags-input.bootstrap.css" rel="stylesheet">
+    <link href="/ginas/app/assets/ginas/css/json-formatter.css" rel="stylesheet">
+    <link href="/ginas/app/assets/ginas/css/ginas.css" rel="stylesheet">
+
+    <link href="/ginas/app/assets/ginas/css/menu-style.css" rel="stylesheet">
+
+    <link href="/ginas/app/assets/ginas/css/jquery.dataTables.css" rel="stylesheet">
+
+    <style type="text/css">
+        @-webkit-keyframes expand {
+            from {
+                left: 737.2799682617187px;
+                right: 1002px;
+                bottom: 992px;
+            }
+
+            to {
+                left: 0;
+                right: 0;
+                bottom: 0
+            }
+        }
+
+        @keyframes expand {
+            from {
+                left: 737.2799682617187px;
+                right: 1002px;
+                bottom: 992px;
+            }
+
+            to {
+                left: 0;
+                right: 0;
+                bottom: 0
+            }
+        }
+    </style>
+    <style type="text/css">
+        @-webkit-keyframes retract {
+            from {
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            to {
+                left: 737.2799682617187px;
+                right: 1002px;
+                bottom: 992px;
+            }
+        }
+
+        @keyframes retract {
+            from {
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            to {
+                left: 737.2799682617187px;
+                right: 1002px;
+                bottom: 992px;
+            }
+        }
+    </style>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <script src="https://code.jquery.com/jquery-1.12.4.js" type="text/javascript">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js" type="text/javascript">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js" type="text/javascript"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript">
+    </script>
+
+    <script type="text/javascript">
+        window['oldconsole'] = window['console'];
+        window['console'] = { log: function (r) { GSRSAPI.consoleStack.push(r); } }
+    </script>
+
+    <script type="text/javascript">
+var CALLBACK_NUMBER = 0;
 var GSRSAPI = {
     builder: function () {
         var g_api = {};
@@ -69,6 +264,9 @@ var GSRSAPI = {
             g_api.httpProcess = function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
+                    if (b) console.log('we have b');
+                    else console.log('initially no b');
+
                     var contentType = 'application/json';
 
                     console.log('in httpProcess, req.skipJson: ' + req.skipJson);
@@ -90,7 +288,7 @@ var GSRSAPI = {
                     if (req._q && req._q.q) {
                         console.log("   with query: " + req._q.q);
                     }
-                    var cbackname = 'jsoncallback' + ++CALLBACK_NUMBER;
+                    var cbackname = 'jsoncallback' + (CALLBACK_NUMBER++);
                     window[cbackname] = function (response) {
                         console.log('ajax call success (1)');
                         console.log(' at ' + _.now());
@@ -128,7 +326,7 @@ var GSRSAPI = {
                                 if (response.status === 500 && response.responseText === "java.lang.reflect.InvocationTargetException"
                                     && response.readyState === 4) {
                                     /*not necessarily an error.
-                                     This message occurs when we attempt to retrieve a section from a substance 
+                                     This message occurs when we attempt to retrieve a section from a substance
                                      that does not have that type of section (e.g., a protein does not have a molfile)*/
                                     console.log('500 error');
                                 } else {
@@ -188,9 +386,6 @@ var GSRSAPI = {
                                     cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
                                 }
 
-                            }
-                            else if (response.statusText) {
-                                console.log('statusText: ' + response.statusText);
                             }
                             else {
                                 console.log('Error missing');
@@ -441,13 +636,13 @@ var GSRSAPI = {
                         .url(url)
                         .method("POST")
                         .setSkipJson(true)
-                        .body(smi)
+                        .body(smi )
                         .setContents({ "body": smi });
                     return g_api.httpProcess(req)
                         .andThen(function (tmp) {
                             console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));
-                            return tmp;
-                        });
+                        return tmp;
+                    });
                 };
 
                 sfinder.searchByExactName = function (q) {
@@ -826,11 +1021,10 @@ var GSRSAPI = {
                 var nm = name;
                 if (!nm) {
                     nm = codeSystem + "[CODE]";
-                }
+                };
                 return g_api.FetcherMaker.make(nm, function (simpleSub) {
                     return simpleSub.fetch("codes(codeSystem:" + codeSystem + ")")
                         .andThen(function (cds) {
-                            console.log('cds: ' + JSON.stringify(cds));
                             return _.chain(cds)
                                 .sort(function (a, b) {
                                     if (a.type === "PRIMARY" && b.type !== "PRIMARY") {
@@ -966,71 +1160,10 @@ var GSRSAPI = {
                     },
                     rq.setContents = function (c) {
                         rq.contents = c;
-                        return rq;
-                    },
-                    rq.setContentType = function (ct) {
-                        rq.contentType = ct;
-                        return rq;
+                    return rq;
                     };
 
                 return rq;
-            }
-        };
-
-        g_api.RequestProcessor = {
-            SimpleProcess : function (req) {
-                return g_api.JPromise.of(function (cb) {
-                    var b = req._b;
-                    var contentType = req.contentType;
-                    console.log('in SimpleProcess, req.skipJson: ' + req.skipJson);
-                    if (b && !req.skipJson) {
-                        b = JSON.stringify(b);
-                    } else {
-                        b = b ? b : req._q;
-                        contentType = 'text/plain';
-                    }
-
-                    g_api.GlobalSettings.authenticate(req);
-
-                    console.log("going to call url: " + req._url);
-                    if (req._q && req._q.q) {
-                        console.log("   with query: " + req._q.q);
-                    }
-                    console.log('b: ' + JSON.stringify(b));
-                    $.ajax({
-                        url: req._url,
-                        /*jsonp: cbackname,*/
-                        dataType: GlobalSettings.httpType(),
-                        contentType: contentType,
-                        type: req._method,
-                        data: b,
-                        beforeSend: function (request) {
-                            if (req.headers) {
-                                _.forEach(_.keys(req.headers), function (k) {
-                                    request.setRequestHeader(k, req.headers[k]);
-                                });
-                            }
-                        },
-                        success: function (response) {
-                            console.log('ajax call success ');
-                            console.log('	at ' + _.now());
-                            /*console.log('	with response ' + (typeof (response) == 'string') ? response
-                                : JSON.stringify(response));*/
-                            cb(response);
-                        },
-                        error: function (response, error, t) {
-                            console.log('ajax call error ');
-                            console.log('	at ' + _.now());
-                            if (typeof response === 'object') {
-                                console.log(JSON.stringify(response));
-                            }
-                            else {
-                                console.log(response);
-                            }
-                            cb(response);
-                        }
-                    });
-                });
             }
         };
 
@@ -1043,10 +1176,10 @@ var GSRSAPI = {
                     url = url.substring(0, pos + 4) + "structure";
                     console.log("postSmiles using URL " + url);
                     var req = g_api.Request.builder()
-                        .url(url)
+                        .url(url )
                         .method("POST")
                         .queryStringData({
-                            "body": smi
+                            "body":smi
                         });
                     return g_api.httpProcess(req).andThen(function (tmp) {
                         if (g_api.isJson(tmp)) {
@@ -1687,7 +1820,6 @@ var FetcherRegistry = GGlob.FetcherRegistry;
 var UUID = GGlob.UUID;
 var Request = GGlob.Request;
 var StructureFinder = GGlob.StructureFinder;
-var RequestProcessor = GGlob.RequestProcessor;
 
 /*TODO: Finish this*/
 var Validation = {
@@ -1801,7 +1933,7 @@ FetcherRegistry.addFetcher(
                     return "";
                 }
                 var base = GlobalSettings.getBaseURL().replace(/api.*/g, "");
-                var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300";
+                var imgurl = base + "img/" + simpleSub.uuid + ".png?size=300";
 
                 return imgurl;
             });
@@ -1854,29 +1986,20 @@ FetcherRegistry.addFetcher(
 );
 
 FetcherRegistry.addFetcher(
-    FetcherMaker.make("Status", function (simpleSub) {
-        return JPromise.of(function (cb) {
-            var returnValue = simpleSub.status;
-            if (simpleSub.status === 'approved') {
-                returnValue = 'Validated (UNII)';
-            }
-            cb(returnValue);
-        });        
-    }).addTag("Record")
-);
-
-FetcherRegistry.addFetcher(
     FetcherMaker.make("All Names", function (simpleSub) {
+
         return simpleSub.fetch("names!(name)!join(|)").andThen(function (n) {
             return n.replace(/%7C/g, "|");
         });
     }).addTag("Substance")
 );
 
-FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM", "BDNUM Code").addTag("Identifiers"))
+FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("WHO-ATC", "ATC Code").addTag("Substance"))
     .addFetcher(FetcherMaker.makeCodeFetcher("CAS", "CAS Numbers").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("EVMPD", "EVMPD Code").addTag("Identifiers"));
+
+
 
 FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Term").addTag("Substance"))
     .addFetcher(FetcherMaker.makeScalarFetcher("_approvalIDDisplay", "Approval ID (UNII)").addTag("Identifiers"))
@@ -1888,6 +2011,8 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/formula", "Molecular Formula").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/molfile", "Molfile").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
+
+
 
 /*FetcherRegistry.addFetcher(
     FetcherMaker.make("Structural Modifications", function (simpleSub) {
@@ -2081,7 +2206,7 @@ function validate4Params(args) {
      Otherwise, any one is sufficient.
      When more than one is present, those present must agree
      */
-    if (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
+    if  (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
             cb({
@@ -2241,7 +2366,7 @@ function validate3Params(args) {
     }
     if (args.uuid.getValue()) {
         console.log('has UUID');
-        if (!args.pt.getValue()) {
+        if ( !args.pt.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
@@ -2323,7 +2448,7 @@ function validate3Params(args) {
 
 
 function validateOneSubstance(subUUIDArg, subNameArg) {
-    console.log('Starting in validateOneSubstance. ');
+    console.log('Starting in validateOneSubstance. ' );
     if (subUUIDArg && subUUIDArg.getValue()) {
         console.log('has UUID');
         if (!subNameArg || !subNameArg.getValue()) {
@@ -2389,7 +2514,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     console.log(' about to return simple false');
                     return {
                         "valid": false,
-                        "message": "Could not find record PT " + subNameArg.getValue(),
+                        "message": "Could not find record PT "+ subNameArg.getValue(),
                         "overall": true
                     };
                 }
@@ -2675,9 +2800,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             reference.setPublicDomain(false);
         }
 
-        console.log('Creating code using codeInput ' + codeInput
-            + '; codeSystem ' + codeSystem
-            + '; codeText ' + codeText + '; and comments: ' + codeComments);
+        console.log('Creating code using codeText ' + codeText + '; and comments: ' + codeComments);
         var code = Code.builder().setCode(codeInput)
             .setType(codeType)
             .setCodeSystem(codeSystem)
@@ -2694,8 +2817,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 
         var lookupCriterion = uuid;
         if (!uuid || uuid.length === 0) {
-            if (pt && pt.length > 0) {
-                console.log('using pt for lookup');
+            if (!pt && pt.length > 0) {
                 lookupCriterion = pt;
             }
             else {
@@ -2703,7 +2825,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             }
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
-            /*return SubstanceFinder.get(uuid)*/
+        /*return SubstanceFinder.get(uuid)*/
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
                     console.log('no results found for query of ' + lookupCriterion);
@@ -2846,7 +2968,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                 reference.setPublic(false);
                 reference.setPublicDomain(false);
             }
-            if (referenceTags && referenceTags.length > 0) {
+            if (referenceTags&& referenceTags.length > 0) {
                 var tags = referenceTags.split("|");
                 var tagSet = [];
                 _.forEach(tags, function (tag) {
@@ -2856,12 +2978,12 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
             }
         }
 
-        var searchCrit = (uuid) ? uuid : pt;
+        var searchCrit = (uuid) ? uuid: pt;
         var substanceObject;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
                 var rec = s.content[0]; /*can be undefined... todo: handle*/
-                substanceObject = GGlob.SubstanceBuilder.fromSimple(rec);
+                substanceObject= GGlob.SubstanceBuilder.fromSimple(rec);
                 console.log('going to check references');
                 var substance = GGlob.SubstanceBuilder.fromSimple(s);
                 return substanceObject.fetch("references")
@@ -3313,8 +3435,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
                     .apply()
                     .andThen(function (s0) {
                         return s0;
-                    });
-            });
+                    })
+            })
     })
     .useFor(function (s) {
         Scripts.addScript(s);
@@ -3323,7 +3445,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
     name: "Fix Code URLS",
-    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"})
+    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
+})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
     })
@@ -3351,7 +3474,7 @@ Script.builder().mix({
         var pt = args.pt.getValue();
         var urlBase = args['url base'].getValue();
 
-        var searchCrit = uuid ? uuid : pt;
+        var searchCrit = (uuid) ? uuid : pt;
         return GGlob.SubstanceFinder.searchByExactNameOrCode(searchCrit)
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
@@ -3394,7 +3517,7 @@ Script.builder().mix({
                     .andThen(function (arg) {
                         return arg;
                     });
-            });
+            })
     })
     .useFor(function (s) {
         Scripts.addScript(s);
@@ -3810,7 +3933,7 @@ Script.builder().mix({
         };
         var code = null;
         if (casno) {
-            code = Code.builder().setCode(casno)
+            code= Code.builder().setCode(casno)
                 .setType("PRIMARY")
                 .setCodeSystem("CAS")
                 .setPublic(dataPublic);
@@ -3899,7 +4022,7 @@ Script.builder().mix({
     })
     .useFor(function (s) {
         Scripts.addScript(s);
-    });
+});
 
 
 /*Touch Record - retrieve a record and save again without making any changes to trigger update processing*/
@@ -4130,7 +4253,7 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
             console.log('set low value: ' + lowValue);
         }
         else {
-            console.log('omitted low value');
+            console.log('omitted low value' );
         }
         if (!isNaN(parseFloat(highValue))) {
             prop.setHigh(highValue);
@@ -4157,24 +4280,24 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                 s0 = substance;
                 return substance.full();
             })
-            .andThen(function (s) {
+            .andThen(function(s){
                 return s0.fetch("references")
-                    .andThen(function (refs) {
-                        _.forEach(refs, function (ref) {
-                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-                                console.log('Duplicate reference found! Will skip creation of new one.');
-                                reference = ref;
-                                return false;
-                            }
-                        });
-                        if (reference) {
-                            prop.addReference(reference);
-                        }
-                        return s0.patch()
-                            .addData(prop)
-                            .add("/changeReason", args['change reason'].getValue())
-                            .apply()
-                            .andThen(_.identity);
+                .andThen(function (refs) {
+                _.forEach(refs, function (ref) {
+                    if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                        console.log('Duplicate reference found! Will skip creation of new one.');
+                        reference = ref;
+                        return false;
+                    }
+                });
+                if (reference) {
+                    prop.addReference(reference);
+                }
+                return s0.patch()
+                    .addData(prop)
+                    .add("/changeReason", args['change reason'].getValue())
+                    .apply()
+                    .andThen(_.identity);
                     });
             });
     })
@@ -4210,10 +4333,267 @@ Script.builder().mix({
                             matches: searchResult.content
                         };
                         return msg;
-                    });
+                });
             });
 
     })
     .useFor(function (s) {
         Scripts.addScript(s);
+    });</script>
+
+
+    <script type="text/javascript">if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; }; var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } };</script>
+    <style type="text/css">
+
+        body {
+            font-family: sans-serif;
+        }
+
+        .scriptlist {
+            padding: 10px;
+            width: 40%;
+            display: inline-block;
+        }
+
+            .scriptlist select {
+                width: 100%;
+            }
+
+        .scriptdetails {
+            padding: 10px;
+            width: 50%;
+            display: inline-block;
+            vertical-align: top;
+            height: 15px;
+        }
+
+        .manual,
+        .advanced {
+            display: none;
+        }
+
+        .required {
+            color: #ff0000;
+        }
+
+        .template {
+            display: none;
+        }
+
+        .argument textarea {
+            width: 100%;
+        }
+
+        .argument {
+            display: inline-block;
+            width: 33%;
+            padding: 10px;
+        }
+
+        #console {
+            width: 100%;
+            height: 50px;
+            /*display:none;*/
+        }
+
+        .consolehead {
+            /*display: none;*/
+            width: 100%;
+        }
+
+        .data {
+            width: 40%;
+            display: inline-block;
+            padding: 10px;
+        }
+
+        .checkop {
+            width: 30%;
+            display: inline-block;
+        }
+
+        .data textarea {
+            width: 100%;
+            min-height: 300px;
+            white-space: nowrap;
+        }
+
+        .buttons {
+            width: 8%;
+            display: inline-block;
+        }
+
+        .SmallerText {
+            font-size: smaller;
+        }
+
+        .FormDiv {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<!-- do you see me? -->
+
+<body style="padding-top: 10px;" ng-controller="GinasController as GinasCtrl" data-target="#breadcrumb" scroll-spy="breadcrumb"><div id="FormDiv" style="margin-left: 10px;" style="margin-left: 10px;" class="FormDiv"><form id="outputSettings" style="display: none;"><div><h5 style="font-weight: bold;">Substance</h5><div class="checkop" style="margin-left: 5px;"><input name="Active Moiety PT" id="Active Moiety PT" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Active Moiety PT">Active Moiety PT</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Active Moiety ID" id="Active Moiety ID" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Active Moiety ID">Active Moiety ID</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Substance Class" id="Substance Class" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Substance Class">Substance Class</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="All Names" id="All Names" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="All Names">All Names</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="ATC Code" id="ATC Code" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="ATC Code">ATC Code</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Preferred Term" id="Preferred Term" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Preferred Term">Preferred Term</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Bracket Terms" id="Bracket Terms" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Bracket Terms">Bracket Terms</label></div></div><div><h5 style="font-weight: bold;">Chemical</h5><div class="checkop" style="margin-left: 5px;"><input name="SMILES" id="SMILES" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="SMILES">SMILES</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="InChIKey" id="InChIKey" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="InChIKey">InChIKey</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Lychi L1" id="Lychi L1" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Lychi L1">Lychi L1</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Full Lychi" id="Full Lychi" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Full Lychi">Full Lychi</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Molecular Formula" id="Molecular Formula" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Molecular Formula">Molecular Formula</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Molfile" id="Molfile" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Molfile">Molfile</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Molecular Weight" id="Molecular Weight" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Molecular Weight">Molecular Weight</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Equivalence Factor" id="Equivalence Factor" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Equivalence Factor">Equivalence Factor</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Stereo Type" id="Stereo Type" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Stereo Type">Stereo Type</label></div></div><div><h5 style="font-weight: bold;">Protein</h5><div class="checkop" style="margin-left: 5px;"><input name="Protein Sequence" id="Protein Sequence" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Protein Sequence">Protein Sequence</label></div></div><div><h5 style="font-weight: bold;">Identifiers</h5><div class="checkop" style="margin-left: 5px;"><input name="UUID" id="UUID" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="UUID">UUID</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="BDNUM[CODE]" id="BDNUM[CODE]" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="BDNUM[CODE]">BDNUM[CODE]</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="CAS Numbers" id="CAS Numbers" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="CAS Numbers">CAS Numbers</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="EVMPD Code" id="EVMPD Code" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="EVMPD Code">EVMPD Code</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Approval ID (UNII)" id="Approval ID (UNII)" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Approval ID (UNII)">Approval ID (UNII)</label></div></div><div><h5 style="font-weight: bold;">Record</h5><div class="checkop" style="margin-left: 5px;"><input name="Record Access" id="Record Access" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Record Access">Record Access</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Created By" id="Created By" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Created By">Created By</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Created Date" id="Created Date" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Created Date">Created Date</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Last Edited By" id="Last Edited By" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Last Edited By">Last Edited By</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Last Edited Date" id="Last Edited Date" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Last Edited Date">Last Edited Date</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Version" id="Version" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Version">Version</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Record URL" id="Record URL" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Record URL">Record URL</label></div></div><div><h5 style="font-weight: bold;">Structurally Diverse</h5><div class="checkop" style="margin-left: 5px;"><input name="Latin Binomial" id="Latin Binomial" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Latin Binomial">Latin Binomial</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Author" id="Author" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Author">Author</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Part" id="Part" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Part">Part</label></div></div><div><h5 style="font-weight: bold;">Properties</h5><div class="checkop" style="margin-left: 5px;"><input name="Vapor Pressure" id="Vapor Pressure" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Vapor Pressure">Vapor Pressure</label></div>
+<div class="checkop" style="margin-left: 5px;"><input name="Volume of Distribution" id="Volume of Distribution" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Volume of Distribution">Volume of Distribution</label></div></div><div><h5 style="font-weight: bold;">Others</h5><div class="checkop" style="margin-left: 5px;"><input name="Image URL" id="Image URL" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="Image URL">Image URL</label></div></div></form></div><div id="showScripts" style="display: block;"><div class="scriptlist"><h4 id="scriptListHeader">Please select a script and click 'Add Sheet'</h4><select id="scriptlist" size="10" jQuery111107971948808874718="88"><option value="Add Name">Add Name</option><option value="Add Code">Add Code</option><option value="Add Relationship">Add Relationship</option><option value="Replace Code by Name">Replace Code by Name</option><option value="Replace Code Text">Replace Code Text</option><option value="Remove Name">Remove Name</option><option value="Fix Code URLS">Fix Code URLS</option><option value="Set Object JSON">Set Object JSON</option><option value="Set Code Access">Set Code Access</option><option value="Create Substance">Create Substance</option><option value="Touch Record">Touch Record</option><option value="Replace Name">Replace Name</option><option value="Volume of Distribution">Volume of Distribution</option></select></div><div class="scriptdetails" id="scriptdetails"></div><br><span>Number of rows:</span>
+    <input name="numberOfRows" id="numberOfRows" type="text" value="10"><span>(Extra rows do not cause a problem)</span></div><div><form id="scriptArguments" style="display: none;"></form></div><div class="template" id="argTemplate"><div class="argument"><div><label style="font-weight: normal; margin-left: 4px;" for="$arg$">$arg$</label><span title="required" class="required">$req$</span></div><div><textarea name="$arg$" class="paramArgValue" id="$arg$Value">$value$</textarea></div></div></div><div class="template" id="fetcherTemplate"><div class="checkop" style="margin-left: 5px;"><input name="$name$" id="$name$" type="checkbox"><label style="font-weight: normal; margin-left: 4px;" for="$name$">$name$</label></div></div><br><br><form name="ginas"><h3 class="consolehead" id="consoleHeadWebOutput" style="visibility: hidden;">Web output:</h3><br><textarea id="console" style="visibility: hidden;"></textarea><br></form><script>var GSRSAPI_consoleStack = [];
+
+var madeReady = false;
+$(document).ready(function () {
+    handleReady();
+});
+
+function handleReady() {
+    var htmltemplate = $("#fetcherTemplate").html();
+    var test = $("#fetcherTemplate");
+
+    _.chain(FetcherRegistry.getFetcherTags())
+        .filter(function (t) { return t !== "Tests"; })
+        .forEach(function (tag) {
+            var n = 1;
+            var fetchers = FetcherRegistry.getFetchersWithTag(tag);
+            var nhtml = _.chain(fetchers)
+                .map("name")
+                .map(function (n) {
+                    var completedTemplate = htmltemplate.replace(/\$name\$/g, n);
+
+                    return completedTemplate;
+                })
+                .value()
+                .join("\n");
+            $("#outputSettings").append("<div><h5>" + tag + "</h5>" + nhtml + "</div>");
+        }).value();
+
+    var nhtml = _.chain(FetcherRegistry.getFetchersWithNoTag())
+        .map("name")
+        .map(function (n) {
+            return htmltemplate.replace(/\$name\$/g, n);
+        }).value().join("\n");
+    $("#outputSettings").append("<div><h5>Others</h5>" + nhtml + "</div>");
+    $('#FormDiv').css('margin-left', '10px');
+    $('label').css({ 'font-weight': 'normal', 'margin-left': '4px' });
+    $('.checkop').css('margin-left', '5px');
+    $('h5').css('font-weight', 'bold');
+    madeReady = true;
+}
+
+function showPreview(runner) {
+    $("#scriptArguments").html("");
+    _.forEach(runner.getArguments(), function (a) {
+        var val = a.getValue();
+        if (!val) {
+            val = "";
+        }
+        var html = $("#argTemplate").html()
+            .replace(/\$arg\$/g, a.name)
+            .replace(/\$value\$/g, val);
+        if (a.isRequired()) {
+            html = html.replace(/\$req\$/g, "*");
+        } else {
+            html = html.replace(/\$req\$/g, "");
+        }
+        $('#' + a.name + 'Value').show();
+        $("#scriptArguments").append(html);
     });
+    $("#scriptArguments").show();
+    $(".paramArgValue").show();
+    $(".paramArgValue").parent().show();
+}
+
+function showScripts() {
+    $("#scriptlist").html("");
+    _.chain(Scripts.all())
+        .filter(function (s) { return s.validForSheetCreation; })
+        .forEach(function (script) {
+            $("#scriptlist").append("<option value='" + script.name + "'>" + script.name + "</option>");
+        }).value();
+    $("#scriptlist").change(function () {
+        var script = Scripts.get($("#scriptlist").val());
+        $("#scriptdetails").html(script.description);
+    });
+}
+
+function setMode(m) {
+    $("#outputSettings").hide();
+    $("#scriptArguments").hide();
+    $("#showScripts").hide();
+
+    if (m === "resolver") {
+        $("#outputSettings").show();
+    } else if (m === "showScripts") {
+        $("#showScripts").show();
+        showScripts();
+    } else { /*resolver*/
+        $("#scriptArguments").show();
+    }
+}
+
+        function runCommandForCSharp(stuffToRun) {
+    if (!stuffToRun || stuffToRun === null || stuffToRun.length === 0) {
+        console.log('empty arg to runCommandForCSharp');
+        return null;
+    }
+    var debugOutput = true;
+    /*if (stuffToRun.indexOf("auth") >= 0) {
+        debugOutput = false;
+    }*/
+    if (debugOutput) {
+        console.log('runCommandForCSharp about to eval ' + stuffToRun);
+    }
+    try {
+        /*assume C# validates */
+        var result = eval(stuffToRun);
+    }
+    catch (ex) {
+        console.log('error running script: ' + ex);
+        return 'error running script: ' + ex;
+    }
+    if (result) {
+        if (typeof result === 'string') {
+            return result;
+        }
+        /*console.log('result: ' + JSON.stringify(result));*/
+        return JSON.stringify(result);
+    }
+    /*takes care of falsey returns*/
+    return result;
+}
+
+function checkReady() {
+    if (!madeReady) {
+        handleReady();
+    }
+}
+
+//setTimeout(checkReady(), 3000);</script>
+    
+    <iframe id="refresher" style="height: 1px; display: none; opacity: 0;"></iframe>
+    
+    </body></html>

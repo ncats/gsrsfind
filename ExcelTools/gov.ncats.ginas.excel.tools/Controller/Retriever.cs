@@ -86,10 +86,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ImageOps imageOps = new ImageOps();
 
             SheetUtils sheetUtils = new SheetUtils();
-            sheetUtils.Configuration = this.ToolsConfiguration;
+            sheetUtils.Configuration = GinasConfiguration;
             foreach (string key in returnedValue.Keys)
             {
-                if (ToolsConfiguration.DebugMode)
+                if (GinasConfiguration.DebugMode)
                 {
                     log.DebugFormat("Handling result for key {0}", key);
                 }
@@ -227,7 +227,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     {
                         rcb = CallbackFactory.CreateResolverCallback(cell);
                     }
-                    rcb.setKey(cellText);
+                    rcb.SetKey(cellText);
                     cb.AddCallback(rcb);
 
                     if ((currItemWithinBatch % ItemsPerBatch) == 0)
@@ -258,12 +258,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         private void QueueOneBatch(Callback cb, List<string> submittable)
         {
-            cb.setKey(JSTools.RandomIdentifier());
+            cb.SetKey(JSTools.RandomIdentifier());
             while (Callbacks.ContainsKey(cb.getKey()))
             {
                 log.Error("Callback contains duplicate key: " + cb.getKey());
                 System.Threading.Thread.Sleep(1);
-                cb.setKey(JSTools.RandomIdentifier());
+                cb.SetKey(JSTools.RandomIdentifier());
             }
             lock (LOCK_OBJECT)
             {
@@ -345,11 +345,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-        private void EndProcessNotification()
+        protected override void EndProcessNotification()
         {
             //dialog itself will handle saving of debug info.
             StatusUpdater.UpdateStatus("Completed");
-            this._notified = true;
+            _notified = true;
         }
 
         public void CheckAllCallbacks(Object source, ElapsedEventArgs e)
@@ -460,6 +460,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public Queue<String> GetScriptQueue()
         {
             return ScriptQueue;
+        }
+
+        public bool OkToWrite(int numberOfColumns)
+        {
+            if (!SheetUtils.ContainsDataInColumnsToBeWritten(ExcelWindow.RangeSelection, numberOfColumns) ||
+                    UIUtils.GetUserYesNo("There is data in columns that will be overwritten! Continue with operation?"))
+            {
+                return true;
+            }
+            return false;
         }
 
         private RangeWrapper GetNewSheetResolverCursor()

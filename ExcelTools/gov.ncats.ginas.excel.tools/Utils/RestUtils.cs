@@ -38,6 +38,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             if (RestClient.BaseAddress == null) RestClient.BaseAddress = new Uri(serverUrl);
             string fullUrl = serverUrl + "structure";
+            log.DebugFormat("{0} using URL {1}", MethodBase.GetCurrentMethod().Name, fullUrl);
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
             message.Content = new StringContent(molfile, Encoding.UTF8);
 
@@ -64,6 +65,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                             return r.Structure.Id;
                         }
                         log.Debug("Error saving structure: " + response.ReasonPhrase);
+                        if (idCell != null)
+                        {
+                            if (molfile.Contains("V3000")) idCell.FormulaR1C1 = "V 3000 Molfiles fail duplicate checks but may register OK";
+                            else  idCell.FormulaR1C1 = "Error processing this structure (it may still register OK)";
+                        }
                         return string.Empty;
                     }
                     catch (Exception e2)

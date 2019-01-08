@@ -23,20 +23,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private static int _scriptNumber = 0;
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
-        private int _NumTimesFoundNoActives = 0;
-        private const int MAX_TIMES_NO_ACTIVE = 4;
         private string _currentKey = string.Empty;
-        private const int CONSOLE_CLEARANCE_INTERVAL = 50;
+        
 
         internal static string STATUS_STARTED = "STARTED";
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private GinasToolsConfiguration GinasConfiguration
-        {
-            get;
-            set;
-        }
 
         private ScriptUtils scriptUtils;
 
@@ -46,8 +38,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         /// </summary>
         public void StartOperation()
         {
-            GinasConfiguration = FileUtils.GetGinasConfiguration();
-
+           
             ScriptQueue = new Queue<string>();
             CurrentOperationType = OperationType.Loading;
             ExcelSelection = (Excel.Range)ExcelWindow.Application.Selection;
@@ -77,8 +68,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public void StartSheetCreation(Excel.Window window)
         {
-            GinasConfiguration = FileUtils.GetGinasConfiguration();
-
             ScriptQueue = new Queue<string>();
             CurrentOperationType = OperationType.ShowScripts;
             ExcelWindow = window;
@@ -144,7 +133,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     SheetUtils sheetUtils = new SheetUtils();
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
-                        ScriptExecutor, ToolsConfiguration.SortVocabsAlphabetically);
+                        ScriptExecutor, GinasConfiguration.SortVocabsAlphabetically);
                 }
             }
             else
@@ -155,19 +144,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-        private void Authenticate()
-        {
-            if (!string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.Username)
-                && !string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.PrivateKey))
-            {
-                string script1 = string.Format("GlobalSettings.authKey = '{0}'",
-                    GinasConfiguration.SelectedServer.PrivateKey);
-                ScriptExecutor.ExecuteScript(script1);
-                string script2 = string.Format("GlobalSettings.authUsername = '{0}'",
-                    GinasConfiguration.SelectedServer.Username);
-                ScriptExecutor.ExecuteScript(script2);
-            }
-        }
 
         private void StartLoading(Excel.Range r)
         {
@@ -276,10 +252,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     if (!string.IsNullOrWhiteSpace(parameterValue))
                     {
                         ScriptParameter parameter = scriptUtils.ScriptParameters[key];
-                        if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            log.DebugFormat("parameter value: {0}", parameterValue);
-                        }
+                        //if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
+                        //{
+                        //    log.DebugFormat("parameter value: {0}", parameterValue);
+                        //}
                         //escape characters that causes errors in JavaScript interpreter
                         string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
                         string replacement2 = "ꬷ";
@@ -307,7 +283,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
                     (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
                 updateCallback.SetExpiration(newExpirationDate);
-                updateCallback.setKey(tempVal);
+                updateCallback.SetKey(tempVal);
                 updateCallback.ParameterValues = paramValues;
                 updateCallback.LoadScriptName = _scriptName;
                 message = "Total selected rows: " + (application.Selection as Excel.Range).Rows.Count;
@@ -412,83 +388,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             _timer.Start();
         }
 
-        public void CheckUpdateCallbacks(Object source, ElapsedEventArgs e)
-        {
-            log.Debug("Starting in checkUpdateCallbacks");
-
-            bool haveActive = false;
-
-            List<string> callbackKeysToRemove = new List<string>();
-            log.Debug("Total callbacks at start: " + Callbacks.Count);
-            //'go through individual callbacks
-            foreach (string cbKey in Callbacks.Keys)
-            {
-                Callback cb = Callbacks[cbKey];
-                if (cb.HasStarted())
-                {
-                    if (cb is UpdateCallback)
-                    {
-                        UpdateCallback updateCb = cb as UpdateCallback;
-                        string itemMessage = "looking at updateCallback " + updateCb.getKey();
-                        if (updateCb.IsExpiredNow())
-                        {
-                            itemMessage = itemMessage + " expired; script: " + updateCb.getScript(); ;
-                            callbackKeysToRemove.Add(cbKey);
-                        }
-                        else
-                        {
-                            haveActive = true;
-                            itemMessage = itemMessage + " active";
-                        }
-
-                        log.Debug(itemMessage);
-                    }
-                }
-            }
-
-            KeepCheckingCallbacks = haveActive;
-            if (!haveActive)
-            {
-                log.Debug("No active callbacks detected");
-            }
-            if (callbackKeysToRemove.Count > 0)
-            {
-                foreach (string key in callbackKeysToRemove)
-                {
-                    Callback cb = Callbacks[key];
-                    cb.Execute("Expired");
-                    Callbacks.Remove(key);
-                    DecremementTotalScripts();
-                }
-            }
-            log.DebugFormat("Total callbacks at end: {0}", Callbacks.Count);
-            if (Callbacks.Count == 0)
-            {
-                haveActive = false;
-                KeepCheckingCallbacks = false;
-                _timer.Close();
-                _timer.Stop();
-                _timer.Enabled = false;
-                log.Debug("stopped timer");
-                EndProcessNotification();
-            }
-            else if (!haveActive)
-            {
-                // <N> runs of this check with no active callbacks mean it's ok to start a new callback
-                if (_NumTimesFoundNoActives < MAX_TIMES_NO_ACTIVE)
-                {
-                    log.Debug("; will now call StartFirstUpdateCallback");
-                    StartFirstUpdateCallback();
-                    _NumTimesFoundNoActives = 0;
-                }
-                else
-                {
-                    _NumTimesFoundNoActives++;
-                }
-            }
-
-            log.Debug("end of checkUpdateCallbacks ");
-        }
 
         public object HandleResults(string resultsKey, string message)
         {
@@ -556,7 +455,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     SheetUtils sheetUtils = new SheetUtils();
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
-                        ScriptExecutor, ToolsConfiguration.SortVocabsAlphabetically);
+                        ScriptExecutor, GinasConfiguration.SortVocabsAlphabetically);
                 }
                 else
                 {
@@ -576,7 +475,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-        private void EndProcessNotification()
+        public bool OkToWrite(int numberOfColumns)
+        {
+            return true;
+        }
+
+        protected override void EndProcessNotification()
         {
             if (!_notified)
             {
@@ -620,9 +524,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Application application = range.Application;
 
             Dictionary<string, Excel.Range> keys = GetKeys(range);
-            //If the status isn't empty, skip this one
-            string statusValue = GetProperty(keys, STATUS_KEY, "");
-
             Dictionary<string, string> paramValues = new Dictionary<string, string>();
 
             string tempScriptName = "tmpScript";
@@ -635,7 +536,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             scriptUtils.BuildScriptParameters(keys.Keys);
         }
 
-        private void StartFirstUpdateCallback()
+        protected override void StartFirstUpdateCallback()
         {
             if (Callbacks.Count == 0) return;
             if (Callbacks.Values.First() is UpdateCallback)
@@ -661,20 +562,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     log.Debug("Skipped first update callback because it appears to be running already");
                 }
             }
-        }
-
-        private void SaveAndClearDebugInfo()
-        {
-            log.Debug("Starting in SaveAndClearDebugInfo");
-            string fileName = FileUtils.GetTemporaryFilePath("gsrs.excel.log");
-            string content = (string)ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack.join('|')");
-            FileUtils.WriteToFile(fileName, content);
-            ScriptExecutor.ExecuteScript("GSRSAPI_consoleStack=[]");//clear the old stuff
-        }
-
-        private void DecremementTotalScripts()
-        {
-            if (_totalScripts > 0) _totalScripts--;
         }
 
     }

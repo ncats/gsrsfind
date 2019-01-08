@@ -20,7 +20,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(javascriptFilePath);//.Replace("  ", "").Replace("\r\n", "");
         }
 
- 
         public static string GetLastJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\LastScript.js";

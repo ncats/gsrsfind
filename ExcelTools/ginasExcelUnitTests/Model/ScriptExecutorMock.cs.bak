@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using gov.ncats.ginas.excel.tools.Controller;
 using gov.ncats.ginas.excel.tools.Model;
 
 namespace ginasExcelUnitTests.Model
@@ -11,11 +10,9 @@ namespace ginasExcelUnitTests.Model
     public class ScriptExecutorMock : IScriptExecutor
     {
         internal string TestScript;
-        private List<string> scriptsExecuted = new List<string>();
 
         public object ExecuteScript(string script)
         {
-            scriptsExecuted.Add(script);
             TestScript = script;
             Console.WriteLine("Simulating script execution. " + script);
             Dictionary<int, ScriptParameter> mockParameters = GetMockedScriptParameters();
@@ -174,20 +171,6 @@ namespace ginasExcelUnitTests.Model
             };
             scriptParms.Add(9, scriptParameter);
             return scriptParms;
-        }
-
-
-        public List<string> ScriptsRun
-        {
-            get
-            {
-                return scriptsExecuted;
-            }
-        }
-
-        public void SetController(IController controller)
-        {
-
         }
     }
 }

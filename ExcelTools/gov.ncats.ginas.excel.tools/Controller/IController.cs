@@ -26,5 +26,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
         void Dispose();
 
         void ReceiveVocabulary(string rawVocab);
+
+        void CancelOperation(string reason);
+
+        bool OkToWrite(int numberOfColumns);
     }
 }

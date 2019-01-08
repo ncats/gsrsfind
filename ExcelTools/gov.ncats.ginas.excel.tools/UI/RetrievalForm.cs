@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
-
+using System.Diagnostics;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
@@ -31,9 +31,11 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public RetrievalForm()
         {
+            IsReady = false;
             _expectedTitles.Add("InXight API");
             _expectedTitles.Add("g-srs");
             log.Debug("Starting in RetrievalForm");
+            
             Visible = false;
             try
             {
@@ -46,12 +48,24 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
         }
 
+        public void SetSize(int size)
+        {
+            this.Height = size;
+            this.Width = size;
+        }
         public IController Controller
         {
             get;
             set;
         }
+
         public OperationType CurrentOperationType
+        {
+            get;
+            set;
+        }
+
+        public bool IsReady
         {
             get;
             set;
@@ -76,15 +90,18 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 HandleDebugInfoSave();
             }
+            if( CurrentOperationType == OperationType.ProcessSdFile || CurrentOperationType == OperationType.ProcessApplication)
+            {
+                this.Close();
+            }
         }
 
         internal void LoadStartup()
         {
             _configuration = FileUtils.GetGinasConfiguration();
             log.Debug("Loaded configuration ");
-            log.Debug(" selected url:" + _configuration.SelectedServer.ServerUrl);
+            log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
-            JSTools tools = new JSTools();
             string initURL = _configuration.SelectedServer.ServerUrl + "cache";
             _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
@@ -118,6 +135,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
+                log.Warn("detected NAVIGATION_CANCELED");
                 string html = FileUtils.GetErrorHtml();
                 html = html.Replace("$MESSAGE1$", "Error loading initial ginas page");
 
@@ -127,6 +145,10 @@ namespace gov.ncats.ginas.excel.tools.UI
                 webBrowser1.DocumentText = html;
                 webBrowser1.Visible = true;
                 Visible = true;
+                if (CurrentOperationType == OperationType.ProcessSdFile)
+                {
+                    Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
+                }
             }
         }
 
@@ -164,6 +186,8 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public void Notify(string message)
         {
+            try
+            {
             log.DebugFormat("Notify processing message: {0}", message);
             if (message.StartsWith("gsrs_"))
             {
@@ -183,7 +207,11 @@ namespace gov.ncats.ginas.excel.tools.UI
                 log.Debug("Got back " + message);
                 Controller.ReceiveVocabulary(message);
             }
-                
+            }
+            catch(Exception ex)
+            {
+                log.Error("Error in Notify: " + ex.Message, ex);
+            }
         }
 
         public void Proceed(string message)
@@ -193,6 +221,17 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonResolve_Click(object sender, EventArgs e)
         {
+            //check for overwrite
+            if(CurrentOperationType == OperationType.Resolution && ! checkBoxNewSheet.Checked)
+            {
+                int totalNewColumns = Convert.ToInt32(ExecuteScript("$('div.checkop input:checked').length") as string);
+                log.DebugFormat("click handler detected total number of new columns: " + totalNewColumns);
+                if(!Controller.OkToWrite(totalNewColumns))
+                {
+                    log.Debug("user elected not to overwrite data");
+                    return;
+                }
+            }
             buttonCancel.Enabled = false;
             if (!Controller.StartResolution(checkBoxNewSheet.Checked))
             {
@@ -277,6 +316,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
                             break;
                         case DialogYesNoCancel.Cancel:
+                            if (CurrentOperationType == OperationType.ProcessApplication) Close();
                             UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
                             buttonAddStructure.Enabled = false;
                             buttonAddStructure.Visible = false;
@@ -298,7 +338,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             
             ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
             checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
-            if (CurrentOperationType == OperationType.Loading)
+            if (CurrentOperationType == OperationType.Loading || CurrentOperationType== OperationType.ProcessApplication)
             {
                 buttonResolve.Text = "Execute";
                 buttonAddStructure.Enabled = false;
@@ -326,6 +366,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 buttonAddStructure.Enabled = false;
                 buttonAddStructure.Visible = false;
                 buttonCancel.Enabled = true;
+                checkBoxNewSheet.Enabled = false;
                 Visible = true;
                 Text = "Script Selection";
             }
@@ -338,6 +379,12 @@ namespace gov.ncats.ginas.excel.tools.UI
                     ExecuteScript(_scriptToRunUponCompletion);
                 }
             }
+            else if( CurrentOperationType == OperationType.ProcessSdFile)
+            {
+                Visible = false;
+                Controller.StartOperation();
+                return;
+            }
             buttonDebugDOM.Enabled = false; 
             buttonDebugDOM.Visible = false;
             checkBoxSaveDiagnostic.Enabled = _configuration.DebugMode;
@@ -347,6 +394,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
             }            
             webBrowser1.Visible = true;
+            IsReady = true;
         }
 
         
@@ -370,6 +418,11 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 FileUtils.WriteToFile(saveFileDialog.FileName, dom);
             }
+        }
+
+        public void SetController(Controller.IController controller)
+        {
+            Controller = controller;
         }
     }
 }
