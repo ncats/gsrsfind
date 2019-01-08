@@ -1021,16 +1021,12 @@ var GSRSAPI = {
                         error: function (response, error, t) {
                             console.log('ajax call error ');
                             console.log('	at ' + _.now());
-<<<<<<< HEAD
                             if (typeof response === 'object') {
                                 console.log(JSON.stringify(response));
                             }
                             else {
                                 console.log(response);
                             }
-=======
-                            console.log('type of error: ' + typeof response);
->>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
                             cb(response);
                         }
                     });
@@ -4188,12 +4184,7 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
 
 Script.builder().mix({
     name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
-<<<<<<< HEAD
         validForSheetCreation: false})
-=======
-    validForSheetCreation: false
-})
->>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
     .addArgument({
         "key": "molfile", name: "Molfile", description: "structure to save", required: true
     })

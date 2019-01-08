@@ -34,7 +34,4 @@ C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsof
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Microsoft.Vbe.Interop.dll
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\obj\Debug\gov.ncats.ginas.excel.tools.csprojAssemblyReference.cache
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\etc\g-srs_controller.js
-<<<<<<< HEAD
 C:\ginas_source\Excel\CSharpTest2\gov.ncats.ginas.excel.tools\bin\Debug\Newtonsoft.Json.pdb
-=======
->>>>>>> 0b691bc25c9e84e754b7cd8c305affcd970b31ee
