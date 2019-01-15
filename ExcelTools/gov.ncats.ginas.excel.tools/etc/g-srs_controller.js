@@ -1855,6 +1855,7 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Status", function (simpleSub) {
+        console.log('simpleSub: ' + JSON.stringify(simpleSub));
         return JPromise.of(function (cb) {
             var returnValue = simpleSub.status;
             if (simpleSub.status === 'approved') {
@@ -1938,12 +1939,12 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Equivalence Factor", function (simpleSub) {
         return simpleSub.fetch("structure/mwt").andThen(function (mwt) {
-            return simpleSub.fetch("relationships")
-                .andThen(function (r) {
-                    var amuuid = _.chain(r)
-                        .filter({ type: "ACTIVE MOIETY" })
-                        .map(function (ro) {
-                            return ro.relatedSubstance.refuuid;
+                return simpleSub.fetch("relationships")
+                    .andThen(function (r) {
+                        var amuuid = _.chain(r)
+                            .filter({ type: "ACTIVE MOIETY" })
+                            .map(function (ro) {
+                                return ro.relatedSubstance.refuuid;
                         })
                         .value()[0];
                     return SubstanceFinder.get(amuuid)

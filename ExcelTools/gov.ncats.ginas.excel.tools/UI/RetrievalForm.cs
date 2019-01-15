@@ -34,6 +34,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             IsReady = false;
             _expectedTitles.Add("InXight API");
             _expectedTitles.Add("g-srs");
+            _expectedTitles.Add("Sequence Search");
             log.Debug("Starting in RetrievalForm");
             
             Visible = false;
@@ -102,7 +103,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("Loaded configuration ");
             log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
-            string initURL = _configuration.SelectedServer.ServerUrl + "cache";
+            string initURL = _configuration.SelectedServer.ServerUrl + "sequence";
             _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;

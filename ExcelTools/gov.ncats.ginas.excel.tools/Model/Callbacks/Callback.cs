@@ -76,7 +76,7 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         }
 
 
-        public void Start()
+        public virtual void Start()
         {
             has_started = true;
         }

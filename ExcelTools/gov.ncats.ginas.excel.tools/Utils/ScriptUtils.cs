@@ -266,6 +266,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void AssignVocabularies()
         {
+            DateTime start = DateTime.Now;
             foreach(string key in ScriptParameters.Keys)
             {
                 ScriptParameter scriptParameter = ScriptParameters[key];
@@ -275,6 +276,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     scriptParameter.Vocabulary = translation;
                 }
             }
+            TimeSpan elapsed = DateTime.Now.Subtract(start);
+            log.DebugFormat("millisec in {0}: {1}", MethodBase.GetCurrentMethod().Name,
+                elapsed.TotalMilliseconds);
         }
     }
 

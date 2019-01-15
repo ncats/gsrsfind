@@ -24,21 +24,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
-        
 
-        internal static string STATUS_STARTED = "STARTED";
+        
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ScriptUtils scriptUtils;
 
+        private bool _assignedVocabs = false;
 
         /// <summary>
         /// First method to call for outside classes
         /// </summary>
         public void StartOperation()
         {
-           
             ScriptQueue = new Queue<string>();
             CurrentOperationType = OperationType.Loading;
             ExcelSelection = (Excel.Range)ExcelWindow.Application.Selection;
@@ -64,6 +63,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 StatusUpdater.UpdateStatus("(" + arange.Count + ") records to execute");
             }
             _notified = false;
+            _assignedVocabs = false;
         }
 
         public void StartSheetCreation(Excel.Window window)
@@ -203,10 +203,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     return null;
                 }
                 return cb;
-            }
-            else
-            {
-                ((UpdateCallback)cb).SetRangeText(STATUS_STARTED);
             }
             string script = "tmpRunner"
                 + ".execute()"
@@ -541,7 +537,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (Callbacks.Count == 0) return;
             if (Callbacks.Values.First() is UpdateCallback)
             {
-                scriptUtils.AssignVocabularies();
+                if(!_assignedVocabs)
+                {
+                    scriptUtils.AssignVocabularies();
+                    _assignedVocabs = true;
+                }
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
                 if (!updateCallback.getKey().Equals(_currentKey))
                 {

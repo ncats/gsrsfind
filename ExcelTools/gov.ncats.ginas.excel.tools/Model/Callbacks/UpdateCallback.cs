@@ -16,6 +16,8 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
         internal const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbYellow;
         internal const XlRgbColor COLOR_ERROR = XlRgbColor.rgbRed;
 
+        internal static string STATUS_STARTED = "STARTED";
+
         public UpdateCallback(Range status)
         {
             statusRange = status;
@@ -61,6 +63,12 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
                 statusRange.EntireRow.Interior.Color = COLOR_ERROR;
             }
             
+        }
+
+        public override void Start()
+        {
+            base.Start();
+            SetRangeText( STATUS_STARTED);
         }
 
         public int RunnerNumber
