@@ -1,5 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using System.Reflection;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model;
@@ -9,6 +11,8 @@ namespace ginasExcelUnitTests
     [TestClass]
     public class FileUtilTests
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         [TestMethod]
         public void GetUserFolderTest()
         {
@@ -51,5 +55,17 @@ namespace ginasExcelUnitTests
             Assert.IsFalse(FileUtils.FolderExists(path1));
         }
 
+        [TestMethod]
+        public void TestDefaultConfigFile()
+        {
+            string configFilePath = Directory.GetCurrentDirectory() + @"\etc\g-srs-config.txt";
+
+            string configString = File.ReadAllText(configFilePath);
+            log.Debug("configString: " + configString);
+            GinasToolsConfiguration config = null;
+            config = JSTools.GetGinasToolsConfigurationFromString(configString);
+            Assert.IsNotNull(config);
+
+        }
     }
 }

@@ -185,7 +185,7 @@ var GSRSAPI = {
                                     cb(retMsg);
                                 }
                                 else {
-                                    cb("[no data]");/*the retMsg object gets passed back to the sheet. todo: pass a message*/
+                                    cb("[no data]");
                                 }
 
                             }
@@ -629,7 +629,9 @@ var GSRSAPI = {
                 };
 
                 /*Method below is a shot in the dark. TODO: verify!*/
+                /*Note: method not in use as of 18 January 2019*/
                 b.update = function (path) {
+                    console.log('b.update!');
                     return b.change({
                         op: "update",
                         path: path
@@ -2643,6 +2645,12 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         description: "URL for the reference", required: false
     })
     .addArgument({
+        "key": "replace existing", name: "REPLACE EXISTING",
+        description: "when codes are found from the same system, delete what was there before adding this",
+        defaultValue: false, required: false,
+        type: "boolean"
+    })
+    .addArgument({
         "key": "change reason", name: "CHANGE REASON",
         defaultValue: "Added Code",
         description: "Text for the record change", required: false
@@ -2663,6 +2671,9 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         var referenceType = args['reference type'].getValue();
         var referenceCitation = args['reference citation'].getValue();
         var referenceUrl = args['reference url'].getValue();
+        var replaceExisting = args['replace existing'].isYessy();
+
+        var codesIndicesToRemove = [];
 
         var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
         if (referenceUrl && referenceUrl.length > 0) {
@@ -2704,7 +2715,6 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
             }
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
-            /*return SubstanceFinder.get(uuid)*/
             .andThen(function (s) {
                 if (!s || !s.content || s.content.length === 0) {
                     console.log('no results found for query of ' + lookupCriterion);
@@ -2712,7 +2722,6 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                 }
                 var rec = s.content[0]; /*can be undefined... todo: handle*/
                 var substance = GGlob.SubstanceBuilder.fromSimple(rec);
-                /*var substance = GGlob.SubstanceBuilder.fromSimple(s);*/
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         console.log('retrieved refs');
@@ -2730,6 +2739,14 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                             .andThen(function (codes) {
                                 var valuesOK = true;
                                 var valuesError = '';
+                                if (replaceExisting) {
+                                    codes = _.forEach(codes, function (code, codeIndex) {
+                                        if (code.codeSystem === codeSystem) {
+                                            console.log('adding code at index ' + codeIndex + ' to list');
+                                            codesIndicesToRemove.push(codeIndex);
+                                        }
+                                    });
+                                }
                                 _.forEach(codes, function (cd) {
                                     if (cd.codeSystem === codeSystem) {
                                         if (allowMultiple) {
@@ -2742,7 +2759,8 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                                 return false;
                                             }
                                         }
-                                        else {
+                                        else if(!replaceExisting) {
+                                            console.log('detected duplicate');
                                             valuesOK = false;
                                             valuesError = 'This substance already has a code for system '
                                                 + cd.codeSystem;
@@ -2752,7 +2770,14 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                 });
                                 if (valuesOK) {
                                     console.log('Add Code is going to return patch ');
-                                    return rec.patch().addData(code)
+                                    var codePatch = rec.patch();
+                                    _.forEach(codesIndicesToRemove, function (index) {
+                                        console.log('removing index ' + index);
+                                        codePatch=codePatch.remove("/codes/" + index);
+                                    });
+
+                                    console.log('codePatch: ' + JSON.stringify(codePatch));
+                                    return codePatch.addData(code)
                                         .add("/changeReason", args['change reason'].getValue())
                                         .apply()
                                         .andThen(_.identity);

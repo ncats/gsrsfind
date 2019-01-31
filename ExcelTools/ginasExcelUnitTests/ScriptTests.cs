@@ -68,7 +68,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "cf8df6ce-b0c6-4570-a07a-118cd58a4e90";
+            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string newName = "Name " + Guid.NewGuid();
@@ -112,7 +112,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            string ptForTest = "Cyclohexane";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -164,7 +164,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string bdNumForTest = "0009031AB";
+            string bdNumForTest = "0001997AB";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -218,7 +218,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "12a5c348-118b-4892-8e6f-bdfaf0d54be4";
+            string uuidForTest = "90cea970-fa49-4cee-a045-10c3b86d3147";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForUuid(uuidForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -269,7 +269,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "cf8df6ce-b0c6-4570-a07a-118cd58a4e90";
+            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string nameToRemove = namesBefore.FirstOrDefault(n => n.IsPossibleGuidName());
@@ -312,7 +312,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            string ptForTest = "Cyclohexane";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -364,7 +364,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            string ptForTest = "9,10-PHENANTHRENEDIONE";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -386,7 +386,6 @@ namespace ginasExcelUnitTests
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", oldCode));
             scripts.Enqueue(string.Format("tmpRunner.setValue('comments', '{0}')", newComment));
-            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
             scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
             scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
                 newCodeSystem));
@@ -412,7 +411,7 @@ namespace ginasExcelUnitTests
             List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
             Assert.AreEqual(codesBefore.Count, codesAfter.Count);
             Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(newCodeSystem) && c.Code.Equals(oldCode)
-            && c.Comments.Equals(codeComment) && c.Url.Equals(url)));
+                && c.Comments.Equals(newComment) && c.Url.Equals(url)));
         }
 
         [TestMethod]
@@ -473,7 +472,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "2-Propenamide, N-[3-[[2-[[3-fluoro-4-(4-methyl-1-piperazinyl)phenyl]amino]-7H...";
+            string ptForTest = "9,10-PHENANTHRENEDIONE";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             scriptUtils.ScriptName = "Replace Code Text";
@@ -572,7 +571,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptName = "Touch Record";
-            string uuidForTest = "1c5387c0-a245-45a4-b0de-ad7fe2573d47";
+            string uuidForTest = "bdaf53c5-d531-413e-96d4-488817f33354";
             string versionComment = "Record change " + Guid.NewGuid().ToString();
             int versionBefore = dBQueryUtils.GetVersionForUuid(uuidForTest);
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;

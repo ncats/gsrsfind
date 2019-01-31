@@ -22,7 +22,7 @@ namespace ginasExcelUnitTests.Utils
     {
 
         private string dbHost = "localhost";
-        private string dbName = "ginas_db";
+        private string dbName = "gsrs2";
         private string dbUser = "ginas";
         private string dbPw = "ginas";
         private int dbPort = 5432;
@@ -198,7 +198,7 @@ namespace ginasExcelUnitTests.Utils
         internal List<StructureProxy> GetStructureForName(string name)
         {
             List<StructureProxy> structures = new List<StructureProxy>();
-            string query = string.Format("select id, smiles, formula, mwt, stereo, charge from ix_core_structure where id =(SELECT structure_id FROM IX_ginas_Substance WHERE UUID =(select owner_uuid from ix_ginas_name where upper(name) = upper('{0}')))", 
+            string query = string.Format("select id, smiles, formula, mwt, stereo, charge from ix_core_structure where id =(SELECT structure_id FROM IX_ginas_Substance WHERE UUID =(select distinct owner_uuid from ix_ginas_name where upper(name) = upper('{0}')))", 
                 name);
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;

@@ -291,45 +291,46 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void BuildGinasToolsDocument()
         {
+            //make sure the original document is completely loaded    
+            //int iter = 0;
+            //int maxIter = 10;
+            //while (webBrowser1.IsBusy && ++iter < maxIter)
+            //{
+            //    log.DebugFormat("busy (2) {0}...", iter);
+            //    System.Threading.Thread.Sleep(200);
+            //    if ((iter % 100) == 0)
+            //    {
+            //        DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?",
+            //            "Yes=Continue waiting; No=Restart loading; Cancel=Start over");
+            //        switch (result)
+            //        {
+            //            case DialogYesNoCancel.No:
+            //                webBrowser1.Stop();
+            //                webBrowser1.Document.InvokeScript("eval",
+            //                    new object[] { "$('document').off()" });
+            //                webBrowser1.Document.InvokeScript("eval",
+            //                    new object[] { "$('script').remove();" });
+
+            //                break;
+            //            case DialogYesNoCancel.Cancel:
+            //                if (CurrentOperationType == OperationType.ProcessApplication) Close();
+            //                UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
+            //                buttonAddStructure.Enabled = false;
+            //                buttonAddStructure.Visible = false;
+            //                buttonResolve.Enabled = false;
+            //                return;
+            //            default:
+            //                System.Threading.Thread.Sleep(100);
+            //                continue;
+            //        }
+            //        Application.DoEvents();
+            //    }
+            //}
+            log.Debug("webBrowser1.IsBusy: " + webBrowser1.IsBusy);
             //clear out old event handlers and scripts... optimistically
             webBrowser1.Document.InvokeScript("eval", new object[] { "$('document').off()" });
             webBrowser1.Document.InvokeScript("eval", new object[] {
                 "$('script').remove(); " });
-
-            //make sure the original document is completely loaded    
-            int iter = 0;
-            while (webBrowser1.IsBusy && ++iter < 500)
-            {
-                log.DebugFormat("busy (2) {0}...", iter);
-                System.Threading.Thread.Sleep(100);
-                if ((iter % 100) == 0)
-                {
-                    DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?",
-                        "Yes=Continue waiting; No=Restart loading; Cancel=Start over");
-                    switch (result)
-                    {
-                        case DialogYesNoCancel.No:
-                            webBrowser1.Stop();
-                            webBrowser1.Document.InvokeScript("eval",
-                                new object[] { "$('document').off()" });
-                            webBrowser1.Document.InvokeScript("eval",
-                                new object[] { "$('script').remove();" });
-
-                            break;
-                        case DialogYesNoCancel.Cancel:
-                            if (CurrentOperationType == OperationType.ProcessApplication) Close();
-                            UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
-                            buttonAddStructure.Enabled = false;
-                            buttonAddStructure.Visible = false;
-                            buttonResolve.Enabled = false;
-                            return;
-                        default:
-                            System.Threading.Thread.Sleep(100);
-                            continue;
-                    }
-                    Application.DoEvents();
-                }
-            }
 
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
