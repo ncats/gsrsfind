@@ -1710,7 +1710,7 @@ var Relationship = GGlob.Relationship;
 
 var Debug = {};
 
-/*I don't like this yet
+/*This requires some more work
 it's here as a quick and dirty way to make
 VBA have a simple recipe for doing predefined things*/
 var Scripts = GGlob.Scripts;
@@ -1733,6 +1733,7 @@ FetcherRegistry.addFetcher(
             });
     }).addTag("Substance")
 );
+
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Active Moiety ID", function (simpleSub) {
@@ -2018,6 +2019,45 @@ FetcherRegistry.addFetcher(
     }).addTag("Substance")
 );
 
+FetcherRegistry.addFetcher(
+    FetcherMaker.make("Component Report", function (simpleSub) {
+        var proms = [];
+        proms.push(simpleSub.fetch("relationships"));
+        proms.push(simpleSub.fetch("mixture/components"));
+        return GGlob.JPromise.join(proms)
+            .andThen(function (r) {
+                console.log('in Components andThen');
+                for (var i in r) {
+                    console.log(JSON.stringify(r[i]));
+                    if (typeof r[i] === 'object' && r[i].length) {
+                        //we have an array
+                        return _.map(r[i], function (mc) {
+                            var answerParts = [];
+                            if (mc.substance) {
+                                var subId = mc.substance.approvalID ?
+                                    mc.substance.approvalID : mc.substance.refuuid;
+                                answerParts.push('MIXTURE COMPONENT');
+                                answerParts.push(subId);
+                                answerParts.push(mc.substance.name);
+                            }
+                            else if (mc.relatedSubstance && mc.type.toUpperCase().indexOf("CONSTITUENT") > -1) {
+                                var subId2 = mc.relatedSubstance.approvalID ?
+                                    mc.relatedSubstance.approvalID : mc.relatedSubstance.refuuid;
+                                answerParts.push(mc.type);
+                                answerParts.push(subId2);
+                                answerParts.push(mc.relatedSubstance.name);
+                            }
+                            if (answerParts.length > 0) return answerParts.join("^");
+                        })
+                            .filter(function (a) {
+                                return a && a.length && a.length > 0;
+                            })
+                            .join('|');
+                    }
+                }
+            });
+    }).addTag("Substance")
+);
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Vapor Pressure", function (simpleSub) {

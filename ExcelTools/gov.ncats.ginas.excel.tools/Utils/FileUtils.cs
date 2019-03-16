@@ -61,7 +61,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string configFilePath = userConfigPath;
             if (!File.Exists(userConfigPath))
             {
-                log.Debug("Unable to located user configuration file " + configFilePath);
+                log.Debug("Unable to locate user configuration file " + configFilePath);
                 configFilePath = GetCurrentFolder() + @"\etc\g-srs-config.txt";
             }
             string configString = File.ReadAllText(configFilePath);
