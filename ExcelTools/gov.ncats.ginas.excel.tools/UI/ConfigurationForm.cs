@@ -63,16 +63,14 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("DisplayCurrentConfiguration");
             comboBoxURLs.Items.Clear();
             CurrentConfiguration.Servers.ForEach(s => comboBoxURLs.Items.Add(s.ServerUrl));
-            if(CurrentConfiguration.SelectedServer != null)
+            if(CurrentConfiguration.SelectedServer == null)
             {
-                comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
-                log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
-            }
-            else
-            {
+                CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[0];
                 log.Debug(" selected server null");
             }
-            
+            comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
+            log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
+
             textBoxBatchSize.Text = CurrentConfiguration.BatchSize.ToString();
             textBoxExpirationOffset.Text = CurrentConfiguration.ExpirationOffset.ToString("0.00");
             textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;

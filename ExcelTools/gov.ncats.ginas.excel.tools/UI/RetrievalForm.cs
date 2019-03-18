@@ -101,6 +101,10 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             _configuration = FileUtils.GetGinasConfiguration();
             log.Debug("Loaded configuration ");
+            if(_configuration.SelectedServer == null)
+            {
+                _configuration.SelectedServer = _configuration.Servers[0];
+            }
             log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
             string initURL = _configuration.SelectedServer.ServerUrl + "sequence";
