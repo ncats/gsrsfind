@@ -311,6 +311,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <None Include="gov.ncats.ginas.excel.tools_1_TemporaryKey.pfx" />
     <None Include="gov.ncats.ginas.excel.tools_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -374,11 +375,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>
-    </ManifestKeyFile>
+    <ManifestKeyFile>gov.ncats.ginas.excel.tools_1_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>58AE789237B6A3A9E6862A1CEA175D586FCFF924</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>E3C9EAD3E26D902F9012D433F8C27912546F1AC2</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>

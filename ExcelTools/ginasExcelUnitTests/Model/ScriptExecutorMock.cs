@@ -61,7 +61,7 @@ namespace ginasExcelUnitTests.Model
             TestScript = script;
         }
 
-        private Dictionary<int, ScriptParameter> GetMockedScriptParameters()
+        internal static Dictionary<int, ScriptParameter> GetMockedScriptParameters()
         {
             Dictionary<int, ScriptParameter> scriptParms = new Dictionary<int, ScriptParameter>();
             ScriptParameter scriptParameter = new ScriptParameter

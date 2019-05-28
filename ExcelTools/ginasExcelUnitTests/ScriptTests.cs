@@ -26,7 +26,7 @@ namespace ginasExcelUnitTests
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
         static bool scriptRunnerReady = false;
         static ScriptUtils scriptUtils = new ScriptUtils();
-        static private int SCRIPT_INTERVAL = 4000;
+        static private int SCRIPT_INTERVAL = 11000;
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -68,7 +68,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
+            string uuidForTest = "b686f36b-96e9-4842-a0aa-ae2aca70b555";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string newName = "Name " + Guid.NewGuid();
@@ -164,7 +164,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string bdNumForTest = "0001997AB";
+            string bdNumForTest = "0105020AB";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -218,7 +218,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "90cea970-fa49-4cee-a045-10c3b86d3147";
+            string uuidForTest = "df89b9f8-7c31-440f-8de0-81bd098adabe";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForUuid(uuidForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -269,7 +269,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
+            string uuidForTest = "df89b9f8-7c31-440f-8de0-81bd098adabe";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string nameToRemove = namesBefore.FirstOrDefault(n => n.IsPossibleGuidName());
@@ -442,7 +442,6 @@ namespace ginasExcelUnitTests
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
-            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", oldCode));
             scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')", newCodeSystem));
             scripts.Enqueue(string.Format("tmpRunner.setValue('url base', '{0}')", urlBase));
             scripts.Enqueue("tmpRunner.setValue('change reason', 'Code modification to test script')");
@@ -571,7 +570,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptName = "Touch Record";
-            string uuidForTest = "bdaf53c5-d531-413e-96d4-488817f33354";
+            string uuidForTest = "b686f36b-96e9-4842-a0aa-ae2aca70b555";
             string versionComment = "Record change " + Guid.NewGuid().ToString();
             int versionBefore = dBQueryUtils.GetVersionForUuid(uuidForTest);
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;

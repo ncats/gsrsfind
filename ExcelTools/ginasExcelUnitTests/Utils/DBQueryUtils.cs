@@ -22,7 +22,7 @@ namespace ginasExcelUnitTests.Utils
     {
 
         private string dbHost = "localhost";
-        private string dbName = "gsrs2";
+        private string dbName = "gsrs";
         private string dbUser = "ginas";
         private string dbPw = "ginas";
         private int dbPort = 5432;

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace gov.ncats.ginas.excel.tools.Utils.Tests
 {
@@ -38,14 +39,6 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             Dictionary<string, string> dictionary = VocabUtils.BuildVocabularyDictionary(url, requiredVocab);
             Assert.IsTrue(dictionary.Any(i => i.Key.Equals("CHEMID")
                 && i.Value.Equals("CHEMID")));
-        }
-        [TestMethod]
-        public void testJsonFile()
-        {
-            string fileName = @"C:\ginas_source\Excel\temp\results has rel.json";
-            string json = System.IO.File.ReadAllText(fileName);
-            string jsonClean = json.Replace(Environment.NewLine, "");
-            Assert.AreNotEqual(json, jsonClean);
         }
     }
 }
