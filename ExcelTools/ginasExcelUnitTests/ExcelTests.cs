@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Office.Interop.Excel;
-using Excel = Microsoft.Office.Interop.Excel;
+using Excel=Microsoft.Office.Interop.Excel;
 using System.IO;
 using System.Reflection;
 using System.Linq;
@@ -78,11 +78,11 @@ namespace ginasExcelUnitTests
         }
 
         [ClassInitialize]
-        public static void ClassInit(TestContext testContext)
+        public static void ClassInit( TestContext testContext)
         {
 
             Thread formThread = new Thread(StartForm);
-            formThread.SetApartmentState(ApartmentState.STA);
+            formThread.SetApartmentState( ApartmentState.STA);
             formThread.Start();
 
             excel = new Application();
@@ -93,7 +93,7 @@ namespace ginasExcelUnitTests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            foreach (var workbook in excel.Workbooks)
+            foreach(var workbook in excel.Workbooks)
             {
                 ((Workbook)workbook).Close(false);
             }
@@ -103,15 +103,16 @@ namespace ginasExcelUnitTests
             //retrievalForm.Close();
             retrievalForm = null;
         }
+
         [TestMethod]
         public void ImageOps_hasComment_Test()
         {
             Workbook book = ReadDefaultExcelWorkbook();
-            Worksheet sheet = (Worksheet)book.Worksheets.Item[1];
+            Worksheet sheet = (Worksheet) book.Worksheets.Item[1];
             Range cellWithComment = sheet.Range["A1"];
             Range cellWithoutComment = sheet.Range["B1"];
 
-            Assert.IsTrue(ImageOps.hascomment(cellWithComment));
+            Assert.IsTrue( ImageOps.hascomment(cellWithComment));
             Assert.IsFalse(ImageOps.hascomment(cellWithoutComment));
         }
 
@@ -160,21 +161,21 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
             string[] values = { "aspirin", "cyclosporin", "CYANOCOBALAMIN" };
             List<string> expectedValues = values.ToList();
-
+               
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[1];
             Range selection = sheet.Range["A4", "A6"];
             Retriever retriever = new Retriever();
             string methodToTest = "GetSearchValues";
-            MethodInfo method = retriever.GetType().GetMethod(methodToTest,
+            MethodInfo method = retriever.GetType().GetMethod(methodToTest, 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             object[] parms = new object[1];
             parms[0] = selection;
-            List<SearchValue> valuesForSearch = (List<SearchValue>)method.Invoke(retriever, parms);
-            for (int v = 0; v < expectedValues.Count; v++)
+            List<SearchValue> valuesForSearch = (List<SearchValue>) method.Invoke(retriever, parms);
+            for(int v = 0; v<expectedValues.Count; v++)
             {
                 Assert.AreEqual(expectedValues[v], valuesForSearch[v].Value);
-            }
+            }            
         }
 
         [TestMethod]
@@ -186,7 +187,7 @@ namespace ginasExcelUnitTests
             string searchTarget = "Value to find";
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+            Worksheet sheet = (Worksheet) workbook.Worksheets[1];
             Range searchRange = sheet.Range["A1", "L33"];
             int searchColumn = 2;
             int expectedRow = 11;
@@ -222,20 +223,20 @@ namespace ginasExcelUnitTests
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             Worksheet sheet = (Worksheet)workbook.Worksheets[1];
             Range searchRange = sheet.Range["A1", "L33"];
-
+            
             searchTarget = "Something else";
             int searchRow = 5;
             int expectedColumn = 12;
-            int column = SheetUtils.FindColumn(searchRange, searchTarget, searchRow);
+            int column  = SheetUtils.FindColumn(searchRange, searchTarget, searchRow);
             Assert.AreEqual(expectedColumn, column);
 
             searchTarget = "Something that does not exist!";
             searchRow = 6;
             expectedColumn = 0;
-            column = SheetUtils.FindRow(searchRange, searchTarget, searchRow);
+            column= SheetUtils.FindRow(searchRange, searchTarget, searchRow);
             Assert.AreEqual(expectedColumn, column);
         }
-
+        
         [TestMethod]
         public void DoesSheetExist()
         {
@@ -251,7 +252,7 @@ namespace ginasExcelUnitTests
         public void CreateRangeWrapperTest()
         {
             Workbook workbook = ReadDefaultExcelWorkbook();
-            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            Worksheet sheet= (Worksheet) workbook.Sheets[1];
             Range range = sheet.Range["A1", "B2"];
             RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(range);
             Assert.AreEqual(wrapper.GetRange().Count, range.Count);
@@ -301,20 +302,20 @@ namespace ginasExcelUnitTests
 
             string sheetFilePath = @"..\..\..\Test_Files\manual test2.xlsx";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
-
+            
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet)workbook.Worksheets["Sheet1"];
+            Worksheet sheet = (Worksheet) workbook.Worksheets["Sheet1"];
             Range range = sheet.Range["A1", "A1000"];
             retriever.SetSelection(range);
-
+            
             Dictionary<string, string> results = (Dictionary<string, string>)retriever.HandleResults(key, largeResults);
 
             workbook.Close(false);
-            results.Where(r => r.Value.Contains("Exception")).ToList().ForEach(r =>
-           {
-               Console.WriteLine(string.Format("Error item. key: {0}; value: {1}",
-                  r.Key, r.Value));
-           });
+            results.Where(r => r.Value.Contains("Exception")).ToList().ForEach (r =>
+            {
+                Console.WriteLine(string.Format("Error item. key: {0}; value: {1}",
+                   r.Key, r.Value));
+            });
             Assert.IsFalse(results.Any(x => x.Value.Contains("Exception")));
         }
 
@@ -330,7 +331,7 @@ namespace ginasExcelUnitTests
             sheetFilePath = Path.GetFullPath(sheetFilePath);
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            Worksheet sheet = (Worksheet)workbook.Worksheets["1000 CAS"];
+            Worksheet sheet = (Worksheet) workbook.Worksheets["1000 CAS"];
             Range range = sheet.Range["A1", "A10"];
             retriever.SetSelection(range);
 
@@ -354,10 +355,10 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets.Item["Sheet1"];
+            Worksheet sheet = (Worksheet) workbook.Sheets.Item["Sheet1"];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
-
+            
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
             retriever.SetScriptExecutor(scriptExecutorMock);
             retriever.SetExcelWindow(excel.Application.ActiveWindow);
@@ -376,24 +377,24 @@ namespace ginasExcelUnitTests
         public void StartResolutionTest1()
         {
             Retriever retriever = new Retriever();
-
+            
             string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets.Item["Sheet1"];
+            Worksheet sheet = (Worksheet) workbook.Sheets.Item["Sheet1"];
             sheet.Select();
             sheet.Range["B2", "B9"].Select();
 
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
             retriever.SetScriptExecutor(scriptExecutorMock);
             StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
-            retriever.SetStatusUpdater(statusUpdater);
+            retriever.SetStatusUpdater( statusUpdater);
             retriever.SetExcelWindow(excel.Application.ActiveWindow);
-
+            
             bool result = retriever.StartResolution(false);
             Queue<string> scriptQueue = retriever.GetScriptQueue();
-            Assert.IsTrue((scriptQueue.Count > 0)
+            Assert.IsTrue((scriptQueue.Count > 0) 
                 || !(string.IsNullOrWhiteSpace(scriptExecutorMock.TestScript)));
             Assert.IsTrue(result);
             workbook.Close(false);
@@ -410,7 +411,7 @@ namespace ginasExcelUnitTests
             filePath = Path.GetFullPath(filePath);
 
             Workbook workbook = ReadExcelWorkbook(filePath);
-            Worksheet sheet = (Worksheet)workbook.Sheets[1];
+            Worksheet sheet = (Worksheet) workbook.Sheets[1];
             sheet.Select();
             Range row = sheet.Range["A2", "E2"];
 
@@ -424,7 +425,7 @@ namespace ginasExcelUnitTests
 
             string[] expectedKeys = { "PT", "PT LANGUAGE", "PT NAME TYPE", "SUBSTANCE CLASS", "SMILES", "MOLFILE", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL" };
 
-            foreach (string key in expectedKeys)
+            foreach(string key in expectedKeys)
             {
                 Assert.IsTrue(searchkeys.ContainsKey(key));
             }
@@ -489,7 +490,7 @@ namespace ginasExcelUnitTests
             parms[2] = "blah";
             object result = method.Invoke(loader, parms);
             string actualValue = (string)result;
-            string expectedValue = "ENG";
+            string expectedValue= "ENG";
             Assert.AreEqual(expectedValue, actualValue);
 
             parms[1] = "FORCED";
@@ -543,11 +544,11 @@ namespace ginasExcelUnitTests
 
             string key1 = "key1";
             UpdateCallback updateCallback = new UpdateCallback(range);
-
+            
             loader.GetCallbacksForUnitTests().Add(key1, updateCallback);
             string rawJson = "{\"valid\":true, \"message\":\"Success\", \"returned\":{\"uuid\":\"d90722ac-dd36-4bcf-a2f9-43b294a26ac4\", \"created\":1530017373386, \"createdBy\":\"mitch\", \"lastEdited\":1530017373386, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"definitionType\":\"PRIMARY\", \"definitionLevel\":\"COMPLETE\", \"substanceClass\":\"chemical\", \"status\":\"pending\", \"version\":\"1\", \"names\":[{\"uuid\":\"9b98ba1f-193a-28a7-f4db-89d7a9e0c314\", \"created\":1530017373530, \"createdBy\":\"mitch\", \"lastEdited\":1530017373530, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"name\":\"2-PYRROLIDINONE, 1-(4-(1-PYRROLIDINYL)-2-BUTYNYL)-\", \"type\":\"cn\", \"domains\":[], \"languages\":[\"eng\"], \"nameJurisdiction\":[], \"nameOrgs\":[], \"preferred\":true, \"displayName\":true, \"references\":[\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\"], \"access\":[], \"_self\":\"http://localhost:9000/ginas/app/api/v1/names(9b98ba1f-193a-28a7-f4db-89d7a9e0c314)?view=full\"}], \"codes\":[{\"uuid\":\"1c936321-db18-47d7-a48e-6d6d98795b9b\", \"created\":1530017373533, \"createdBy\":\"mitch\", \"lastEdited\":1530017373533, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"codeSystem\":\"BDNUM\", \"code\":\"0001235AB\", \"type\":\"PRIMARY\", \"references\":[\"3bf31ea4-0ac5-4abf-9f16-2ba442d4e126\"], \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/codes(1c936321-db18-47d7-a48e-6d6d98795b9b)?view=full\"}], \"notes\":[{\"uuid\":\"cae7efa6-f695-45a8-ab50-9ea233215aa3\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"note\":\"[Validation]WARNING:Incorrect number of moieties\", \"references\":[\"ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4\"], \"access\":[\"admin\"]}], \"properties\":[], \"relationships\":[], \"references\":[{\"uuid\":\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"0000070224\", \"docType\":\"CHEMID\", \"publicDomain\":true, \"tags\":[], \"url\":\"https://chem.nlm.nih.gov/chemidplus/ID/0000070224\", \"access\":[], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6)?view=full\"}, {\"uuid\":\"ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"GSRS System-generated Validation messages\", \"docType\":\"VALIDATION_MESSAGE\", \"documentDate\":1530017373364, \"publicDomain\":false, \"tags\":[], \"access\":[\"admin\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4)?view=full\"}, {\"uuid\":\"3bf31ea4-0ac5-4abf-9f16-2ba442d4e126\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"System Generated Code\", \"docType\":\"SYSTEM\", \"publicDomain\":false, \"tags\":[], \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(3bf31ea4-0ac5-4abf-9f16-2ba442d4e126)?view=full\"}], \"tags\":[], \"structure\":{\"id\":\"ebe333f1-84db-478b-b055-65f7f31d3a21\", \"created\":1530017373365, \"lastEdited\":1530017373365, \"deprecated\":false, \"digest\":\"0a5226c5e9b0b0faea2bc46e6f2b6b1c040d841b\", \"molfile\":\"\n  SciTegic06191810362D\n\n 15 16  0    0  0            999 V2000\n    1.5204    0.5288    0.0000 N   0  0\n    2.1616    1.0480    0.0000 C   0  0\n    1.8161   -0.2414    0.0000 C   0  0\n    0.7235    0.7423    0.0000 C   0  0\n    2.8535    0.5987    0.0000 C   0  0\n    2.1184    1.8719    0.0000 O   0  0\n    2.6399   -0.1982    0.0000 C   0  0\n    0.1402    0.1590    0.0000 C   0  0\n   -0.4432   -0.4244    0.0000 C   0  0\n   -1.0266   -1.0077    0.0000 C   0  0\n   -1.8234   -0.7942    0.0000 N   0  0\n   -2.4646   -1.3134    0.0000 C   0  0\n   -2.1191   -0.0240    0.0000 C   0  0\n   -3.1565   -0.8641    0.0000 C   0  0\n   -2.9430   -0.0672    0.0000 C   0  0\n  1  2  1  0\n  1  3  1  0\n  1  4  1  0\n  2  5  1  0\n  2  6  2  0\n  3  7  1  0\n  4  8  1  0\n  8  9  3  0\n  9 10  1  0\n 10 11  1  0\n 11 12  1  0\n 11 13  1  0\n 12 14  1  0\n 13 15  1  0\n  5  7  1  0\n 14 15  1  0\nM  END\", \"smiles\":\"O=C1CCCN1CC#CCN2CCCC2\", \"formula\":\"C12H18N2O\", \"stereoCenters\":0, \"definedStereo\":0, \"ezCenters\":0, \"charge\":0, \"mwt\":206.2841, \"count\":1, \"createdBy\":\"mitch\", \"lastEditedBy\":\"mitch\", \"hash\":\"NUX1N7J2S33B\", \"self\":\"http://localhost:9000/ginas/app/api/v1/structures(ebe333f1-84db-478b-b055-65f7f31d3a21)?view=full\", \"references\":[\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\"], \"access\":[]}, \"moieties\":[{\"uuid\":\"462e97b9-eb1e-4ebc-91a5-92d09c2da02d\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"id\":\"462e97b9-eb1e-4ebc-91a5-92d09c2da02d\", \"digest\":\"f01d87ba2d3f3fdfa63171b6916970db4ee9d570\", \"molfile\":\"\n  Marvin  06261808492D          \n\n 15 16  0  0  0  0            999 V2000\n    2.1184    1.8719    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n    2.1616    1.0480    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    2.8535    0.5987    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    2.6399   -0.1982    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    1.8161   -0.2414    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    1.5204    0.5288    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n    0.7235    0.7423    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    0.1402    0.1590    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -0.4432   -0.4244    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -1.0266   -1.0077    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -1.8234   -0.7942    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n   -2.4646   -1.3134    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -3.1565   -0.8641    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -2.9430   -0.0672    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   -2.1191   -0.0240    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n  2  1  2  0  0  0  0\n  2  3  1  0  0  0  0\n  6  2  1  0  0  0  0\n  3  4  1  0  0  0  0\n  5  4  1  0  0  0  0\n  6  5  1  0  0  0  0\n  6  7  1  0  0  0  0\n  7  8  1  0  0  0  0\n  8  9  3  0  0  0  0\n  9 10  1  0  0  0  0\n 10 11  1  0  0  0  0\n 11 12  1  0  0  0  0\n 11 15  1  0  0  0  0\n 12 13  1  0  0  0  0\n 13 14  1  0  0  0  0\n 15 14  1  0  0  0  0\nM  END\n\", \"smiles\":\"O=C1CCCN1CC#CCN2CCCC2\", \"formula\":\"C12H18N2O\", \"opticalActivity\":\"NONE\", \"stereoCenters\":0, \"definedStereo\":0, \"ezCenters\":0, \"charge\":0, \"mwt\":206.2841, \"count\":1, \"hash\":\"NUX1N7J2S33B\", \"self\":\"http://localhost:9000/ginas/app/api/v1/structures(462e97b9-eb1e-4ebc-91a5-92d09c2da02d)?view=full\", \"stereochemistry\":\"ACHIRAL\", \"references\":[], \"access\":[], \"countAmount\":{\"uuid\":\"e1752d6a-367d-4f31-9a75-4d0d272e6c9f\", \"created\":1530017373549, \"createdBy\":\"mitch\", \"lastEdited\":1530017373549, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"type\":\"MOL RATIO\", \"average\":1, \"units\":\"MOL RATIO\", \"references\":[], \"access\":[]}}], \"_name\":\"2-PYRROLIDINONE, 1-(4-(1-PYRROLIDINYL)-2-BUTYNYL)-\", \"_approvalIDDisplay\":\"pending record\", \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/substances(d90722ac-dd36-4bcf-a2f9-43b294a26ac4)?view=full\"}}";
             //rawJson = "{valid\":true, \"message\":\"Success\", \"returned\":{\"uuid\":\"d90722ac-dd36-4bcf-a2f9-43b294a26ac4\", \"created\":1530017373386, \"createdBy\":\"mitch\", \"lastEdited\":1530017373386, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"definitionType\":\"PRIMARY\", \"definitionLevel\":\"COMPLETE\", \"substanceClass\":\"chemical\", \"status\":\"pending\", \"version\":\"1\", \"names\":[{\"uuid\":\"9b98ba1f-193a-28a7-f4db-89d7a9e0c314\", \"created\":1530017373530, \"createdBy\":\"mitch\", \"lastEdited\":1530017373530, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"name\":\"2-PYRROLIDINONE, 1-(4-(1-PYRROLIDINYL)-2-BUTYNYL)-\", \"type\":\"cn\", \"domains\":[], \"languages\":[\"eng\"], \"nameJurisdiction\":[], \"nameOrgs\":[], \"preferred\":true, \"displayName\":true, \"references\":[\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\"], \"access\":[], \"_self\":\"http://localhost:9000/ginas/app/api/v1/names(9b98ba1f-193a-28a7-f4db-89d7a9e0c314)?view=full\"}], \"codes\":[{\"uuid\":\"1c936321-db18-47d7-a48e-6d6d98795b9b\", \"created\":1530017373533, \"createdBy\":\"mitch\", \"lastEdited\":1530017373533, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"codeSystem\":\"BDNUM\", \"code\":\"0001235AB\", \"type\":\"PRIMARY\", \"references\":[\"3bf31ea4-0ac5-4abf-9f16-2ba442d4e126\"], \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/codes(1c936321-db18-47d7-a48e-6d6d98795b9b)?view=full\"}], \"notes\":[{\"uuid\":\"cae7efa6-f695-45a8-ab50-9ea233215aa3\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"note\":\"[Validation]WARNING:Incorrect number of moieties\", \"references\":[\"ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4\"], \"access\":[\"admin\"]}], \"properties\":[], \"relationships\":[], \"references\":[{\"uuid\":\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"0000070224\", \"docType\":\"CHEMID\", \"publicDomain\":true, \"tags\":[], \"url\":\"https://chem.nlm.nih.gov/chemidplus/ID/0000070224\", \"access\":[], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6)?view=full\"}, {\"uuid\":\"ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"GSRS System-generated Validation messages\", \"docType\":\"VALIDATION_MESSAGE\", \"documentDate\":1530017373364, \"publicDomain\":false, \"tags\":[], \"access\":[\"admin\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(ddfeb7a4-69e9-4588-8e63-2a3b8d7065b4)?view=full\"}, {\"uuid\":\"3bf31ea4-0ac5-4abf-9f16-2ba442d4e126\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"citation\":\"System Generated Code\", \"docType\":\"SYSTEM\", \"publicDomain\":false, \"tags\":[], \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/references(3bf31ea4-0ac5-4abf-9f16-2ba442d4e126)?view=full\"}], \"tags\":[], \"structure\":{\"id\":\"ebe333f1-84db-478b-b055-65f7f31d3a21\", \"created\":1530017373365, \"lastEdited\":1530017373365, \"deprecated\":false, \"digest\":\"0a5226c5e9b0b0faea2bc46e6f2b6b1c040d841b\", \"molfile\":\"\n  SciTegic06191810362D\n\n 15 16  0    0  0            999 V2000\n    1.5204    0.5288    0.0000 N   0  0\n    2.1616    1.0480    0.0000 C   0  0\n    1.8161   -0.2414    0.0000 C   0  0\n    0.7235    0.7423    0.0000 C   0  0\n    2.8535    0.5987    0.0000 C   0  0\n    2.1184    1.8719    0.0000 O   0  0\n    2.6399   -0.1982    0.0000 C   0  0\n    0.1402    0.1590    0.0000 C   0  0\n   -0.4432   -0.4244    0.0000 C   0  0\n   -1.0266   -1.0077    0.0000 C   0  0\n   -1.8234   -0.7942    0.0000 N   0  0\n   -2.4646   -1.3134    0.0000 C   0  0\n   -2.1191   -0.0240    0.0000 C   0  0\n   -3.1565   -0.8641    0.0000 C   0  0\n   -2.9430   -0.0672    0.0000 C   0  0\n  1  2  1  0\n  1  3  1  0\n  1  4  1  0\n  2  5  1  0\n  2  6  2  0\n  3  7  1  0\n  4  8  1  0\n  8  9  3  0\n  9 10  1  0\n 10 11  1  0\n 11 12  1  0\n 11 13  1  0\n 12 14  1  0\n 13 15  1  0\n  5  7  1  0\n 14 15  1  0\nM  END\", \"smiles\":\"O=C1CCCN1CC#CCN2CCCC2\", \"formula\":\"C12H18N2O\", \"stereoCenters\":0, \"definedStereo\":0, \"ezCenters\":0, \"charge\":0, \"mwt\":206.2841, \"count\":1, \"createdBy\":\"mitch\", \"lastEditedBy\":\"mitch\", \"hash\":\"NUX1N7J2S33B\", \"self\":\"http://localhost:9000/ginas/app/api/v1/structures(ebe333f1-84db-478b-b055-65f7f31d3a21)?view=full\", \"references\":[\"881f9f00-c9d4-2a9b-42b5-1511bd3a1ae6\"], \"access\":[]}, \"moieties\":[{\"uuid\":\"462e97b9-eb1e-4ebc-91a5-92d09c2da02d\", \"created\":1530017373534, \"createdBy\":\"mitch\", \"lastEdited\":1530017373534, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"id\":\"462e97b9-eb1e-4ebc-91a5-92d09c2da02d\", \"digest\":\"f01d87ba2d3f3fdfa63171b6916970db4ee9d570\",  \"smiles\":\"O=C1CCCN1CC#CCN2CCCC2\", \"formula\":\"C12H18N2O\", \"opticalActivity\":\"NONE\", \"stereoCenters\":0, \"definedStereo\":0, \"ezCenters\":0, \"charge\":0, \"mwt\":206.2841, \"count\":1, \"hash\":\"NUX1N7J2S33B\", \"self\":\"http://localhost:9000/ginas/app/api/v1/structures(462e97b9-eb1e-4ebc-91a5-92d09c2da02d)?view=full\", \"stereochemistry\":\"ACHIRAL\", \"references\":[], \"access\":[], \"countAmount\":{\"uuid\":\"e1752d6a-367d-4f31-9a75-4d0d272e6c9f\", \"created\":1530017373549, \"createdBy\":\"mitch\", \"lastEdited\":1530017373549, \"lastEditedBy\":\"mitch\", \"deprecated\":false, \"type\":\"MOL RATIO\", \"average\":1, \"units\":\"MOL RATIO\", \"references\":[], \"access\":[]}}], \"_name\":\"2-PYRROLIDINONE, 1-(4-(1-PYRROLIDINYL)-2-BUTYNYL)-\", \"_approvalIDDisplay\":\"pending record\", \"access\":[\"protected\"], \"_self\":\"http://localhost:9000/ginas/app/api/v1/substances(d90722ac-dd36-4bcf-a2f9-43b294a26ac4)?view=full\"}}";
-            object results = loader.HandleResults(key1, rawJson);
+            object results= loader.HandleResults(key1, rawJson);
             Assert.IsTrue((Boolean)results);
             string testText = range.Text as string;
             Assert.AreEqual("Success", testText);
@@ -612,13 +613,13 @@ namespace ginasExcelUnitTests
             vocab.Add("Code");
             Worksheet vocabSheet = SheetUtils.GetVocabularySheet(workbook);
             string expectedVocabReference = "=_gsrs_vocabularies_!$C$2:$C$5";
-
+            
             string vocabReference = SheetUtils.CreateVocabularyList(workbook, vocabTypeName, vocab,
                 true);
             Assert.AreEqual(expectedVocabReference, vocabReference);
 
             Range testRange = vocabSheet.Range["C1"];
-            string testText = (string)testRange.Text;
+            string testText = (string) testRange.Text;
             Assert.AreEqual(vocabTypeName, testText);
 
             List<string> sortedVocab = new List<string>(vocab);
@@ -705,7 +706,7 @@ namespace ginasExcelUnitTests
 
             Workbook workbook = ReadExcelWorkbook(filePath);
             Worksheet sheet = (Worksheet)workbook.Sheets[1];
-            string json = (string)((Range)sheet.Cells[2, 3]).Value2;
+            string json = (string) ((Range)sheet.Cells[2, 3]).Value2;
 
             string replacement1 = "⑤";
             string replacement0 = "ℓ";
@@ -734,7 +735,7 @@ namespace ginasExcelUnitTests
             //}
             Console.WriteLine(transformedJson);
             Assert.AreNotEqual(json, transformedJson);
-
+            
         }
 
         [TestMethod]
@@ -748,7 +749,7 @@ namespace ginasExcelUnitTests
             MethodInfo method = typeof(SheetUtils).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
             object[] parms = new object[1];
             parms[0] = sheet;
-            List<string> columnHeaders = (List<string>)method.Invoke(null, parms);
+            List<string> columnHeaders= (List<string>) method.Invoke(null, parms);
             string[] expectedHeaders = {"BATCH:Add Substance", "PT", "PT LANGUAGE", "PT TYPE", "SUBSTANCE TYPE",
                 "REFERENCE TEXT", "MOLECULAR WEIGHT"};
             Assert.AreEqual(expectedHeaders.Length, columnHeaders.Count);
@@ -763,7 +764,7 @@ namespace ginasExcelUnitTests
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
             retriever.SetScriptExecutor(scriptExecutorMock);
             StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
-
+            
             retriever.SetStatusUpdater(statusUpdater);
             string filePath = @"..\..\..\Test_Files\manual test2.xlsx";
             filePath = Path.GetFullPath(filePath);
@@ -776,7 +777,7 @@ namespace ginasExcelUnitTests
             selectedRange.Select();
             retriever.SetExcelWindow(excel.ActiveWindow);
             retriever.SetSelection(sheet.Range["B2", "B9"]);
-
+            
             MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
                 BindingFlags.NonPublic | BindingFlags.Instance);
             RangeWrapper rangeWrapper = (RangeWrapper)methodInfo.Invoke(retriever, new object[0]);
@@ -784,7 +785,7 @@ namespace ginasExcelUnitTests
             workbook.Close(false);
             int expectedRangeCount = 1;
 
-            Assert.AreEqual(expectedRangeCount, actualRangeCount);
+            Assert.AreEqual( expectedRangeCount, actualRangeCount);
         }
 
         [TestMethod]
@@ -820,7 +821,7 @@ namespace ginasExcelUnitTests
         public void HandleSDFileImportTest()
         {
             Workbook workbook = excel.Workbooks.Add();
-            Worksheet worksheet = (Worksheet)workbook.Sheets.Item[1];
+            Worksheet worksheet = (Worksheet) workbook.Sheets.Item[1];
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
             SDFileProcessor processor = new SDFileProcessor();
             try
@@ -849,7 +850,7 @@ namespace ginasExcelUnitTests
             {
                 workbook.Close(false);
             }
-
+            
         }
 
         [TestMethod]
@@ -878,7 +879,7 @@ namespace ginasExcelUnitTests
             fieldNamesToColumn.Add("MolfileName", 5);
             fieldNamesToColumn.Add("cas_rn", 6);
             fieldNamesToColumn.Add("cas_index_name", 7);
-            FieldInfo fieldNamesToColumnsInfo = sDFileProcessor.GetType().GetField("_fieldNamesToColumns", BindingFlags.NonPublic
+            FieldInfo fieldNamesToColumnsInfo = sDFileProcessor.GetType().GetField("_fieldNamesToColumns", BindingFlags.NonPublic 
                 | BindingFlags.Instance);
             fieldNamesToColumnsInfo.SetValue(sDFileProcessor, fieldNamesToColumn);
 
@@ -899,7 +900,7 @@ namespace ginasExcelUnitTests
                 FieldInfo sheetInfo = sDFileProcessor.GetType().GetField("_worksheet", BindingFlags.NonPublic | BindingFlags.Instance);
                 sheetInfo.SetValue(sDFileProcessor, sheet);
                 sDFileProcessor.StartOperation();
-
+                
                 Dictionary<string, Callback> callbacks = (Dictionary<string, Callback>)callbackInfo.GetValue(sDFileProcessor);
                 Assert.AreEqual(sDFileRecords.Count, callbacks.Count);
             }
@@ -922,52 +923,57 @@ namespace ginasExcelUnitTests
                 log.DebugFormat("init iteration {0}", iter);
             }
             log.DebugFormat("retrievalForm: {0}", retrievalForm);
-            if (retrievalForm == null || !retrievalForm.IsReady)
+            if(retrievalForm == null || !retrievalForm.IsReady)
             {
                 Assert.Fail("Connection to server is not working");
             }
 
-            Workbook workbook = ReadDefaultExcelWorkbook();
+            Workbook workbook = excel.Workbooks.Add();//ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
-
+            
             scriptUtils.ScriptExecutor = retrievalForm;
             scriptUtils.ScriptName = "Add Name";
             scriptUtils.StartVocabularyRetrievals();
             //when there are no vocabularies to retrieve, move to the next step immediately
-            while (scriptUtils.ExpectedVocabularies.Count > 0)
+            iter = 0;
+            while (scriptUtils.ExpectedVocabularies.Count > 0 && iter <= maxIter)
             {
                 Thread.Sleep(500);
                 System.Windows.Forms.Application.DoEvents();
+                iter++;
             }
-
-            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            if(scriptUtils.ExpectedVocabularies.Count > 0)
+            {
+                Assert.Fail("vocabularies not received from server!");
+            }
+                //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.ScriptExecutor = retrievalForm;
-
+            
             sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
             int numSheetsAfter = workbook.Sheets.Count;
             //workbook.SaveAs(@"c:\temp\test.xlsx");
             Assert.AreEqual((numSheetsBefore + 2), numSheetsAfter);
-            Worksheet newSheet = (Worksheet)workbook.Sheets["Add Name"];
+            Worksheet newSheet = (Worksheet) workbook.Sheets["Add Name"];
             string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
             string debugInfo = (string)retrievalForm.ExecuteScript(script);
             log.Debug(debugInfo);
             Range cell1 = newSheet.Range["A1"];
-            string cell1Actual = (string)cell1.Value2;
+            string cell1Actual = (string) cell1.Value2;
             Assert.AreEqual("BATCH:Add Name", cell1Actual);
             Range cell2 = newSheet.Range["B1"];
             string cell2Actual = (string)cell2.Value2;
             Assert.AreEqual("UUID", cell2Actual);
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
-
+            
             workbook.Close(false);
         }
 
         [TestMethod]
         public void CreateSheetTest2()
         {
-            Workbook workbook = ReadDefaultExcelWorkbook();
+            Workbook workbook = excel.Workbooks.Add();// ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptName = "Add Name";
@@ -1001,7 +1007,7 @@ namespace ginasExcelUnitTests
         {
             string sheetFilePath = @"..\..\..\Test_Files\RangeParseTest.xlsx";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
-
+            
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             Worksheet sheet = (Worksheet)workbook.Worksheets[1];
 

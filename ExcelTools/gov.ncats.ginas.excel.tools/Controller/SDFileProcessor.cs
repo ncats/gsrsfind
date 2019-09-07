@@ -24,7 +24,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         internal const string DEFAULT_SUBSTANCE_TYPE = "chemical";
         internal const string FIELD_NAME_UNIQUENESS = "Uniqueness";
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private ScriptUtils scriptUtils = new ScriptUtils();
+        //new private ScriptUtils scriptUtils = new ScriptUtils();
         private string _currentKey = string.Empty;
         private readonly float _secondsPerScript = 6;
         private List<SDFileRecord> _fileData;
@@ -225,7 +225,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 updateCallback.SetKey(callbackKey);
                 updateCallback.LoadScriptName = STRUCTURE_SAVING_SCRIPT_NAME;
                 string script = "tmpRunner.execute().get(function(b){cresults['"
-                    + callbackKey + "']=b;window.external.Notify('" + callbackKey + "');})";
+                    + callbackKey + "']=b;sendMessageBackToCSharp('" + callbackKey + "');})";
                 updateCallback.SetScript(script);
                 Callbacks.Add(callbackKey, updateCallback);
                 log.Debug(message);

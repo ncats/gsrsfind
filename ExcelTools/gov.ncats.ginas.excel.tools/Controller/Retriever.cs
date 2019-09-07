@@ -25,7 +25,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callbacks = new Dictionary<string, Callback>();
         }
 
-        private bool _notified = false;
+        //private bool _notified = false;
 
         private bool _resolveToNewSheet = false;
         private static object LOCK_OBJECT = new object();
@@ -103,6 +103,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     int currentColumn = ExcelSelection.Column;
                     int dataRow =
                         SheetUtils.FindRow(ExcelSelection, key, currentColumn);
+                    if( dataRow == 0)
+                    {
+                        dataRow = SheetUtils.FindRow(ExcelSelection.Worksheet.UsedRange, key, currentColumn);
+                        log.DebugFormat("First attempt to locate key {0} failed. Second search yielded: {1}",
+                            key, dataRow);
+                    }
                     if (_resolveToNewSheet)
                     {
                         if (!ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
@@ -307,7 +313,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             //scriptBuilder.Append(".consumer(function(row){cresults['");
             scriptBuilder.Append(key);
             scriptBuilder.Append("'].add(row.split('\t')[0],row);})");
-            scriptBuilder.Append(".finisher(function(){window.external.Notify('");
+            scriptBuilder.Append(".finisher(function(){sendMessageBackToCSharp('");
             scriptBuilder.Append(key);
             scriptBuilder.Append("');})");
             scriptBuilder.Append(".resolve();");
@@ -330,14 +336,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
             scriptBuilder.Append(".consumer(function(row){cresults['");
             scriptBuilder.Append(key);
             scriptBuilder.Append("'].add(row.split('\t')[0],row);})");
-            scriptBuilder.Append(".finisher(function(){window.external.Notify('");
+            scriptBuilder.Append(".finisher(function(){sendMessageBackToCSharp('");
             scriptBuilder.Append(key);
             scriptBuilder.Append("');})");
             scriptBuilder.Append(".resolve();");
             return scriptBuilder.ToString();
         }
 
-        private void DecremementTotalScripts()
+        new private void DecremementTotalScripts()
         {
             if (_totalScripts > 0)
             {
@@ -349,7 +355,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             //dialog itself will handle saving of debug info.
             StatusUpdater.UpdateStatus("Completed");
-            _notified = true;
+            //_notified = true;
         }
 
         public void CheckAllCallbacks(Object source, ElapsedEventArgs e)

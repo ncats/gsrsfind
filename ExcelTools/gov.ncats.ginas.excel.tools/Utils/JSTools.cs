@@ -115,5 +115,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             return serializer.Deserialize<StructureReturn>(structureJson);
         }
+
+        public static List<ApplicationField> GetApplicationMetadataFromString(string metadata)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            return serializer.Deserialize<List<ApplicationField>>(metadata);
+        }
+
     }
 }

@@ -24,8 +24,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
-
         
+
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -214,7 +214,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string script = "tmpRunner"
                 + ".execute()"
                 + ".get(function(b){cresults['"
-                + cb.getKey() + "']=b;window.external.Notify('"
+                + cb.getKey() + "']=b;sendMessageBackToCSharp('"
                 + cb.getKey() + "');})";
             cb.SetScript(script);
 
@@ -240,8 +240,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     log.Debug(message);
                     if ( !allowFinished)
                     {
-                        bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
-                        if (!continuation) message += "; cancel";
+                    bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
+                    if (!continuation) message += "; cancel";
                     }
                     if (!allowFinished) return null;
                 }
@@ -374,12 +374,21 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string GetScriptName(Excel.Range row)
         {
             Dictionary<string, Excel.Range> keys = new Dictionary<string, Excel.Range>();
-
             Excel.Application application = row.Application;
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
-            Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string upperCornerText = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
+            if( headerRow == null || headerRow.Cells.Count ==0)
+            {
+                log.Debug("Header row empty");
+                return string.Empty;
+            }
+            Excel.Range scriptNameRange = application.Intersect(headerRow, asheet.Range["A:A"]);
+            if( scriptNameRange == null || scriptNameRange.Cells.Count==0)
+            {
+                log.Debug("script name cell empty");
+                return string.Empty;
+            }
+            string upperCornerText = (string)scriptNameRange.Value2;
             if (string.IsNullOrWhiteSpace(upperCornerText))
             {
                 log.Warn("No script name found on sheet!");
@@ -599,7 +608,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 if(!_assignedVocabs)
                 {
-                    scriptUtils.AssignVocabularies();
+                scriptUtils.AssignVocabularies();
                     _assignedVocabs = true;
                 }
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;

@@ -13,10 +13,10 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Range molfileRange;
-        new const XlRgbColor COLOR_STARTING = XlRgbColor.rgbGreen;
-        new const XlRgbColor COLOR_ERROR = XlRgbColor.rgbAntiqueWhite;
+        const XlRgbColor COLOR_STARTING = XlRgbColor.rgbGreen;
+        const XlRgbColor COLOR_ERROR = XlRgbColor.rgbAntiqueWhite;
         const XlRgbColor COLOR_HAS_MATCHES = XlRgbColor.rgbIndianRed;
-        new const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbAquamarine;
+        const XlRgbColor COLOR_SUCCESS = XlRgbColor.rgbAquamarine;
 
         public GinasToolsConfiguration GinasConfiguration
         {

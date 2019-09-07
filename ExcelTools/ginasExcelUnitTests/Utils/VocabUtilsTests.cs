@@ -40,5 +40,14 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             Assert.IsTrue(dictionary.Any(i => i.Key.Equals("CHEMID")
                 && i.Value.Equals("CHEMID")));
         }
+        [TestMethod]
+        public void testJsonFile()
+        {
+            string jsonFilePath = @"..\..\..\Test_Files\results has rel.json";
+            jsonFilePath = Path.GetFullPath(jsonFilePath);
+            string json = System.IO.File.ReadAllText(jsonFilePath);
+            string jsonClean = json.Replace(Environment.NewLine, "");
+            Assert.AreNotEqual(json, jsonClean);
+        }
     }
 }

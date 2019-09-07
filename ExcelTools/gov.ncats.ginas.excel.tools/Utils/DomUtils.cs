@@ -18,7 +18,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             HtmlElement bodyElement = document.Body;
-            bodyElement.InnerHtml = string.Empty;
+            bodyElement.InnerText = string.Empty;
 
             HtmlElement newDiv = document.CreateElement("div");
             newDiv.SetAttribute("class", "FormDiv");
@@ -150,14 +150,16 @@ namespace gov.ncats.ginas.excel.tools.Utils
             mainFormElement.AppendChild(brElement);
             bodyElement.AppendChild(mainFormElement);
             HtmlElement lastScript = document.CreateElement("script");
-            lastScript.SetAttribute("text", FileUtils.GetLastJavaScript());
+            IHTMLScriptElement scriptElement = (IHTMLScriptElement)lastScript.DomElement;
+            scriptElement.text = FileUtils.GetLastJavaScript();
             bodyElement.AppendChild(lastScript);
+            
             HtmlElement refresherFrame = document.CreateElement("iframe");
             refresherFrame.SetAttribute("id", "refresher");
             refresherFrame.Style = "height:1px;opacity:0;display: none;" ;
             bodyElement.AppendChild(refresherFrame);
-
-            if (makeDebugVisible)
+    
+            /*if (makeDebugVisible)
             {
                 HtmlElement consoleScript = document.CreateElement("script");
                 consoleScript.SetAttribute("type", "text/javascript");
@@ -165,7 +167,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 //allow 'normal' logging as well as custom
                 consoleScript.SetAttribute("text", "window['oldconsole'] = window['console'];window['console'] = {log: function (r){ GSRSAPI_consoleStack.push(r);}}");//;oldconsole.log(r)
                 bodyElement.AppendChild(consoleScript);
-            }
+            }*/
             bodyElement.SetAttribute("className", string.Empty);
             bodyElement.Style = "padding-top:10px";
             log.Debug("Completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -173,86 +175,38 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static void BuildDocumentHead(HtmlDocument document)
         {
+            
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             try
             {
                 HtmlElement headElement = GetFirstHead(document);
                 if (headElement == null)
                 {
-                    log.Warn("No head object found; using body");
+                    log.Warn("No head element found; using body");
                     headElement = document.Body;
                 }
                 string inner = headElement.InnerText;
 
-                HtmlElement metaCharset = document.CreateElement("meta");
-                metaCharset.SetAttribute("http-equiv", "content-type");
-                metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
-                headElement.AppendChild(metaCharset);
-
-                HtmlElement brElement = document.CreateElement("br");
-                //brElement.InnerHtml += Environment.NewLine;
+                HTMLHeadElement head = (HTMLHeadElement) headElement.DomElement;
 
                 HtmlElement metaCompat = document.CreateElement("meta");
                 metaCompat.SetAttribute("http-equiv", "X-UA-Compatible");
-                metaCompat.SetAttribute("content", "IE=Edge");
-                //metaCompat.InnerHtml += Environment.NewLine;
+                metaCompat.SetAttribute("content", "IE=Edge ");
                 headElement.AppendChild(metaCompat);
-                headElement.AppendChild(brElement);
 
-                HtmlElement jQueryScript = document.CreateElement("script");
-                jQueryScript.SetAttribute("type", "text/javascript");
-                jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
-                //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.min.js");
-                //jQueryScript.InnerHtml = jQueryScript.InnerHtml + Environment.NewLine;
-                headElement.AppendChild(jQueryScript);
-                headElement.AppendChild(brElement);
+                HtmlElement metaCharset = document.CreateElement("meta");
+                metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
+                metaCharset.SetAttribute("http-equiv", "content-type");
+                headElement.AppendChild(metaCharset);
 
-                HtmlElement lodashScript = document.CreateElement("script");
-                lodashScript.SetAttribute("type", "text/javascript");
-                lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
-                //lodashScript.InnerHtml = lodashScript.InnerHtml + Environment.NewLine;
-                headElement.AppendChild(lodashScript);
-                headElement.AppendChild(brElement);
-
-                HtmlElement jsonPatchScript = document.CreateElement("script");
-                jsonPatchScript.SetAttribute("type", "text/javascript");
-                jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
-                //string jsonPatchScriptText = FileUtils.GetJsonPatchJavaScript();
-                //jsonPatchScript.InnerHtml = jsonPatchScriptText;
-                headElement.AppendChild(jsonPatchScript);
-                headElement.AppendChild(brElement);
-
-                HtmlElement bootstrapScript = document.CreateElement("script");
-                bootstrapScript.SetAttribute("type", "text/javascript");
-                bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
-                //bootstrapScript.InnerHtml += Environment.NewLine;
-                headElement.AppendChild(bootstrapScript);
-                headElement.AppendChild(brElement);
-
-                HtmlElement mainGinasScript = document.CreateElement("script");
-                mainGinasScript.SetAttribute("type", "text/javascript");
-                string imageFormat = Properties.Resources.ImageFormat;
-                //mainGinasScript.InnerHtml = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
-                IHTMLScriptElement element = (IHTMLScriptElement)mainGinasScript.DomElement;
-                element.text = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
-                headElement.AppendChild(mainGinasScript);
-
-                HtmlElement shimScript = document.CreateElement("script");
-                shimScript.SetAttribute("type", "text/javascript");
-                IHTMLScriptElement scriptElement = (IHTMLScriptElement)shimScript.DomElement;
-                scriptElement.text = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; ";
-                // Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; 
-                //shimScript.InnerHtml = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };Object.prototype.gGet = function (k) { return this[k]; }; Object.prototype.gKeys = function () { return _.keys(this); }; var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; window['console'] = {log: function (r){var currValue = document.getElementById('console').value; document.getElementById('console').value = currValue + '\\r\\n' +r;}}";
-                headElement.AppendChild(shimScript);
-
+                AddScripts(headElement);
+                
                 HtmlElement styleElement = document.CreateElement("style");
                 styleElement.SetAttribute("type", "text/css");
-                styleElement.SetAttribute("text", FileUtils.GetCss());
                 object domStyleElement = styleElement.DomElement;
-                //MSHTML.IHTMLStyleElement style = domStyleElement as MSHTML.IHTMLStyleElement;
-                
                 MSHTML.HTMLStyleElement htmlStyleElement = (MSHTML.HTMLStyleElement)domStyleElement;
-                htmlStyleElement.styleSheet.cssText = FileUtils.GetCss();
+                htmlStyleElement.styleSheet.cssText = Environment.NewLine + Environment.NewLine 
+                    + FileUtils.GetCss();
                 headElement.AppendChild(styleElement);
                 log.Debug("completed " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             }
@@ -265,6 +219,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public static HtmlElement GetFirstHead(HtmlDocument document)
         {
+            HtmlElement headElement = null;
             foreach (HtmlElement elem in document.All)
             {
                 if (elem.TagName.Equals("head", StringComparison.CurrentCultureIgnoreCase))
@@ -272,8 +227,61 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     return elem;
                 }
             }
-            return null;
+            return headElement;
         }
 
+        private static void AddScripts(HtmlElement headElement)
+        {
+            log.Debug("Starting in AddScripts");
+            HtmlDocument document = headElement.Document;
+            HtmlElement brElement = document.CreateElement("BR");
+            HtmlElement json2Script = document.CreateElement("script");
+            json2Script.SetAttribute("type", "text/javascript");
+            json2Script.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.min.js");
+            headElement.AppendChild(json2Script);
+
+            HtmlElement jQueryScript = document.CreateElement("script");
+            jQueryScript.SetAttribute("type", "text/javascript");
+            jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
+            headElement.AppendChild(jQueryScript);
+            headElement.AppendChild(brElement);
+
+            HtmlElement lodashScript = document.CreateElement("script");
+            lodashScript.SetAttribute("type", "text/javascript");
+            lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
+            headElement.AppendChild(lodashScript);
+            headElement.AppendChild(brElement);
+
+            HtmlElement jsonPatchScript = document.CreateElement("script");
+            jsonPatchScript.SetAttribute("type", "text/javascript");
+            jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
+            headElement.AppendChild(jsonPatchScript);
+            headElement.AppendChild(brElement);
+
+            HtmlElement bootstrapScript = document.CreateElement("script");
+            bootstrapScript.SetAttribute("type", "text/javascript");
+            bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
+            headElement.AppendChild(bootstrapScript);
+            headElement.AppendChild(brElement);
+
+            HtmlElement mainGinasScript = document.CreateElement("script");
+            mainGinasScript.SetAttribute("type", "text/javascript");
+            string imageFormat = Properties.Resources.ImageFormat;
+            //mainGinasScript.InnerHtml = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
+            IHTMLScriptElement element = (IHTMLScriptElement)mainGinasScript.DomElement;
+            element.text = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
+            headElement.AppendChild(mainGinasScript);
+
+            HtmlElement shimScript = document.CreateElement("script");
+            shimScript.SetAttribute("type", "text/javascript");
+            IHTMLScriptElement scriptElement = (IHTMLScriptElement)shimScript.DomElement;
+            scriptElement.text = "if (!Array.prototype.getItem) { Array.prototype.getItem = function (i) { return this[i]; }; };var cresults = { 'getItem': function (v) { return this[v]; }, 'popItem': function (v) { var ret = this[v]; delete this[v]; return ret; } }; ";
+            headElement.AppendChild(shimScript);
+        }
+
+        public static void BuildJavascriptDom()
+        {
+
+        }
     }
 }

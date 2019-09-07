@@ -37,7 +37,7 @@ namespace ginasExcelUnitTests
             //string loadPath = "file://" + Path.GetFullPath(filePath);
             //webBrowser1.Navigate(loadPath);
 
-            string initURL = _configuration.SelectedServer.ServerUrl + "sequence";
+            string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
             webBrowser1.Visible = false;
             
             webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
@@ -56,7 +56,6 @@ namespace ginasExcelUnitTests
 
             }
             log.Debug("Loaded configuration ");
-
             log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             string initURL = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
