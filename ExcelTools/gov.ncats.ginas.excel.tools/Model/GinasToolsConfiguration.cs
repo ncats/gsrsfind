@@ -9,6 +9,7 @@ namespace gov.ncats.ginas.excel.tools.Model
     public class GinasToolsConfiguration
     {
         private string _apiPath;
+        private string _initPath;
 
         public string ApiPath
         {
@@ -20,6 +21,19 @@ namespace gov.ncats.ginas.excel.tools.Model
             set
             {
                 _apiPath = value;
+            }
+        }
+
+        public string InitPath
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_initPath)) return _initPath;
+                return "api";
+            }
+            set
+            {
+                _initPath = value;
             }
         }
         public GinasToolsConfiguration()
@@ -132,5 +146,7 @@ namespace gov.ncats.ginas.excel.tools.Model
             stringBuilder.Append("URL: " + ServerUrl);
             return stringBuilder.ToString();
         }
+
+
     }
 }

@@ -120,5 +120,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             return Directory.Exists(folderPath);
         }
+
+        public static List<ApplicationField> GetApplicationMetadata()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\application.metadata.json";
+            string metadataString= File.ReadAllText(javascriptFilePath);
+            return JSTools.GetApplicationMetadataFromString(metadataString);
+        }
+
     }
 }

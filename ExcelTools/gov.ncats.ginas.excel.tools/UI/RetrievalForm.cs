@@ -28,8 +28,31 @@ namespace gov.ncats.ginas.excel.tools.UI
         GinasToolsConfiguration _configuration = null;
         string _scriptToRunUponCompletion;
         bool _savedDebugInfo;
+        string _initLoadingErrorMessage = "Error loading initial ginas page";
+        string _secondMessage = "Close dialog and try again or notify your administrator";
 
+        public RetrievalForm(string noConnectionMessage, string secondMessage)
+        {
+            _initLoadingErrorMessage = noConnectionMessage;
+            _secondMessage = secondMessage;
+            PerformSetup();
+        }
         public RetrievalForm()
+        {
+            PerformSetup();
+        }
+
+        public void SetInitialLoadingErrorMessage(string newMessage)
+        {
+            _initLoadingErrorMessage = newMessage;
+        }
+
+        public void SetSecondMessage(string secondMessage)
+        {
+            _secondMessage = secondMessage;
+        }
+
+        private void PerformSetup()
         {
             IsReady = false;
             _expectedTitles.Add("InXight API");
@@ -85,6 +108,7 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public void Complete()
         {
+            log.Debug("Complete()");
             buttonCancel.Enabled = true;//just in case...
             buttonCancel.Text = "Close";
             if (CurrentOperationType != OperationType.Resolution)
@@ -101,18 +125,14 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             _configuration = FileUtils.GetGinasConfiguration();
             log.Debug("Loaded configuration ");
-            if(_configuration.SelectedServer == null)
-            {
-                _configuration.SelectedServer = _configuration.Servers[0];
-            }
             log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
-            string initURL = _configuration.SelectedServer.ServerUrl + "sequence";
+            string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
             _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
-            
-            webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
+
+            webBrowser1.ScriptErrorsSuppressed = true;
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
 
             log.Debug(" about to navigate to " + initURL);
@@ -141,19 +161,21 @@ namespace gov.ncats.ginas.excel.tools.UI
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
                 log.Warn("detected NAVIGATION_CANCELED");
-                string html = FileUtils.GetErrorHtml();
-                html = html.Replace("$MESSAGE1$", "Error loading initial ginas page");
+                    string html = FileUtils.GetErrorHtml();
+                html = html.Replace("$MESSAGE1$", _initLoadingErrorMessage);
 
-                html = html.Replace("$MESSAGE2$", "Close dialog and try again or notify your administrator");
-                buttonAddStructure.Enabled = false;
-                buttonResolve.Enabled = false;
-                webBrowser1.DocumentText = html;
-                webBrowser1.Visible = true;
-                Visible = true;
-                if (CurrentOperationType == OperationType.ProcessSdFile)
-                {
-                    Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
-                }
+                html = html.Replace("$MESSAGE2$", _secondMessage);
+                    buttonAddStructure.Enabled = false;
+                    buttonResolve.Enabled = false;
+                    webBrowser1.DocumentText = html;
+                    webBrowser1.Visible = true;
+                buttonCancel.Text = "Close";
+                    Visible = true;
+                    if (CurrentOperationType == OperationType.ProcessSdFile)
+                    {
+                        Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
+                    }
+
             }
         }
 
@@ -193,25 +215,25 @@ namespace gov.ncats.ginas.excel.tools.UI
         {
             try
             {
-            log.DebugFormat("Notify processing message: {0}", message);
-            if (message.StartsWith("gsrs_"))
-            {
-                string followupCommand = "cresults.popItem('" + message + "')";
-                object result = ExecuteScript(followupCommand);
-                Controller.HandleResults(message, (string)result);
-                if (CurrentOperationType == OperationType.GetStructures)
+                log.DebugFormat("Notify processing message: {0}", message);
+                if (message.StartsWith("gsrs_"))
                 {
-                    log.Debug("Closing dialog after getting structures");
-                    HandleDebugInfoSave();
-                    Controller.Dispose();
-                    Close();
+                    string followupCommand = "cresults.popItem('" + message + "')";
+                    object result = ExecuteScript(followupCommand);
+                    Controller.HandleResults(message, (string)result);
+                    if (CurrentOperationType == OperationType.GetStructures)
+                    {
+                        log.Debug("Closing dialog after getting structures");
+                        HandleDebugInfoSave();
+                        Controller.Dispose();
+                        Close();
+                    }
                 }
-            }
-            else if( message.StartsWith("vocabulary:"))
-            {
-                log.Debug("Got back " + message);
-                Controller.ReceiveVocabulary(message);
-            }
+                else if (message.StartsWith("vocabulary:"))
+                {
+                    log.Debug("Got back " + message);
+                    Controller.ReceiveVocabulary(message);
+                }
             }
             catch(Exception ex)
             {
@@ -253,7 +275,8 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            Close();
+            this.BeginInvoke((MethodInvoker)delegate { this.Close(); });
+            //Close();
         }
 
         private void buttonAddStructure_Click(object sender, EventArgs e)
@@ -265,6 +288,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         private void RetrievalForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             log.Debug("RetrievalForm_FormClosing");
+            this.FormClosing -= RetrievalForm_FormClosing;
             if (!_savedDebugInfo) HandleDebugInfoSave();
         }
 
@@ -295,47 +319,13 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void BuildGinasToolsDocument()
         {
-            //make sure the original document is completely loaded    
-            //int iter = 0;
-            //int maxIter = 10;
-            //while (webBrowser1.IsBusy && ++iter < maxIter)
-            //{
-            //    log.DebugFormat("busy (2) {0}...", iter);
-            //    System.Threading.Thread.Sleep(200);
-            //    if ((iter % 100) == 0)
-            //    {
-            //        DialogYesNoCancel result = UIUtils.GetUserYesNoCancel("Loading web page is slow. Continue waiting?",
-            //            "Yes=Continue waiting; No=Restart loading; Cancel=Start over");
-            //        switch (result)
-            //        {
-            //            case DialogYesNoCancel.No:
-            //                webBrowser1.Stop();
-            //                webBrowser1.Document.InvokeScript("eval",
-            //                    new object[] { "$('document').off()" });
-            //                webBrowser1.Document.InvokeScript("eval",
-            //                    new object[] { "$('script').remove();" });
-
-            //                break;
-            //            case DialogYesNoCancel.Cancel:
-            //                if (CurrentOperationType == OperationType.ProcessApplication) Close();
-            //                UIUtils.ShowMessageToUser("Please close the dialog box and start the process again");
-            //                buttonAddStructure.Enabled = false;
-            //                buttonAddStructure.Visible = false;
-            //                buttonResolve.Enabled = false;
-            //                return;
-            //            default:
-            //                System.Threading.Thread.Sleep(100);
-            //                continue;
-            //        }
-            //        Application.DoEvents();
-            //    }
-            //}
             log.Debug("webBrowser1.IsBusy: " + webBrowser1.IsBusy);
             //clear out old event handlers and scripts... optimistically
             webBrowser1.Document.InvokeScript("eval", new object[] { "$('document').off()" });
             webBrowser1.Document.InvokeScript("eval", new object[] {
                 "$('script').remove(); " });
-
+            webBrowser1.Document.InvokeScript("eval", new object[] {
+                "$('link').remove(); " });
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
@@ -389,6 +379,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 Visible = false;
                 Controller.StartOperation();
+                webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
                 return;
             }
             buttonDebugDOM.Enabled = false; 
@@ -401,9 +392,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             }            
             webBrowser1.Visible = true;
             IsReady = true;
+            webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
         }
 
-        
+
         public void HandleClick(object obj, EventArgs args)
         {
             MessageBox.Show(args.ToString());
@@ -429,6 +421,17 @@ namespace gov.ncats.ginas.excel.tools.UI
         public void SetController(Controller.IController controller)
         {
             Controller = controller;
+        }
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "HTML files(*.html)|*.html|All files (*.*)|(*.*)";
+            if( dialog.ShowDialog() == DialogResult.OK)
+            {
+                //webBrowser1.Url = new Uri(dialog.FileName);
+                webBrowser1.Navigate(dialog.FileName);
+            }
         }
     }
 }

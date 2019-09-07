@@ -92,9 +92,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         vocabularyName);
                 if (!string.IsNullOrWhiteSpace(vocabularyName))
                 {
-                    string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {window.external.Notify(s);});";
+                    string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {sendMessageBackToCSharp(s);});";
                     ScriptExecutor.ExecuteScript(vocabScript);
                     vocabularyNames.Add(vocabularyName);
+                    object location = ScriptExecutor.ExecuteScript("document.location");
+                    log.DebugFormat("location: {0}", location);
                 }
             }
             lock (LOCK_OBJECT)
@@ -108,7 +110,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             foreach(string vocabularyName in vocabularyNames)
             {
-                string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {window.external.Notify(s);});";
+                string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {sendMessageBackToCSharp(s);});";
                 ScriptExecutor.ExecuteScript(vocabScript);
             }
             lock (LOCK_OBJECT)
@@ -146,8 +148,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public List<VocabItem> GetVocabItems(string vocabName)
         {
             List<VocabItem> vocabItems = new List<VocabItem>();
+            log.DebugFormat("In GetVocabItems, vocabName:{0}", vocabName);
             if (!vocabularies.ContainsKey(vocabName)) return vocabItems;
             Vocab vocab = vocabularies[vocabName];
+            if(vocab == null || vocab.Content ==null || vocab.Content[0] ==null)
+            {
+                log.Warn("No vocab content found!");
+                return vocabItems;
+            }
             foreach (VocabTerm term in vocab.Content[0].Terms)
             {
                 VocabItem vocabItem = new VocabItem(term.Value, term.Display, term.Deprecated);
@@ -259,7 +267,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             string executionScript = runnerName + ".execute()" +
                                                      ".get(function(b){cresults['" +
-                                                    loadingKey + "']=b;window.external.Notify('"
+                                                    loadingKey + "']=b;sendMessageBackToCSharp('"
                                                     + loadingKey + "');})";
             ScriptExecutor.ExecuteScript(executionScript);
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Data;
 using System.Data.Odbc;
+using System.Configuration;
 using Npgsql;
 using ginasExcelUnitTests.Model;
 
@@ -20,9 +21,9 @@ namespace ginasExcelUnitTests.Utils
     /// </summary>
     internal class DBQueryUtils
     {
-
-        private string dbHost = "localhost";
-        private string dbName = "gsrs2";
+        System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
+        private string dbHost = "localhost"; 
+        private string dbName = "ginas_db";
         private string dbUser = "ginas";
         private string dbPw = "ginas";
         private int dbPort = 5432;
@@ -34,6 +35,12 @@ namespace ginasExcelUnitTests.Utils
         public DBQueryUtils()
         {
             log.Debug("Starting in DBQueryUtils");
+            dbHost = config.AppSettings.Settings["dbHost"].Value;
+            dbName = config.AppSettings.Settings["dbName"].Value;
+            dbUser = config.AppSettings.Settings["dbUser"].Value;
+            dbPw = config.AppSettings.Settings["dbPassword"].Value;
+            dbPort = Convert.ToInt32( config.AppSettings.Settings["dbPort"].Value);
+
             conectionString = String.Format("Server={0};Port={1};" +
                     "User Id={2};Password={3};Database={4};",
                     dbHost, dbPort, dbUser,

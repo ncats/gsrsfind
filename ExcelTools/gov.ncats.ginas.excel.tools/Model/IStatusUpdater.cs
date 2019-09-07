@@ -13,5 +13,6 @@ namespace gov.ncats.ginas.excel.tools.Model
         void Complete();
 
         bool GetDebugSetting();
+
     }
 }

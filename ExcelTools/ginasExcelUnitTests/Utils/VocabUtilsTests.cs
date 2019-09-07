@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace gov.ncats.ginas.excel.tools.Utils.Tests
 {
@@ -42,8 +43,9 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void testJsonFile()
         {
-            string fileName = @"C:\ginas_source\Excel\temp\results has rel.json";
-            string json = System.IO.File.ReadAllText(fileName);
+            string jsonFilePath = @"..\..\..\Test_Files\results has rel.json";
+            jsonFilePath = Path.GetFullPath(jsonFilePath);
+            string json = System.IO.File.ReadAllText(jsonFilePath);
             string jsonClean = json.Replace(Environment.NewLine, "");
             Assert.AreNotEqual(json, jsonClean);
         }

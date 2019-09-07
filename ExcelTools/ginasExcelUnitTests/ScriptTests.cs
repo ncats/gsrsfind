@@ -26,7 +26,7 @@ namespace ginasExcelUnitTests
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
         static bool scriptRunnerReady = false;
         static ScriptUtils scriptUtils = new ScriptUtils();
-        static private int SCRIPT_INTERVAL = 4000;
+        static private int SCRIPT_INTERVAL = 7000;
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -68,7 +68,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
+            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string newName = "Name " + Guid.NewGuid();
@@ -218,7 +218,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "90cea970-fa49-4cee-a045-10c3b86d3147";
+            string uuidForTest = "a7c31889-8177-4bc5-aadd-862349b65206"; //GUIDs are site-specific. Select one that contains a garbage substance, created for test only
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForUuid(uuidForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -256,12 +256,25 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(SCRIPT_INTERVAL);
+            int sleepInterval = 1000;
+            Thread.Sleep(sleepInterval);
+            int maxTests = 10;
+            int currTest = 1;
+            bool foundCode = false;
+            while( !foundCode && (currTest<maxTests))
+            {
+                List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForUuid(uuidForTest);
+                foundCode =( codesBefore.Count + 1 == codesAfter.Count && 
+                    codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+                if( !foundCode) Thread.Sleep(sleepInterval);
+                Console.WriteLine("After {0} intervals, foundCode: {1}", currTest, foundCode);
+                currTest++;
+            }
+
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForUuid(uuidForTest);
-            Assert.AreEqual(codesBefore.Count + 1, codesAfter.Count);
-            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+            Assert.IsTrue(foundCode);
+
         }
 
         [TestMethod]
@@ -269,7 +282,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "66327985-8d29-4c36-a45d-cbe6305703de";
+            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string nameToRemove = namesBefore.FirstOrDefault(n => n.IsPossibleGuidName());
@@ -457,13 +470,25 @@ namespace ginasExcelUnitTests
             }
             //allow the scripts to complete execution:
             Thread.Sleep(SCRIPT_INTERVAL);
+            int sleepInterval = 1000;
+            Thread.Sleep(sleepInterval);
+            int maxTests = 10;
+            int currTest = 1;
+            bool foundCode = false;
+            while (!foundCode && (currTest < maxTests))
+            {
+                List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
+                string expectedUrl = urlBase + oldCode;
+                foundCode =( codesBefore.Count == codesAfter.Count) && codesAfter.Any(c => c.CodeSystem.Equals(newCodeSystem) && c.Code.Equals(oldCode)
+                    && c.Url.Equals(expectedUrl));
+                
+                if (!foundCode) Thread.Sleep(sleepInterval);
+                Console.WriteLine("After {0} intervals, foundCode: {1}", currTest, foundCode);
+                currTest++;
+            }
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
-            Assert.AreEqual(codesBefore.Count, codesAfter.Count);
-            string expectedUrl = urlBase + oldCode;
-            Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(newCodeSystem) && c.Code.Equals(oldCode)
-                && c.Url.Equals(expectedUrl)));
+            Assert.IsTrue(foundCode);
         }
 
 
@@ -571,7 +596,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptName = "Touch Record";
-            string uuidForTest = "bdaf53c5-d531-413e-96d4-488817f33354";
+            string uuidForTest = "e81e84bf-5b3f-46d8-a505-3254aa5d67e9";
             string versionComment = "Record change " + Guid.NewGuid().ToString();
             int versionBefore = dBQueryUtils.GetVersionForUuid(uuidForTest);
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;

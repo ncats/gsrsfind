@@ -24,14 +24,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
-
         
+
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ScriptUtils scriptUtils;
+        //private ScriptUtils scriptUtils;
 
         private bool _assignedVocabs = false;
+
+        private Dictionary<int, string> ColumnKeys = null;
 
         /// <summary>
         /// First method to call for outside classes
@@ -104,12 +106,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Callback cb = CreateInitialUpdateCallback(ExcelSelection.Application.ActiveCell,
                 ref msg, true);
             if (!string.IsNullOrEmpty(msg)) StatusUpdater.UpdateStatus(msg);
+            else
+            {
+                msg = "Total selected rows: " + (ExcelSelection.Application as Excel.Range).Rows.Count;
+                log.Debug(msg);
+
+            }
             if (cb != null) ScriptExecutor.ExecuteScript("showPreview(tmpRunner)");
         }
 
         public bool StartResolution(bool newSheet)
         {
-            
             if (CurrentOperationType == OperationType.ShowScripts)
             {
                 string selectedScriptName = (string)ScriptExecutor.ExecuteScript("$('#scriptlist').val()");
@@ -207,7 +214,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string script = "tmpRunner"
                 + ".execute()"
                 + ".get(function(b){cresults['"
-                + cb.getKey() + "']=b;window.external.Notify('"
+                + cb.getKey() + "']=b;sendMessageBackToCSharp('"
                 + cb.getKey() + "');})";
             cb.SetScript(script);
 
@@ -224,15 +231,18 @@ namespace gov.ncats.ginas.excel.tools.Controller
             UpdateCallback updateCallback = null;
             try
             {
-                Dictionary<string, Excel.Range> keys = GetKeys(arow);
+               if(ColumnKeys==null) ColumnKeys= GetColumnKeys(arow);
                 //If the status isn't empty, skip this one
-                string statusValue = GetProperty(keys, STATUS_KEY, "");
+                string statusValue = GetPropertyValue(arow, STATUS_KEY, "");
                 if (!string.IsNullOrWhiteSpace(statusValue))
                 {
                     message = "Will not execute row, because " + STATUS_KEY + " is not empty";
                     log.Debug(message);
+                    if ( !allowFinished)
+                    {
                     bool continuation = UIUtils.GetUserYesNo(message + "; Continue with next row?");
                     if (!continuation) message += "; cancel";
+                    }
                     if (!allowFinished) return null;
                 }
                 _scriptNumber++;
@@ -244,7 +254,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     log.Debug("Looking at ScriptParameters.Keys " + key);
                     string defaultValue = string.Empty;
                     if (scriptUtils.ScriptParameters[key].IsBoolean()) defaultValue = "FALSE";
-                    string parameterValue = GetProperty(keys, key, defaultValue);
+                    string parameterValue = GetPropertyValue(arow, key, defaultValue);
                     if (!string.IsNullOrWhiteSpace(parameterValue))
                     {
                         ScriptParameter parameter = scriptUtils.ScriptParameters[key];
@@ -274,7 +284,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     tempVal = JSTools.RandomIdentifier(10, true);
                 }
-                updateCallback = CallbackFactory.CreateUpdateCallback(keys[STATUS_KEY]);
+                //todo: verify this works!
+                int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(STATUS_KEY)).Key;
+                string rangeDesc = SheetUtils.GetColumnName(col) + arow.Row;
+                updateCallback = CallbackFactory.CreateUpdateCallback(arow.Worksheet.Range[rangeDesc]);
                 updateCallback.RunnerNumber = _scriptNumber;
                 DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
                     (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
@@ -296,6 +309,43 @@ namespace gov.ncats.ginas.excel.tools.Controller
         }
 
 
+        private Dictionary<int, string> GetColumnKeys(Excel.Range row)
+        {
+            Dictionary<int, string> keys = new Dictionary<int, string>();
+
+            Excel.Application application = row.Application;
+            Excel.Worksheet asheet = row.Worksheet;
+            Excel.Range headerRow = application.Intersect(((Excel.Range) asheet.Rows[1]).EntireRow, asheet.UsedRange);
+            foreach (Excel.Range hcell in headerRow)
+            {                
+                if (hcell.Value2 != null)
+                {
+                    string cellTextUpper = (hcell.Value2 as string).ToUpper();
+                    if (!keys.ContainsValue(cellTextUpper))
+                    {
+                        keys.Add(hcell.Column, cellTextUpper);
+                    }
+                }
+            }
+            return keys;
+        }
+
+        private Dictionary<string, string> GetValues(Dictionary<int, string> keys, Excel.Range inputRow)
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>();
+            Excel.Range rowToProcess = inputRow.Application.Intersect(inputRow.Worksheet.UsedRange, inputRow);
+            foreach(Excel.Range dataCell in rowToProcess)
+            {
+                if( dataCell.Value2 != null && keys.ContainsKey(dataCell.Column))
+                {
+                    string key = keys[dataCell.Column];
+                    string value = dataCell.Value2 as string;
+                    values.Add(key, value);
+                }
+            }
+            return values;
+        }
+
         private Dictionary<string, Excel.Range> GetKeys(Excel.Range row)
         {
             Dictionary<string, Excel.Range> keys = new Dictionary<string, Excel.Range>();
@@ -304,7 +354,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
             Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
+            //string f = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
 
             foreach (Excel.Range hcell in headerRow)
             {
@@ -324,12 +374,21 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string GetScriptName(Excel.Range row)
         {
             Dictionary<string, Excel.Range> keys = new Dictionary<string, Excel.Range>();
-
             Excel.Application application = row.Application;
             Excel.Worksheet asheet = row.Worksheet;
             Excel.Range headerRow = application.Intersect(asheet.Range["1:1"], asheet.UsedRange);
-            Excel.Range crow = asheet.Range[row.Row + ":" + row.Row];
-            string upperCornerText = (string)application.Intersect(headerRow, asheet.Range["A:A"]).Value2;
+            if( headerRow == null || headerRow.Cells.Count ==0)
+            {
+                log.Debug("Header row empty");
+                return string.Empty;
+            }
+            Excel.Range scriptNameRange = application.Intersect(headerRow, asheet.Range["A:A"]);
+            if( scriptNameRange == null || scriptNameRange.Cells.Count==0)
+            {
+                log.Debug("script name cell empty");
+                return string.Empty;
+            }
+            string upperCornerText = (string)scriptNameRange.Value2;
             if (string.IsNullOrWhiteSpace(upperCornerText))
             {
                 log.Warn("No script name found on sheet!");
@@ -372,6 +431,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return def;
         }
 
+        private string GetPropertyValue(Excel.Range row, string key, string def)
+        {
+            if( ColumnKeys.ContainsValue(key))
+            {
+                int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(key)).Key;
+                Excel.Range dataRow= row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
+                if(dataRow.Value2 != null ) return (string) dataRow.Value2;
+            }
+            return def;
+        }
 
         public void LaunchCheckJob()
         {
@@ -539,7 +608,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 if(!_assignedVocabs)
                 {
-                    scriptUtils.AssignVocabularies();
+                scriptUtils.AssignVocabularies();
                     _assignedVocabs = true;
                 }
                 UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;

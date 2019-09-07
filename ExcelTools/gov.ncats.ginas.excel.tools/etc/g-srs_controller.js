@@ -1,4 +1,13 @@
-﻿var CALLBACK_NUMBER = 0;
+﻿var GSRSAPI_consoleStack = [];
+
+var console = {
+    log: function (msg) {
+        //if (window['console']) window.console.log(msg);
+        GSRSAPI_consoleStack.push(msg);
+    }
+}
+$.support.cors = true;
+var CALLBACK_NUMBER = 0;
 var GSRSAPI = {
     builder: function () {
         var g_api = {};
@@ -28,7 +37,7 @@ var GSRSAPI = {
                 /*figure out authentication*/
                 if (g_api.GlobalSettings.authUsername
                     && g_api.GlobalSettings.authUsername.length > 0
-                    && g_api.GlobalSettings.authKey
+                    && g_api.GlobalSettings.authKey 
                     && g_api.GlobalSettings.authKey.length > 0) {
                     req.headers["auth-username"] = g_api.GlobalSettings.authUsername;
                     req.headers["auth-key"] = g_api.GlobalSettings.authKey;
@@ -736,6 +745,7 @@ var GSRSAPI = {
                         });
 
                         _.forEach(psubs, function (pSub) {
+                            
                             worker.process(pSub, worker._fetchers).get(function (rows) {
                                 _.forEach(rows, function (row) {
                                     worker._consumer(row);
@@ -974,7 +984,7 @@ var GSRSAPI = {
                         rq.contentType = ct;
                         return rq;
                     };
-
+                
                 return rq;
             }
         };
@@ -1408,7 +1418,6 @@ var GSRSAPI = {
                     return scr;
                 };
                 scr.useFor = function (cb) {
-                    console.log("starting in useFor");
                     if (!_.find(scr.arguments, { key: 'FORCED' })) {
                         /*Automatically include this one:*/
                         scr.addArgument(
@@ -1835,7 +1844,7 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("Full Lychi", function (simpleSub) {
         return simpleSub.fetch("structure/properties").andThen(function (r) {
             return _.chain(r)
-                .filter(function (r1) { return r1.label.indexOf("LyChI_L") >= 0; })
+                .filter(function (r1) { return r1.label && r1.label.indexOf("LyChI_L") >= 0; })
                 .sortBy("label")
                 .map("term")
                 .value().join("-");
@@ -2021,6 +2030,7 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Component Report", function (simpleSub) {
+        var outerJoinChar = '^';
         var proms = [];
         proms.push(simpleSub.fetch("relationships"));
         proms.push(simpleSub.fetch("mixture/components"));
@@ -2028,8 +2038,7 @@ FetcherRegistry.addFetcher(
             .andThen(function (r) {
                 console.log('in Components andThen');
                 for (var i in r) {
-                    console.log(JSON.stringify(r[i]));
-                    if (typeof r[i] === 'object' && r[i].length) {
+                    if (typeof r[i] === 'object' && r[i].length && r[i].length > 0) {
                         //we have an array
                         return _.map(r[i], function (mc) {
                             var answerParts = [];
@@ -2040,19 +2049,32 @@ FetcherRegistry.addFetcher(
                                 answerParts.push(subId);
                                 answerParts.push(mc.substance.name);
                             }
-                            else if (mc.relatedSubstance && mc.type.toUpperCase().indexOf("CONSTITUENT") > -1) {
+                            else if (mc && mc.relatedSubstance && mc.type.toUpperCase().indexOf("CONSTITUENT") > -1) {
+                                console.log('related substance');
                                 var subId2 = mc.relatedSubstance.approvalID ?
                                     mc.relatedSubstance.approvalID : mc.relatedSubstance.refuuid;
                                 answerParts.push(mc.type);
                                 answerParts.push(subId2);
                                 answerParts.push(mc.relatedSubstance.name);
                             }
-                            if (answerParts.length > 0) return answerParts.join("^");
+                            else
+                            {
+                                console.log('unrecognized mc');
+                            }
+                            if (answerParts.length > 0) {
+                                console.log(' will return answerParts ' + answerParts.join(joinChar));
+                                return answerParts.join(outerJoinChar);
+                            }
+                            else {
+                                console.log('no return');
+                            }
                         })
-                            .filter(function (a) {
-                                return a && a.length && a.length > 0;
-                            })
-                            .join('|');
+                        //I think the following worked... but as of 19 July 2019, it 
+                        // generates errors that filter of undefined is undefined
+                            //.filter(function (a) {
+                            //    return a && a.length && a.length > 0;
+                            //})
+                            //.join('|');
                     }
                 }
             });
@@ -2780,18 +2802,27 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                 var valuesOK = true;
                                 var valuesError = '';
                                 if (replaceExisting) {
-                                    codes = _.forEach(codes, function (code, codeIndex) {
-                                        if (code.codeSystem === codeSystem) {
+                                    //iterate backwards over the collection to avoid issue 22 August 2019
+                                    codes = _.forEachRight(codes, function (code, codeIndex) {
+                                        if (code.codeSystem === codeSystem && code.code === codeInput) {
                                             console.log('adding code at index ' + codeIndex + ' to list');
                                             codesIndicesToRemove.push(codeIndex);
                                         }
                                     });
                                 }
+                                if (codesIndicesToRemove.length > 1) {
+                                    console.log(' multiple codes that match input detected');
+                                    valuesOK = false;
+                                    valuesError =
+                                        'This substance already has more than one code that match code "'
+                                        + codeInput + '" for system ' + cd.codeSystem;
+                                    return false;
+                                }
                                 _.forEach(codes, function (cd) {
                                     if (cd.codeSystem === codeSystem) {
-                                        if (allowMultiple) {
+                                        if (allowMultiple && !replaceExisting) {
                                             /*use the double equal to allow coercion of values*/
-                                            if (cd.code === codeInput) {
+                                            if (cd.code == codeInput) {
                                                 console.log(' duplicate code detected');
                                                 valuesOK = false;
                                                 valuesError = 'This substance already has the code "'
@@ -4223,24 +4254,24 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                 s0 = substance;
                 return substance.full();
             })
-            .andThen(function (s) {
+            .andThen(function(s){
                 return s0.fetch("references")
-                    .andThen(function (refs) {
-                        _.forEach(refs, function (ref) {
-                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-                                console.log('Duplicate reference found! Will skip creation of new one.');
-                                reference = ref;
-                                return false;
-                            }
-                        });
-                        if (reference) {
-                            prop.addReference(reference);
-                        }
-                        return s0.patch()
-                            .addData(prop)
-                            .add("/changeReason", args['change reason'].getValue())
-                            .apply()
-                            .andThen(_.identity);
+                .andThen(function (refs) {
+                _.forEach(refs, function (ref) {
+                    if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                        console.log('Duplicate reference found! Will skip creation of new one.');
+                        reference = ref;
+                        return false;
+                    }
+                });
+                if (reference) {
+                    prop.addReference(reference);
+                }
+                return s0.patch()
+                    .addData(prop)
+                    .add("/changeReason", args['change reason'].getValue())
+                    .apply()
+                    .andThen(_.identity);
                     });
             });
     })

@@ -18,6 +18,7 @@ using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using ginasExcelUnitTests.Model;
 using ginasExcelUnitTests.Utils;
 using gov.ncats.ginas.excel.tools.UI;
+using System.Diagnostics;
 
 namespace ginasExcelUnitTests
 {
@@ -102,6 +103,7 @@ namespace ginasExcelUnitTests
             //retrievalForm.Close();
             retrievalForm = null;
         }
+
         [TestMethod]
         public void ImageOps_hasComment_Test()
         {
@@ -926,20 +928,25 @@ namespace ginasExcelUnitTests
                 Assert.Fail("Connection to server is not working");
             }
 
-            Workbook workbook = ReadDefaultExcelWorkbook();
+            Workbook workbook = excel.Workbooks.Add();//ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
             
             scriptUtils.ScriptExecutor = retrievalForm;
             scriptUtils.ScriptName = "Add Name";
             scriptUtils.StartVocabularyRetrievals();
             //when there are no vocabularies to retrieve, move to the next step immediately
-            while (scriptUtils.ExpectedVocabularies.Count > 0)
+            iter = 0;
+            while (scriptUtils.ExpectedVocabularies.Count > 0 && iter <= maxIter)
             {
                 Thread.Sleep(500);
                 System.Windows.Forms.Application.DoEvents();
+                iter++;
             }
-
-            //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
+            if(scriptUtils.ExpectedVocabularies.Count > 0)
+            {
+                Assert.Fail("vocabularies not received from server!");
+            }
+                //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.ScriptExecutor = retrievalForm;
             
@@ -966,7 +973,7 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void CreateSheetTest2()
         {
-            Workbook workbook = ReadDefaultExcelWorkbook();
+            Workbook workbook = excel.Workbooks.Add();// ReadDefaultExcelWorkbook();
             int numSheetsBefore = workbook.Sheets.Count;
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptName = "Add Name";
@@ -1044,6 +1051,120 @@ namespace ginasExcelUnitTests
             Assert.IsFalse(SheetUtils.IsRowBlank(row4));
         }
 
+        [TestMethod]
+        public void CreateUpdateCallbackForExecutionTest1()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\localnames new expanded may 2019.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+            Dictionary<int, ScriptParameter> scriptParametersFirst = ScriptExecutorMock.GetMockedScriptParameters();
+            Dictionary<string, ScriptParameter> scriptParameters = new Dictionary<string, ScriptParameter>();
+            foreach (ScriptParameter param in scriptParametersFirst.Values)
+            {
+                scriptParameters.Add(param.key, param);
+            }
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            FieldInfo scriptInfo = scriptUtils.GetType().GetField("scriptParameters", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            scriptInfo.SetValue(scriptUtils, scriptParameters);
+            DataLoader loader = new DataLoader();
+
+            ScriptExecutorMock scriptExecutor = new ScriptExecutorMock();
+            loader.SetScriptExecutor(scriptExecutor);
+
+            Dictionary<string, Callback> callbacks = new Dictionary<string, Callback>();
+            FieldInfo callbackInfo = loader.GetType().GetField("Callbacks", BindingFlags.Instance | BindingFlags.NonPublic);
+            callbackInfo.SetValue(loader, callbacks);
+
+            FieldInfo keyInfo = loader.GetType().GetField("ColumnKeys", BindingFlags.Instance | BindingFlags.NonPublic);
+            keyInfo.SetValue(loader, null);
+            int rowLimit = 100;
+            Stopwatch timer = Stopwatch.StartNew();
+
+            int repeatMax = 100;
+            int rowOffset = 10000;
+            for (int repeat = 1; repeat <= repeatMax; repeat++)
+            {
+
+                for (int row = 2; row <= (rowLimit + 1); row++)
+                {
+                    string rowPoint = "B" + (row+ rowOffset);
+                    Range range = sheet.Range[rowPoint];
+                    loader.CreateUpdateCallbackForExecution(range);
+                }
+            }
+            timer.Stop();
+            workbook.Close(false);
+            Console.WriteLine("To run {0} runs of {1} rows each took {2} ms", repeatMax, rowLimit, timer.ElapsedMilliseconds);
+
+            Assert.IsTrue(timer.ElapsedMilliseconds > 0);
+
+        }
+
+        [TestMethod]
+        public void GetColumnKeysTest()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\add code with replace.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets["Add Code"];
+
+            string methodName = "GetColumnKeys";
+            DataLoader loader = new DataLoader();
+            MethodInfo GetColumnKeysInfo = loader.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Range headerRow = sheet.Range["A1:S1"];
+            object[] args = new object[1];
+            args[0] = headerRow;
+            Dictionary<int, string> keys = (Dictionary<int, string>)GetColumnKeysInfo.Invoke(loader, args);
+            Assert.IsTrue(keys.ContainsKey(1));
+            Assert.AreEqual("PT", keys[3]);
+            Assert.AreEqual("ALLOW MULTIPLES", keys[11]);
+            Assert.AreEqual("FORCED", keys[18]);
+        }
+
+        [TestMethod]
+        public void GetProperty2Test()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\add code with replace.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets["Add Code"];
+
+            string methodName = "GetPropertyValue";
+            DataLoader loader = new DataLoader();
+            //set up the key dictionary that will be used in the method to test
+            Dictionary<int, string> keys = new Dictionary<int, string>();
+            string[] fields = { "BATCH:Add Code", "UUID", "PT", "BDNUM", "CODE", "CODE SYSTEM", "CODE TYPE", "CODE TEXT", "COMMENTS", "CODE URL", "ALLOW MULTIPLES", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "REPLACE EXISTING", "CHANGE REASON", "FORCED", "IMPORT STATUS" };
+            for (int f = 1; f <= fields.Length; f++)
+            {
+                keys.Add(f, fields[f - 1]);
+            }
+            Range dataRow = sheet.Range["B2:S2"];
+
+            FieldInfo keyInfo = loader.GetType().GetField("ColumnKeys", BindingFlags.Instance | BindingFlags.NonPublic);
+            keyInfo.SetValue(loader, keys);
+            Type[] types = new Type[3];
+            types[0] = dataRow.GetType();
+            types[1] = methodName.GetType();
+            types[2] = methodName.GetType();
+
+            ParameterModifier[] modifier = new ParameterModifier[1];
+            MethodInfo GetPropertyInfo = loader.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+
+            object[] args = new object[3];
+            args[0] = dataRow;
+            args[1] = "PT";
+            args[2] = "";
+            string expected = "9,10-PHENANTHRENEDIONE";
+            string actual = (string)GetPropertyInfo.Invoke(loader, args);
+            Assert.AreEqual(expected, actual);
+        }
+
         private Workbook ReadDefaultExcelWorkbook()
         {
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
@@ -1053,7 +1174,7 @@ namespace ginasExcelUnitTests
         }
 
 
-        internal  Workbook ReadExcelWorkbook(string filePath)
+        internal Workbook ReadExcelWorkbook(string filePath)
         {
             return excel.Workbooks.Open(filePath);
         }

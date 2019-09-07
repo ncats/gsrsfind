@@ -51,11 +51,11 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 DisplayCurrentConfiguration();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error("Error loading configuration: " + ex.Message, ex);
             }
- 
+
         }
 
         private void DisplayCurrentConfiguration()
@@ -63,13 +63,15 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("DisplayCurrentConfiguration");
             comboBoxURLs.Items.Clear();
             CurrentConfiguration.Servers.ForEach(s => comboBoxURLs.Items.Add(s.ServerUrl));
-            if(CurrentConfiguration.SelectedServer == null)
+            if(CurrentConfiguration.SelectedServer != null)
             {
-                CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[0];
+                comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
+                log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
+            }
+            else
+            {
                 log.Debug(" selected server null");
             }
-            comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
-            log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
 
             textBoxBatchSize.Text = CurrentConfiguration.BatchSize.ToString();
             textBoxExpirationOffset.Text = CurrentConfiguration.ExpirationOffset.ToString("0.00");
@@ -98,7 +100,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
             {
-                if( !Utils.RestUtils.IsValidHttpUrl(comboBoxURLs.Text))
+                if (!Utils.RestUtils.IsValidHttpUrl(comboBoxURLs.Text))
                 {
                     Utils.UIUtils.ShowMessageToUser("Please make sure the URL starts with 'http://' or 'https://' ");
                     return;
@@ -126,9 +128,9 @@ namespace gov.ncats.ginas.excel.tools.UI
                     textBoxExpirationOffset.Text);
             }
 
-            if( float.TryParse(textBoxImageSize.Text, out tempFloat))
+            if (float.TryParse(textBoxImageSize.Text, out tempFloat))
             {
-                int structureImageSize = Convert.ToInt32( Math.Round(tempFloat));
+                int structureImageSize = Convert.ToInt32(Math.Round(tempFloat));
                 CurrentConfiguration.StructureImageSize = structureImageSize;
             }
             Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
@@ -145,9 +147,9 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public GinasServer FindServerForUrl(string url)
         {
-            foreach(GinasServer server in CurrentConfiguration.Servers)
+            foreach (GinasServer server in CurrentConfiguration.Servers)
             {
-                if( server.ServerUrl.Equals(url, StringComparison.CurrentCultureIgnoreCase))
+                if (server.ServerUrl.Equals(url, StringComparison.CurrentCultureIgnoreCase))
                 {
                     return server;
                 }

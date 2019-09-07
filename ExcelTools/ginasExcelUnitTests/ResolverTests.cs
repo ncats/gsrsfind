@@ -441,7 +441,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
 
-            string nameForTest = "UREA";
+            string nameForTest = "DASATINIB";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -491,7 +491,7 @@ namespace ginasExcelUnitTests
         public void CasFetcherTest()
         {
             CheckForm();
-            string nameForTest = "OBINEPITIDE";
+            string nameForTest = "TUBULYSIN B";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -550,7 +550,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string nameForTest = "OXYTOCIN";
+            string nameForTest = "PADELIPORFIN";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -581,7 +581,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string nameForTest = "LYPRESSIN";
+            string nameForTest = "PEMBROLIZUMAB";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -704,17 +704,16 @@ namespace ginasExcelUnitTests
         public void SubstanceClassTest()
         {
             CheckForm();
-            string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
-            chemNames.Add(nameForTest);
-            chemNames.Add("GLYCINE, N-(3-alpha,12-alpha-DIHYDROXY-5-beta-CHOLAN-24-YL)-");
+            chemNames.Add("TERLIPRESSIN");//protein
+            chemNames.Add("GLYCINE, N-(AMINOIMINOMETHYL)-N-METHYL-");
             chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
             chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
             chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
             chemNames.Add("LITENIMOD"); //nucleic acid
             chemNames.Add("NONOXYNOL-15");//polymer
-            //chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
-            chemNames.Add("762263-14-9"); //a chemical identified by CAS number
+            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
+            chemNames.Add("3168-01-2"); //a chemical identified by CAS number
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             Queue<string> scripts = new Queue<string>();
@@ -726,7 +725,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -744,16 +743,16 @@ namespace ginasExcelUnitTests
         {
             string javaScriptDateFormat = "ddd MMM dd yyyy HH:mm:ss zzz";
             CheckForm();
-            string nameForTest = "TERLIPRESSIN";//protein
+            string nameForTest = "MOLGRAMOSTIM";//protein
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            chemNames.Add("PIPERAZINE, 1-(p-tert-BUTYLBENZYL)-4-(p-CHLORO-alpha-PHENYLBENZYL)-");
+            chemNames.Add("1-(P-TERT-BUTYLBENZYL)-4-(P-CHLORO-.ALPHA.-PHENYLBENZYL)PIPERAZINE");
             chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
             chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
             chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
             chemNames.Add("LITENIMOD"); //nucleic acid
             chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PT f6fab189-5597-4527-9588-8c68f3ae882c"); //concept
+            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
             chemNames.Add("1344-34-9"); //a chemical identified by CAS number
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
@@ -834,7 +833,7 @@ namespace ginasExcelUnitTests
             chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
             chemNames.Add("NADORAMERAN"); //nucleic acid
             chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PULSATILLA EXTRACT"); //concept
+            chemNames.Add("QUERCUS ROBUR NUT"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("All Names");
             Queue<string> scripts = new Queue<string>();
@@ -868,10 +867,10 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("2-NAPHTHYLAMINE");
-            chemNames.Add("Stamine");
-            chemNames.Add("DICHLOROPROP");
-            chemNames.Add("NSC-27823");
+            chemNames.Add("BALSTILIMAB");
+            chemNames.Add("LEVILIMAB");
+            chemNames.Add("DIROLEUTON");
+            chemNames.Add("EDICOTINIB");
             //chemNames.Add("AZIRIDINE, 1-(3-AMINOPROPYL)-");
             List<string> resolvers = new List<string>();
             resolvers.Add("Bracket Terms");
@@ -969,7 +968,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("FASCIOLA HEPATICA");//structurally diverse
             List<string> resolvers = new List<string>();
             resolvers.Add("Author");
             Queue<string> scripts = new Queue<string>();
@@ -1034,13 +1033,13 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("TERLIPRESSIN");//protein
-            chemNames.Add("GLYCINE, N-(3-alpha,12-alpha-DIHYDROXY-5-beta-CHOLAN-24-YL)-");
+            chemNames.Add("GLYCINE, N-(AMINOIMINOMETHYL)-N-METHYL-");
             chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
             chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
             chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
             chemNames.Add("LITENIMOD"); //nucleic acid
             chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PT 70fcfcc2-7237-4c97-99c8-1744b8246c6b"); //concept
+            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             resolvers.Add("Preferred Term");
@@ -1056,7 +1055,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(2000);
+            Thread.Sleep(MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);

@@ -139,14 +139,21 @@
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.3\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -199,11 +206,16 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="Controller\ApplicationProcessor.cs" />
+    <Compile Include="Controller\ApplicationSheetCreator.cs" />
     <Compile Include="Controller\ControllerBase.cs" />
     <Compile Include="Controller\DataLoader.cs" />
     <Compile Include="Controller\IController.cs" />
     <Compile Include="Controller\Retriever.cs" />
     <Compile Include="Controller\SDFileProcessor.cs" />
+    <Compile Include="Model\ApplicationEntity.cs" />
+    <Compile Include="Model\ApplicationField.cs" />
+    <Compile Include="Model\ApplicationMetadata.cs" />
     <Compile Include="Model\Callbacks\BatchCallback.cs" />
     <Compile Include="Model\Callbacks\Callback.cs" />
     <Compile Include="Model\Callbacks\DoubleCursorBasedResolverCallback.cs" />
@@ -223,6 +235,7 @@
     <Compile Include="Model\ScriptParameter.cs" />
     <Compile Include="Model\SDFileRecord.cs" />
     <Compile Include="Model\SearchValue.cs" />
+    <Compile Include="Model\SheetSectionInfo.cs" />
     <Compile Include="Model\StructureQueryResult.cs" />
     <Compile Include="Model\StructureReturn.cs" />
     <Compile Include="Model\Vocab.cs" />
@@ -298,7 +311,9 @@
     <Content Include="etc\g-srs_controller.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="etc\g-srs_controller.js.safe" />
+    <Content Include="etc\g-srs_controller.js.safe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="get.snk" />
     <None Include="gov.ncats.ginas.excel.CSharpTest2_TemporaryKey.pfx" />
     <Content Include="etc\g-srs-config.txt">
@@ -311,6 +326,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <None Include="gov.ncats.ginas.excel.tools_1_TemporaryKey.pfx" />
     <None Include="gov.ncats.ginas.excel.tools_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -374,11 +390,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>
-    </ManifestKeyFile>
+    <ManifestKeyFile>gov.ncats.ginas.excel.tools_1_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>58AE789237B6A3A9E6862A1CEA175D586FCFF924</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>E3C9EAD3E26D902F9012D433F8C27912546F1AC2</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
