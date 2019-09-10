@@ -1,14 +1,27 @@
-﻿var GSRSAPI_consoleStack = [];
+﻿function buildMeta() {
+    var meta = document.createElement('meta')
+    meta.setAttribute('http-equiv', 'X-UA-Compatible');
+    meta.setAttribute('content', "IE=Edge");
+    meta.outerHTML = '<meta http-equiv="X-UA-Compatible" content="IE=Edge">';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+}
+//buildMeta();
 
 var madeReady = false;
 $(document).ready(function () {
-    handleReady();
+    //handleReady();
 });
 
 function handleReady() {
-    var htmltemplate = $("#fetcherTemplate").html();
-    var test = $("#fetcherTemplate");
+    
+    console.log('handleReady madeReady: ' + madeReady);
+    if (madeReady) return;
 
+    //For some reason, the template no longer comes back correctly from the DOM so we're putting it here:
+    //     17 July 2019 MAM
+    var htmltemplate = id = '<DIV class=checkop><INPUT id="$name$" name="$name$" type=checkbox><LABEL for="$name$">$name$</LABEL></DIV>';
+        //$("#fetcherTemplate").html();
+    
     _.chain(FetcherRegistry.getFetcherTags())
         .filter(function (t) { return t !== "Tests"; })
         .forEach(function (tag) {
@@ -18,7 +31,6 @@ function handleReady() {
                 .map("name")
                 .map(function (n) {
                     var completedTemplate = htmltemplate.replace(/\$name\$/g, n);
-
                     return completedTemplate;
                 })
                 .value()
@@ -40,6 +52,7 @@ function handleReady() {
 }
 
 function showPreview(runner) {
+    console.log('showPreview');
     $("#scriptArguments").html("");
     _.forEach(runner.getArguments(), function (a) {
         var val = a.getValue();
@@ -107,8 +120,8 @@ function runCommandForCSharp(stuffToRun) {
         var result = eval(stuffToRun);
     }
     catch (ex) {
-        console.log('error running script: ' + ex);
-        return 'error running script: ' + ex;
+        console.log('error running script: ' + JSON.stringify(ex));
+        return 'error running script: ' + JSON.stringify(ex);
     }
     if (result) {
         if (typeof result === 'string') {
@@ -121,10 +134,20 @@ function runCommandForCSharp(stuffToRun) {
     return result;
 }
 
+function sendMessageBackToCSharp(message) {
+    console.log('Sending message back to c sharp: ' + message);
+    window.external.Notify(message);
+}
+
 function checkReady() {
     if (!madeReady) {
+        console.log('calling handleReady')
         handleReady();
+    }
+    else {
+        console.log('already called handleReady')
     }
 }
 
-setTimeout(checkReady(), 3000);
+setTimeout(checkReady, 500);
+

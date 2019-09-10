@@ -9,16 +9,29 @@ body {
     display: inline-block;
 }
 
-    .scriptlist select {
+.scriptlist select {
         width: 100%;
     }
 
 .scriptdetails {
     padding: 10px;
-    width: 50%;
+    width: 85%;
     display: inline-block;
     vertical-align: top;
+    height: 10px;
+    font-size: small;
+}
+.scriptListHeader {
+    width: 100%;
+}
+
+.numberrows {
+    padding: 5px;
+    width: 85%;
+    display: inline-block;
+    vertical-align: middle;
     height: 15px;
+    font-size: small;
 }
 
 .manual,

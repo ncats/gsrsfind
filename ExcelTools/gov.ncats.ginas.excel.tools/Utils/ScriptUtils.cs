@@ -95,8 +95,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                     string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {sendMessageBackToCSharp(s);});";
                     ScriptExecutor.ExecuteScript(vocabScript);
                     vocabularyNames.Add(vocabularyName);
-                    object location = ScriptExecutor.ExecuteScript("document.location");
-                    log.DebugFormat("location: {0}", location);
                 }
             }
             lock (LOCK_OBJECT)

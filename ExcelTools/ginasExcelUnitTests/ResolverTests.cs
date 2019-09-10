@@ -27,9 +27,9 @@ namespace ginasExcelUnitTests
 
         static TestRetrievalForm retrievalForm = null;
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
-        private static Dictionary<string, string[]> resolverResults = new Dictionary<string, string[]>();
+        private  static  Dictionary<string, string[]> resolverResults = new Dictionary<string, string[]>();
         private const int MILLISECONDS_DELAY = 6000;
-
+        
         private static void StartForm()
         {
             log.Debug("Starting in StartForm");
@@ -58,13 +58,13 @@ namespace ginasExcelUnitTests
             sheetUtils.Configuration = CurrentConfiguration;
             foreach (string key in returnedValue.Keys)
             {
-                log.DebugFormat("Handling result for key {0}", key);
+               log.DebugFormat("Handling result for key {0}", key);
                 string keyResult = "OK";
                 try
                 {
                     string[] messageParts = returnedValue[key][0].Split('\t');
                     results.Add(key, keyResult);
-                    if (resolverResults.ContainsKey(key))
+                    if(resolverResults.ContainsKey(key))
                     {
                         resolverResults.Remove(key);
                     }
@@ -94,7 +94,7 @@ namespace ginasExcelUnitTests
         [ClassCleanup]
         public static void ClassCleanup()
         {
-
+            
             //retrievalForm.Close();
             retrievalForm = null;
         }
@@ -131,7 +131,7 @@ namespace ginasExcelUnitTests
             for (int i = 0; i < 10000; i++)
             {
                 string newIdString = JSTools.RandomIdentifier();
-                Assert.AreNotEqual(prevIdString, newIdString, string.Format("Expect different values on iteration {0}", i));
+                Assert.AreNotEqual(prevIdString, newIdString, string.Format("Expect different values on iteration {0}",i));
                 prevIdString = newIdString;
             }
         }
@@ -146,7 +146,7 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(tempFileName.EndsWith("txt"));
         }
 
-
+        
         [TestMethod]
         public void MakeSearch_Test()
         {
@@ -164,9 +164,9 @@ namespace ginasExcelUnitTests
         public void MakeSearchWithChar_Test()
         {
             string chemicalName1 = "BUTYROPHENONE, 4-(3-AZASPIRO(5.6)DODEC-3-YL)-4'-FLUORO-";
-            string[] testInput = { chemicalName1 };
+            string[] testInput = { chemicalName1};
             string expectedResult = string.Format("['{0}']",
-                chemicalName1.Replace("'", "\\'"));
+                chemicalName1.Replace("'", "\\'") );
             string actualResult = JSTools.MakeSearchString(testInput);
             Assert.AreEqual(expectedResult, actualResult);
         }
@@ -189,7 +189,7 @@ namespace ginasExcelUnitTests
         public void TestVocabDeserialization()
         {
             string vocabFilePath = @"..\..\..\Test_Files\ref type vocab.json";
-            vocabFilePath = Path.GetFullPath(vocabFilePath);
+            vocabFilePath =  Path.GetFullPath(vocabFilePath);
             string rawVocabContent = File.ReadAllText(vocabFilePath);
             Vocab referenceTypeVocab = JSTools.GetVocabFromString(rawVocabContent);
             Assert.IsTrue(referenceTypeVocab.Content[0].Terms.Length > 10);
@@ -243,7 +243,7 @@ namespace ginasExcelUnitTests
             ScriptExecutorMock scriptExecutorMock = new ScriptExecutorMock();
             retriever.SetScriptExecutor(scriptExecutorMock);
             StatusUpdaterMock statusUpdater = new StatusUpdaterMock();
-            retriever.SetStatusUpdater(statusUpdater);
+            retriever.SetStatusUpdater( statusUpdater);
             string dummyScript = "test 'value' for unit test";
             retriever.GetScriptQueue().Enqueue(dummyScript);
             retriever.LaunchFirstScript();
@@ -262,7 +262,7 @@ namespace ginasExcelUnitTests
             string methodName = "QueueOneBatch";
             int totalScriptsBefore = retriever.GetScriptQueue().Count;
 
-            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
+            MethodInfo methodInfo = retriever.GetType().GetMethod(methodName, 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             Callback callback = new Callback();
             callback.SetKey("unique key");
@@ -288,12 +288,12 @@ namespace ginasExcelUnitTests
             MethodInfo methodInfo = retriever.GetType().GetMethod(methodName,
                 BindingFlags.NonPublic | BindingFlags.Instance);
             string key = "Unique Search Key";
-            List<string> searchNames = new List<string>(new string[] { "benzene", "water", "iodine" });
+            List<string> searchNames = new List<string>(new string[] {"benzene", "water", "iodine"});
             object[] parms = new object[2];
             parms[0] = key;
             parms[1] = searchNames;
 
-            string imageSearch = (string)methodInfo.Invoke(retriever, parms);
+            string imageSearch = (string) methodInfo.Invoke(retriever, parms);
             Assert.IsTrue(imageSearch.Contains(".fetchers(['Image URL'])"));
         }
 
@@ -314,7 +314,7 @@ namespace ginasExcelUnitTests
             fieldInfo.SetValue(retriever, 5);
 
             methodInfo.Invoke(retriever, new object[0]);
-            int scriptTotalAfter = (int)fieldInfo.GetValue(retriever);
+            int scriptTotalAfter = (int) fieldInfo.GetValue(retriever);
             Assert.AreEqual(4, scriptTotalAfter);
         }
 
@@ -390,7 +390,7 @@ namespace ginasExcelUnitTests
         {
 
             BatchCallback batchCallback = new BatchCallback(new List<Callback>());
-
+            
             Callback cb1 = new Callback();
             cb1.SetKey("a");
             batchCallback.AddCallback(cb1);
@@ -409,7 +409,7 @@ namespace ginasExcelUnitTests
             string nameForTest = "UREA";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            List<string> resolvers = new List<string>();
+            List<string> resolvers= new List<string>();
             resolvers.Add("SMILES");
 
             scriptUtils.ScriptExecutor = retrievalForm;
@@ -426,7 +426,7 @@ namespace ginasExcelUnitTests
             //allow the scripts to complete execution:
             Thread.Sleep(1000);
             List<StructureProxy> expected = dBQueryUtils.GetStructureForName(nameForTest);
-
+            
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             Assert.IsTrue(resolverResults.ContainsKey(nameForTest));
@@ -441,7 +441,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
 
-            string nameForTest = "DASATINIB";
+            string nameForTest = "UREA";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -475,10 +475,10 @@ namespace ginasExcelUnitTests
 
             bool foundMw = false;
             double cutoff = 0.001;
-            foreach (string val in results)
+            foreach(string val in results)
             {
                 double mw;
-                if (double.TryParse(val, out mw))
+                if(double.TryParse(val, out mw))
                 {
                     if (Math.Abs(mw - expected[0].MWt) < cutoff) foundMw = true;
                     break;
@@ -550,7 +550,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string nameForTest = "PADELIPORFIN";
+            string nameForTest = "FERRIC FERROCYANIDE";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -581,7 +581,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string nameForTest = "PEMBROLIZUMAB";
+            string nameForTest = "LYPRESSIN";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -671,10 +671,10 @@ namespace ginasExcelUnitTests
         public void ProteinSequenceFetcherTest()
         {
             CheckForm();
-            string nameForTest = "OXYTOCIN";
+            string nameForTest = "CRENEZUMAB";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            chemNames.Add("TRANSFERRIN ALDIFITOX R EPIMER");
+            chemNames.Add("DAVUNETIDE");
             List<string> resolvers = new List<string>();
             resolvers.Add("Protein Sequence");
             Queue<string> scripts = new Queue<string>();
@@ -697,23 +697,23 @@ namespace ginasExcelUnitTests
                 string[] results = resolverResults[name];
                 Assert.IsTrue(results.Contains(sequence));
             }
-
+            
         }
 
         [TestMethod]
         public void SubstanceClassTest()
         {
             CheckForm();
+            string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
-            chemNames.Add("TERLIPRESSIN");//protein
-            chemNames.Add("GLYCINE, N-(AMINOIMINOMETHYL)-N-METHYL-");
-            chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
-            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
-            chemNames.Add("LITENIMOD"); //nucleic acid
-            chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
-            chemNames.Add("3168-01-2"); //a chemical identified by CAS number
+            chemNames.Add(nameForTest);
+            chemNames.Add("CYCLOHEXANE");
+            chemNames.Add("CETRIMIDE"); //mixture
+            chemNames.Add("DICHAPETALUM MADAGASCARIENSE BARK/LEAF");//structurally diverse
+            chemNames.Add("DRISAPERSEN"); //nucleic acid
+            chemNames.Add("BIXALOMER");//polymer
+            //chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
+            chemNames.Add("1208319-26-9"); //a chemical identified by CAS number
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             Queue<string> scripts = new Queue<string>();
@@ -725,11 +725,11 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(MILLISECONDS_DELAY);
-
+            Thread.Sleep(1000);
+            
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            foreach (string name in chemNames)
+            foreach(string name in chemNames)
             {
                 Console.WriteLine("Procesing results for substance '{0}'", name);
                 string[] results = resolverResults[name];
@@ -743,17 +743,17 @@ namespace ginasExcelUnitTests
         {
             string javaScriptDateFormat = "ddd MMM dd yyyy HH:mm:ss zzz";
             CheckForm();
-            string nameForTest = "MOLGRAMOSTIM";//protein
+            string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            chemNames.Add("1-(P-TERT-BUTYLBENZYL)-4-(P-CHLORO-.ALPHA.-PHENYLBENZYL)PIPERAZINE");
-            chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
-            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
-            chemNames.Add("LITENIMOD"); //nucleic acid
-            chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
-            chemNames.Add("1344-34-9"); //a chemical identified by CAS number
+            chemNames.Add("BUCLIZINE");
+            //chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
+            chemNames.Add("CETRIMIDE"); //mixture
+            chemNames.Add("LYCOPODIUM CLAVATUM SPORE");//structurally diverse
+            chemNames.Add("DRISAPERSEN"); //nucleic acid
+            chemNames.Add("BIXALOMER");//polymer
+            chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
+            chemNames.Add("84-11-7"); //a chemical identified by CAS number
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             resolvers.Add("Created By");
@@ -786,8 +786,8 @@ namespace ginasExcelUnitTests
                 Console.WriteLine("Created: {0} {1}", substance.Created, results[5]);
                 DateTime created;
                 DateTime lastEdited;
-                string dateToParse = CleanDate(results[5]);
-                if (DateTime.TryParseExact(dateToParse, javaScriptDateFormat, CultureInfo.CurrentCulture,
+                string dateToParse = CleanDate( results[5]);
+                if ( DateTime.TryParseExact(dateToParse, javaScriptDateFormat, CultureInfo.CurrentCulture, 
                     DateTimeStyles.None,
                     out created))
                 {
@@ -828,12 +828,12 @@ namespace ginasExcelUnitTests
             List<string> chemNames = new List<string>();
             chemNames.Add("TERLIPRESSIN");//protein
             chemNames.Add("Cyclohexane");
-            chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
-            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
-            chemNames.Add("NADORAMERAN"); //nucleic acid
-            chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("QUERCUS ROBUR NUT"); //concept
+            chemNames.Add("BENZYL MANDELATE");
+            chemNames.Add("CETRIMIDE"); //mixture
+            chemNames.Add("SCUTELLARIA LATERIFLORA TOP");//structurally diverse
+            chemNames.Add("TRABEDERSEN"); //nucleic acid
+            chemNames.Add("BIXALOMER");//polymer
+            chemNames.Add("DETOSU/TRIETHYLENE GLYCOL/TRIETHYLENE GLYCOL POLYGLYCOLIDE COPOLYMER"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("All Names");
             Queue<string> scripts = new Queue<string>();
@@ -855,9 +855,9 @@ namespace ginasExcelUnitTests
                 string[] results = resolverResults[name];
                 List<string> allNamesFromFetcher = results[1].Split('|').ToList();
                 List<SubstanceNamesProxy> substanceNamesFromDb = dBQueryUtils.GetNamesForName(name);
-                foreach (SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb)
+                foreach( SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb)
                 {
-                    Assert.IsTrue(allNamesFromFetcher.Contains(oneNameFromDb.Name));
+                    Assert.IsTrue( allNamesFromFetcher.Contains(oneNameFromDb.Name));
                 }
             }
         }
@@ -893,7 +893,7 @@ namespace ginasExcelUnitTests
                 string[] results = resolverResults[name];
                 List<string> allNamesFromFetcher = results[1].Split('|').ToList();
                 List<SubstanceNamesProxy> substanceNamesFromDb = dBQueryUtils.GetNamesForName(name);
-                foreach (SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb.Where(n => n.IsBracketTerm()))
+                foreach (SubstanceNamesProxy oneNameFromDb in substanceNamesFromDb.Where(n=>n.IsBracketTerm()))
                 {
                     Assert.IsTrue(allNamesFromFetcher.Contains(oneNameFromDb.Name));
                 }
@@ -905,7 +905,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
             List<string> resolvers = new List<string>();
             resolvers.Add("Latin Binomial");
             Queue<string> scripts = new Queue<string>();
@@ -936,7 +936,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
             List<string> resolvers = new List<string>();
             resolvers.Add("Part");
             Queue<string> scripts = new Queue<string>();
@@ -956,7 +956,7 @@ namespace ginasExcelUnitTests
             {
                 Console.WriteLine("Procesing name results for substance '{0}'", name);
                 string[] results = resolverResults[name];
-                List<StructurallyDiverseProxy> structurallyDiverseProxies
+                List<StructurallyDiverseProxy> structurallyDiverseProxies 
                     = dBQueryUtils.GetStructurallDivers(name);
                 Assert.AreEqual(structurallyDiverseProxies[0].Part, results[1]);
                 Console.WriteLine("Matched {0}", results[1]);
@@ -1001,7 +1001,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("STIBAMINE GLUCOSIDE");
-            chemNames.Add("ANTIPYRINE ACETYLSALICYLATE");
+            chemNames.Add("PROLINTANE HYDROCHLORIDE");
 
             List<string> resolvers = new List<string>();
             resolvers.Add("Stereo Type");
@@ -1033,13 +1033,13 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("TERLIPRESSIN");//protein
-            chemNames.Add("GLYCINE, N-(AMINOIMINOMETHYL)-N-METHYL-");
-            chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
-            chemNames.Add("2,4-DICHLOROCINNAMIC ACID"); //mixture
-            chemNames.Add("STREPTOMYCES AMBOFACIENS");//structurally diverse
+            chemNames.Add("CYCLOHEXANE");
+            chemNames.Add("TERPIN HYDRATE");
+            chemNames.Add("CETRIMIDE"); //mixture
+            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
             chemNames.Add("LITENIMOD"); //nucleic acid
-            chemNames.Add("NONOXYNOL-15");//polymer
-            chemNames.Add("PT cc86daa4-c05b-4a1e-86d2-f48fee6f5542"); //concept
+            chemNames.Add("BIXALOMER");//polymer
+            chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             resolvers.Add("Preferred Term");
@@ -1055,7 +1055,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(MILLISECONDS_DELAY);
+            Thread.Sleep(2000);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);

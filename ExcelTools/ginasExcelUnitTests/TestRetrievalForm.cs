@@ -40,7 +40,7 @@ namespace ginasExcelUnitTests
             string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
             webBrowser1.Visible = false;
             
-            webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
+            webBrowser1.ScriptErrorsSuppressed = true;
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
             log.Debug(" about to navigate to " + initURL);
             webBrowser1.Url = new Uri(initURL);

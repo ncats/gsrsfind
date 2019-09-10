@@ -38,6 +38,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 HtmlElement h3ElementScripts = document.CreateElement("h4");
                 h3ElementScripts.InnerHtml = "Please select a script and click 'Add Sheet'";
                 h3ElementScripts.SetAttribute("id", "scriptListHeader");
+                h3ElementScripts.SetAttribute("className", "scriptListHeader");
                 innerDiv.AppendChild(h3ElementScripts);
                 HtmlElement selectElement = document.CreateElement("select");
                 selectElement.SetAttribute("id", "scriptlist");
@@ -54,16 +55,18 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
                 HtmlElement label = document.CreateElement("span");
                 label.InnerText = "Number of rows:";
+                label.SetAttribute("className", "numberrows");
                 divElement.AppendChild(label);
                 HtmlElement textBoxRows = document.CreateElement("input");
                 textBoxRows.SetAttribute("type", "text");
                 textBoxRows.SetAttribute("id", "numberOfRows");
                 textBoxRows.SetAttribute("name", "numberOfRows");
                 textBoxRows.SetAttribute("value", "10");
+                
                 divElement.AppendChild(textBoxRows);
                 HtmlElement label2 = document.CreateElement("span");
                 label2.InnerText = "(Extra rows do not cause a problem)";
-                label2.Style = "SmallerText";
+                label2.SetAttribute("className", "SmallerText");
                 divElement.AppendChild(label2);
 
                 bodyElement.AppendChild(divElement);

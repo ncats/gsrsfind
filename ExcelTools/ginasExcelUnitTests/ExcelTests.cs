@@ -944,6 +944,9 @@ namespace ginasExcelUnitTests
             }
             if(scriptUtils.ExpectedVocabularies.Count > 0)
             {
+                string script2 = "GSRSAPI_consoleStack.join('|')";
+                string debugInfo2 = (string)retrievalForm.ExecuteScript(script2);
+                log.Debug(debugInfo2);
                 Assert.Fail("vocabularies not received from server!");
             }
                 //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
