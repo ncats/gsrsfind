@@ -2030,7 +2030,6 @@ FetcherRegistry.addFetcher(
 
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Component Report", function (simpleSub) {
-        var outerJoinChar = '^';
         var proms = [];
         proms.push(simpleSub.fetch("relationships"));
         proms.push(simpleSub.fetch("mixture/components"));
@@ -2038,9 +2037,18 @@ FetcherRegistry.addFetcher(
             .andThen(function (r) {
                 console.log('in Components andThen');
                 for (var i in r) {
-                    if (typeof r[i] === 'object' && r[i].length && r[i].length > 0) {
+                    console.log('retrieved item');
+                    console.log(JSON.stringify(r[i]));
+                    console.log(r[i]);
+                    console.log('r[i].length: ' + r[i].length);
+                    if ((r[i].hasOwnProperty('length') && r[i].length === 0 || r[i].length === 1 && r[i]) ||
+                        (r[i].hasOwnProperty('valid') && !r[i].valid)) {
+                        console.log('empty OR valid is false');
+                        continue;
+                    }
+                    if (typeof r[i] === 'object' && r[i].length) {
                         //we have an array
-                        return _.map(r[i], function (mc) {
+                        var mapped = _.map(r[i], function (mc) {
                             var answerParts = [];
                             if (mc.substance) {
                                 var subId = mc.substance.approvalID ?
@@ -2049,34 +2057,27 @@ FetcherRegistry.addFetcher(
                                 answerParts.push(subId);
                                 answerParts.push(mc.substance.name);
                             }
-                            else if (mc && mc.relatedSubstance && mc.type.toUpperCase().indexOf("CONSTITUENT") > -1) {
-                                console.log('related substance');
+                            else if (mc.relatedSubstance && mc.type.toUpperCase().indexOf("CONSTITUENT") > -1) {
+                                console.log("constituent");
                                 var subId2 = mc.relatedSubstance.approvalID ?
                                     mc.relatedSubstance.approvalID : mc.relatedSubstance.refuuid;
                                 answerParts.push(mc.type);
                                 answerParts.push(subId2);
                                 answerParts.push(mc.relatedSubstance.name);
                             }
-                            else
-                            {
-                                console.log('unrecognized mc');
-                            }
-                            if (answerParts.length > 0) {
-                                console.log(' will return answerParts ' + answerParts.join(joinChar));
-                                return answerParts.join(outerJoinChar);
-                            }
-                            else {
-                                console.log('no return');
-                            }
-                        })
-                        //I think the following worked... but as of 19 July 2019, it 
-                        // generates errors that filter of undefined is undefined
-                            //.filter(function (a) {
-                            //    return a && a.length && a.length > 0;
-                            //})
-                            //.join('|');
+                            if (answerParts.length > 0) return answerParts.join("^");
+                        });
+                        if (mapped && mapped.length && mapped.length > 0) {
+                            console.log('mapped');
+                            console.log(JSON.stringify(mapped));
+                            return _.filter(mapped, function (a) {
+                                return a && a.length && a.length > 0;
+                            })
+                                .join('|');
+                        }
                     }
                 }
+                return ('');
             });
     }).addTag("Substance")
 );

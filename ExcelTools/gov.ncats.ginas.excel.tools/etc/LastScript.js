@@ -9,7 +9,7 @@
 
 var madeReady = false;
 $(document).ready(function () {
-    //handleReady();
+    handleReady();
 });
 
 function handleReady() {
@@ -149,5 +149,5 @@ function checkReady() {
     }
 }
 
-setTimeout(checkReady, 500);
+//setTimeout(checkReady, 500);
 
