@@ -258,15 +258,14 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     if (!string.IsNullOrWhiteSpace(parameterValue))
                     {
                         ScriptParameter parameter = scriptUtils.ScriptParameters[key];
-                        //if (key.Equals("json", StringComparison.CurrentCultureIgnoreCase))
-                        //{
-                        //    log.DebugFormat("parameter value: {0}", parameterValue);
-                        //}
-                        //escape characters that causes errors in JavaScript interpreter
-                        string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
-                        string replacement2 = "ꬷ";
-                        string newLine = ((char)10).ToString();
-                        parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace, replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
+                        if( !parameter.name.Contains("FILE PATH"))
+                        {
+                            //escape characters that causes errors in JavaScript interpreter
+                            string stringToReplace = ((char)92).ToString() + ((char)110).ToString();//molfiles
+                            string replacement2 = "ꬷ";
+                            string newLine = ((char)10).ToString();
+                            parameterValue = parameterValue.Replace("'", "\\'").Replace(stringToReplace, replacement2).Replace("\n", "\\n").Replace(newLine, "\\n");
+                        }
                         if (allowFinished)
                         {
                             string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
@@ -581,7 +580,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private void RunUpdateCallback(UpdateCallback updateCallback)
         {
             log.DebugFormat("RunUpdateCallback handling key {0}", updateCallback.getKey());
-            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey());
+            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey(), this.GinasConfiguration);
         }
 
         private void SetScriptParameters(Excel.Range range)
@@ -589,7 +588,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Excel.Application application = range.Application;
 
             Dictionary<string, Excel.Range> keys = GetKeys(range);
-            Dictionary<string, string> paramValues = new Dictionary<string, string>();
+            //Dictionary<string, string> paramValues = new Dictionary<string, string>();
 
             string tempScriptName = "tmpScript";
             log.DebugFormat("{0} using script name {1} ",

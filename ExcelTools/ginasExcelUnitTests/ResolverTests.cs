@@ -406,7 +406,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
 
-            string nameForTest = "UREA";
+            string nameForTest = "UREA STIBAMINE";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers= new List<string>();
@@ -441,7 +441,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
 
-            string nameForTest = "UREA";
+            string nameForTest = "UREA STIBAMINE";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -520,7 +520,7 @@ namespace ginasExcelUnitTests
         public void bdnumFetcherTest()
         {
             CheckForm();
-            string nameForTest = "UREA";// "3-ISOXAZOLIDINONE, 4-AMINO-, (L)-";
+            string nameForTest = "UREA STIBAMINE";// "3-ISOXAZOLIDINONE, 4-AMINO-, (L)-";
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             List<string> resolvers = new List<string>();
@@ -707,7 +707,7 @@ namespace ginasExcelUnitTests
             string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            chemNames.Add("CYCLOHEXANE");
+            chemNames.Add("2,6-DICHLOROPHENOL");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("DICHAPETALUM MADAGASCARIENSE BARK/LEAF");//structurally diverse
             chemNames.Add("DRISAPERSEN"); //nucleic acid
@@ -753,7 +753,7 @@ namespace ginasExcelUnitTests
             chemNames.Add("DRISAPERSEN"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
             chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
-            chemNames.Add("84-11-7"); //a chemical identified by CAS number
+            chemNames.Add("1007601-96-8"); //a chemical identified by CAS number
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             resolvers.Add("Created By");
@@ -827,8 +827,8 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("TERLIPRESSIN");//protein
-            chemNames.Add("Cyclohexane");
-            chemNames.Add("BENZYL MANDELATE");
+            chemNames.Add("ARFOLITIXORIN");
+            chemNames.Add("BURIXAFOR");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("SCUTELLARIA LATERIFLORA TOP");//structurally diverse
             chemNames.Add("TRABEDERSEN"); //nucleic acid
@@ -1001,7 +1001,7 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("STIBAMINE GLUCOSIDE");
-            chemNames.Add("PROLINTANE HYDROCHLORIDE");
+            chemNames.Add("NAFCILLIN SODIUM ANHYDROUS");
 
             List<string> resolvers = new List<string>();
             resolvers.Add("Stereo Type");
@@ -1033,8 +1033,8 @@ namespace ginasExcelUnitTests
             CheckForm();
             List<string> chemNames = new List<string>();
             chemNames.Add("TERLIPRESSIN");//protein
-            chemNames.Add("CYCLOHEXANE");
-            chemNames.Add("TERPIN HYDRATE");
+            chemNames.Add("ETHYL-1-(((2,4-DICHLOROPHENYL)ACETYL)OXY)CYCLOHEXANE-CARBOXYLATE");
+            chemNames.Add("2,6-DICHLOROPHENOXY-.ALPHA.-PROPIONIC ACID");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
             chemNames.Add("LITENIMOD"); //nucleic acid

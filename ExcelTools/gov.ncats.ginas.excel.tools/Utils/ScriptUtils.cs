@@ -226,7 +226,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
-        public void StartOneLoad(Dictionary<string, string> parameterValues, string loadingKey)
+        public void StartOneLoad(Dictionary<string, string> parameterValues, string loadingKey,
+            GinasToolsConfiguration configuration)
         {
             log.DebugFormat("{0} handling loadingKey: {1}", MethodBase.GetCurrentMethod().Name,
                 loadingKey);
@@ -235,6 +236,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
             try
             {
+                string url = (string) ScriptExecutor.ExecuteScript("GlobalSettings.getHomeURL()")
+                    + "upload";
+                log.DebugFormat("url for uploads: " + url);
+                Dictionary<string, string> headers = new Dictionary<string, string>();
+                headers.Add("auth-userName", configuration.SelectedServer.Username);
+                headers.Add("auth-key", configuration.SelectedServer.PrivateKey);
                 foreach (string key in parameterValues.Keys)
                 {
                     //see if there's a vocabulary translation
@@ -253,7 +260,26 @@ namespace gov.ncats.ginas.excel.tools.Utils
                                 parameterValue, newParameterValue);
                             parameterValue = newParameterValue;
                         }
+                        if (key.Contains("file path"))
+                        {
+                            
+                            string filePath = parameterValue.Replace(@"\", "/");
+                            log.DebugFormat("uploading using URL: {0} and file path: {1}", url, filePath);
+                            bool binaryFile = FileUtils.IsBinary(filePath);
+                            //MIME type is not really used on the server but we need a value for the http request...
+                            string mimeType = binaryFile ? "application/octet-stream" : "text/plain";
+                            FilePostReturn dataResult = RestUtils.ProcessFileSaveRequest(url, "POST", filePath, null,
+                                mimeType, headers, binaryFile);
+                            log.DebugFormat("posted file {0}; retrieved url: {1}", filePath, dataResult.url);
+                            if( dataResult.id.Equals("ERROR"))
+                            {
+                                UIUtils.ShowMessageToUser(dataResult.name);
+                                return;
+                            }
+                            parameterValue = dataResult.url;
+                        }
                     }
+                
                     string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
                                 key, parameterValue);
                     ScriptExecutor.ExecuteScript(paramValueScript);

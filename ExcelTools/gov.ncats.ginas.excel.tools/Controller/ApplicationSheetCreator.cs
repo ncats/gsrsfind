@@ -28,7 +28,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             string handleApps =System.Configuration.ConfigurationManager.AppSettings.Get("handleProductApplications");
             log.DebugFormat("handleApps: {0}", handleApps);
-            if(handleApps.Equals("false", StringComparison.CurrentCultureIgnoreCase))
+            if(string.IsNullOrWhiteSpace(handleApps)  
+                || handleApps.Equals("false", StringComparison.CurrentCultureIgnoreCase))
             {
                 return;
             }

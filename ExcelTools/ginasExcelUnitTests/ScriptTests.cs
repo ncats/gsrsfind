@@ -68,7 +68,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";
+            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";// "5a85db6c-2736-42cc-8c25-5efcae0a7e62";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
 
             string newName = "Name " + Guid.NewGuid();
@@ -112,7 +112,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "Cyclohexane";
+            string ptForTest = "PT c77f1ff0-eee1-4726-88b8-864111547c6a";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -164,7 +164,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string bdNumForTest = "0001997AB";
+            string bdNumForTest = "0002186AB";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -218,7 +218,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "a7c31889-8177-4bc5-aadd-862349b65206"; //GUIDs are site-specific. Select one that contains a garbage substance, created for test only
+            string uuidForTest = "5a85db6c-2736-42cc-8c25-5efcae0a7e62"; //GUIDs are site-specific. Select one that contains a garbage substance, created for test only
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForUuid(uuidForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -325,7 +325,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "Cyclohexane";
+            string ptForTest = "ANDROSTERONE SULFATE";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -377,7 +377,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "9,10-PHENANTHRENEDIONE";
+            string ptForTest = "ANDROSTERONE SULFATE";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -432,7 +432,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "UREA";
+            string ptForTest = "PT 88deffa2-593a-48fd-9d8f-9d999ce6ee49";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -441,7 +441,7 @@ namespace ginasExcelUnitTests
             string oldCode = codesBefore.First(c => c.CodeSystem.Equals(newCodeSystem)).Code;
             string codeComment = codesBefore.First(c => c.CodeSystem.Equals(newCodeSystem)).Comments;
             string url = codesBefore.First(c => c.CodeSystem.Equals(newCodeSystem)).Url;
-            string urlBase = "https://fr.wikipedia.org/wiki/";
+            string urlBase = "https://fr.wikipedia.org/wiki/"; 
             if (url.StartsWith(urlBase))
             {
                 urlBase = "https://en.wikipedia.org/wiki/";
@@ -497,7 +497,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "9,10-PHENANTHRENEDIONE";
+            string ptForTest = "ANDROSTERONE SULFATE";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             scriptUtils.ScriptName = "Replace Code Text";

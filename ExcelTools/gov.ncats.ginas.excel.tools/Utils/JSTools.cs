@@ -122,5 +122,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return serializer.Deserialize<List<ApplicationField>>(metadata);
         }
 
+        public static FilePostReturn GetFilePostReturnFromString(string rawData)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            return serializer.Deserialize<FilePostReturn>(rawData);
+        }
     }
 }

@@ -15,7 +15,7 @@ body {
 
 .scriptdetails {
     padding: 10px;
-    width: 85%;
+    width: 50%;
     display: inline-block;
     vertical-align: top;
     height: 10px;
@@ -31,7 +31,6 @@ body {
     display: inline-block;
     vertical-align: middle;
     height: 15px;
-    font-size: small;
 }
 
 .manual,

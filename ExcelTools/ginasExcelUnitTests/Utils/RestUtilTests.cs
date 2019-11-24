@@ -29,7 +29,7 @@ namespace ginasExcelUnitTests.Utils
         [TestMethod]
         public void SearchMolfileTestFound()
         {
-            string molfilePath = @"..\..\..\Test_Files\cyclohexane.mol";
+            string molfilePath = @"..\..\..\Test_Files\VALACTATE.mol";
             molfilePath = Path.GetFullPath(molfilePath);
 
             string molfileText = File.ReadAllText(molfilePath);

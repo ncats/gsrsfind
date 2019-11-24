@@ -189,7 +189,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             log.DebugFormat("RunCallback handling key {0}", updateCallback.getKey());
             if (scriptUtils.ScriptExecutor == null) scriptUtils.ScriptExecutor = ScriptExecutor;
-            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey());
+            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey(), this.GinasConfiguration);
         }
 
         public Update2Callback CreateUpdateCallback(Range messageCell, Range molfileCell,

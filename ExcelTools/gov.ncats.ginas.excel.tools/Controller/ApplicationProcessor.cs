@@ -259,7 +259,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string key = JSTools.RandomIdentifier(10);
             scriptUtils.BuildScriptParameters(scriptParameters.Keys);
             log.Debug("finished scriptUtils.BuildScriptParameters");
-            scriptUtils.StartOneLoad(scriptParameters, key);
+            scriptUtils.StartOneLoad(scriptParameters, key, this.GinasConfiguration);
             log.Debug("completed scriptUtils.StartOneLoad");
             return true;
         }

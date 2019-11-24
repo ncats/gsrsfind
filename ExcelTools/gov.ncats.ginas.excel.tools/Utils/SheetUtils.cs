@@ -137,6 +137,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 string argName = (string)argNameRaw;
                 cell.FormulaR1C1 = argName;
                 string argDescription = (string)scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").description");
+                object usedForLookupValue = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").usedForLookup");
+
+                bool usedForLookup = false;
+                if(  usedForLookupValue != null && usedForLookupValue.ToString(). Equals("true",
+                    StringComparison.CurrentCultureIgnoreCase))
+                {
+                    usedForLookup = true;
+                }
+                log.DebugFormat("cell {0} argname: {1}, usedForLookup: {2}", cell.Address, argName, usedForLookup);
                 if (!string.IsNullOrWhiteSpace(argDescription))
                 {
                     cell.AddComment(argDescription);
@@ -146,7 +155,15 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 cell.Interior.Pattern = XlPattern.xlPatternSolid;
                 cell.Interior.PatternColorIndex = XlPattern.xlPatternAutomatic;
                 cell.Interior.ThemeColor = XlThemeColor.xlThemeColorAccent1;
-                cell.Interior.TintAndShade = -0.249977111117893;
+                if (usedForLookup)
+                {
+                    cell.Interior.TintAndShade = 0.399975585192419;
+                }
+                else
+                {
+                    cell.Interior.TintAndShade = -0.249977111117893;
+                }
+                
                 cell.Interior.PatternTintAndShade = 0;
 
                 cell.Font.ThemeColor = XlThemeColor.xlThemeColorDark1;

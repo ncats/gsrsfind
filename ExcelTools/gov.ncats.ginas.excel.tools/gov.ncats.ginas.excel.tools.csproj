@@ -135,7 +135,7 @@
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>False</EmbedInteropTypes>
-      <HintPath>..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\Shared\Visual Studio Tools for Office\PIA\Office15\Microsoft.Office.Interop.Excel.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -227,6 +227,7 @@
     <Compile Include="Model\Callbacks\Update2Callback.cs" />
     <Compile Include="Model\Callbacks\UpdateCallback.cs" />
     <Compile Include="Model\Enums.cs" />
+    <Compile Include="Model\FilePostReturn.cs" />
     <Compile Include="Model\GinasResult.cs" />
     <Compile Include="Model\GinasToolsConfiguration.cs" />
     <Compile Include="Model\ImageOps.cs" />
@@ -309,9 +310,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="etc\g-srs_controller.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="etc\g-srs_controller.js.safe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="get.snk" />

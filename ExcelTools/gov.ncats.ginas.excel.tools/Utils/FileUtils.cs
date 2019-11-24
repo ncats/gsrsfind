@@ -65,7 +65,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 configFilePath = GetCurrentFolder() + @"\etc\g-srs-config.txt";
             }
             string configString = File.ReadAllText(configFilePath);
-            log.Debug("configString: " + configString);
             GinasToolsConfiguration config = null;
             try
             {
@@ -128,5 +127,55 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return JSTools.GetApplicationMetadataFromString(metadataString);
         }
 
+        public static long GetSize(string filePath)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+            return fileInfo.Length;
+        }
+
+        public static byte[] GetFileData(string filePath)
+        {
+            return File.ReadAllBytes(filePath);
+        }
+
+        public static string GetFileText(string filePath)
+        {
+            return File.ReadAllText(filePath);
+        }
+
+        //from https://stackoverflow.com/questions/910873/how-can-i-determine-if-a-file-is-binary-or-text-in-c#910929
+        public static bool IsBinary(string path)
+        {
+            long length = GetSize(path);
+            if (length == 0) return false;
+
+            using (StreamReader stream = new StreamReader(path))
+            {
+                int ch;
+                while ((ch = stream.Read()) != -1)
+                {
+                    if (IsControlChar(ch))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static bool IsControlChar(int ch)
+        {
+            return (ch > Chars.NUL && ch < Chars.BS)
+                || (ch > Chars.CR && ch < Chars.SUB);
+        }
+
+
+        public static class Chars
+        {
+            public static char NUL = (char)0; // Null char
+            public static char BS = (char)8; // Back Space
+            public static char CR = (char)13; // Carriage Return
+            public static char SUB = (char)26; // Substitute
+        }
     }
 }

@@ -19,6 +19,7 @@ using ginasExcelUnitTests.Model;
 using ginasExcelUnitTests.Utils;
 using gov.ncats.ginas.excel.tools.UI;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ginasExcelUnitTests
 {
@@ -1166,6 +1167,46 @@ namespace ginasExcelUnitTests
             string expected = "9,10-PHENANTHRENEDIONE";
             string actual = (string)GetPropertyInfo.Invoke(loader, args);
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestSaveBinaryFileAndDisplay()
+        {
+            string filePath = @"..\..\..\Test_Files\downloadedimage0.png";//cyclohexane.mol";// 
+            string mimeType = "image/png";// "text /plain";//"application/octet-stream";//
+            filePath = Path.GetFullPath(filePath);
+            string serverUrl = "http://localhost:9000/ginas/app/";
+            string userName = "mitch";
+            string key = "cqj8VcN3GpEqBtm0Mej5";
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("auth-userName", userName);
+            headers.Add("auth-key", key);
+
+            FilePostReturn dataResult = RestUtils.ProcessFileSaveRequest(serverUrl + "upload", "POST", filePath, null, 
+                mimeType, headers, true);
+            Console.WriteLine("Result: " + dataResult);
+            Assert.IsTrue(dataResult.url.Length > 4);
+        }
+
+
+        [TestMethod]
+        public void TestSaveTextFile()
+        {
+            string filePath = @"..\..\..\Test_Files\cyclohexane.mol";// 
+            string mimeType = "text/plain";//"application/octet-stream";//
+            filePath = Path.GetFullPath(filePath);
+            string serverUrl = "http://localhost:9000/ginas/app/";
+            string userName = "mitch";
+            string key = "cqj8VcN3GpEqBtm0Mej5";
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("auth-userName", userName);
+            headers.Add("auth-key", key);
+
+            FilePostReturn dataResult = RestUtils.ProcessFileSaveRequest(serverUrl + "upload", "POST", filePath, null, 
+                mimeType, headers, false);
+            Console.WriteLine("Result: " + dataResult);
+            Console.WriteLine("URL: " + dataResult.url);
+            Assert.IsTrue(dataResult.url.Length > 4);
         }
 
         private Workbook ReadDefaultExcelWorkbook()
