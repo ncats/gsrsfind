@@ -436,7 +436,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(key)).Key;
                 Excel.Range dataRow= row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
-                if(dataRow.Value2 != null ) return (string) dataRow.Value2;
+                if(dataRow.Value2 != null ) return dataRow.Value2.ToString();
             }
             return def;
         }

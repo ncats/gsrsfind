@@ -704,12 +704,12 @@ namespace ginasExcelUnitTests
         public void SubstanceClassTest()
         {
             CheckForm();
-            string nameForTest = "TERLIPRESSIN";//protein
+            string nameForTest = "TAMTUVETMAB";//protein
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
             chemNames.Add("2,6-DICHLOROPHENOL");
             chemNames.Add("CETRIMIDE"); //mixture
-            chemNames.Add("DICHAPETALUM MADAGASCARIENSE BARK/LEAF");//structurally diverse
+            chemNames.Add("GARLIC");//structurally diverse
             chemNames.Add("DRISAPERSEN"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
             //chemNames.Add("PT dede0e43-cc15-49fd-9148-f6df9a79f9f5"); //concept
@@ -826,14 +826,14 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("TERLIPRESSIN");//protein
+            chemNames.Add("TAMTUVETMAB");//protein
             chemNames.Add("ARFOLITIXORIN");
             chemNames.Add("BURIXAFOR");
             chemNames.Add("CETRIMIDE"); //mixture
-            chemNames.Add("SCUTELLARIA LATERIFLORA TOP");//structurally diverse
+            chemNames.Add("MANGO SEED OIL");//structurally diverse
             chemNames.Add("TRABEDERSEN"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
-            chemNames.Add("DETOSU/TRIETHYLENE GLYCOL/TRIETHYLENE GLYCOL POLYGLYCOLIDE COPOLYMER"); //concept
+            chemNames.Add("ANTI - PSGL - 1 ANTIBODY SELK2"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("All Names");
             Queue<string> scripts = new Queue<string>();

@@ -13,7 +13,8 @@ namespace gov.ncats.ginas.excel.tools.Model
             None = 0,
             Application = 1,
             Product = 2,
-            Ingredient = 3
+            Ingredient = 3,
+            ProductName =4
         }
 
         public string FieldName
@@ -85,10 +86,23 @@ namespace gov.ncats.ginas.excel.tools.Model
         public string GetValue()
         {
             if (!string.IsNullOrEmpty(ResolvedValue)) return ResolvedValue;
-            if (FieldValue != null) return FieldValue.ToString();
+            if (FieldValue != null)
+            {
+                if (FieldValue.GetType() ==  Type.GetType( "System.DateTime"))
+                {
+                    string formattedDate =String.Format("{0:MM/dd/yyyy}", FieldValue);
+                    return formattedDate;
+                }
+
+                return FieldValue.ToString();
+            }
             return string.Empty;
         }
 
+        internal bool IsDate()
+        {
+            return FieldName.EndsWith("Date");
+        }
         public ApplicationField Clone()
         {
             ApplicationField clone = new ApplicationField();

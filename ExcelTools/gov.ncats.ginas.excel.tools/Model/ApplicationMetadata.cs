@@ -43,7 +43,6 @@ namespace gov.ncats.ginas.excel.tools.Model
             return metadata.Where(f => !string.IsNullOrEmpty(f.VocabularyName) && f.VocabularyName.Equals(vocabName)).First();
         }
 
-
         public static List<ApplicationField> Metadata
         {
             get

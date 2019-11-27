@@ -1294,6 +1294,25 @@ var GSRSAPI = {
                     ref.publicDomain = pd;
                     return ref;
                 };
+                ref.setUploadedFile = function (fileUrl) {
+                    ref.uploadedFile = fileUrl;
+                    return ref;
+                }
+                ref.processFileData = function () {
+                    var url = g_api.GlobalSettings.getBaseURL();
+                    var pos = url.indexOf('api');
+                    url = url.substring(0, pos - 1) + "/upload";
+                    console.log('url for file upload: ' + url);
+                    var req = g_api.Request.builder()
+                        .url(url);
+                    req.b = _fileData;
+                    return g_api.httpProcessFile(req).andThen(function (ret) {
+                        var uploadInfo = JSON.parse(ret);
+                        console.log('upload info: ' + ret);
+                        console.log('  url: ' + uploadInfo.url);
+                        return setUploadFileUrl(uploadInfo.url);
+                    });
+                }
 
                 /*@Override*/
                 var oldBuild = ref.build;
