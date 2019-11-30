@@ -2205,7 +2205,6 @@ var CVHelper = {
 function validate4Params(args, params) {
     var requireCrossValidation = false;
     console.log('Starting in validate4Params');
-    var requireCrossValidation = false;
     if (params && params.RequireCrossValidation !== 'undefined' && params.RequireCrossValidation) {
         requireCrossValidation = true;
     }
@@ -2380,8 +2379,14 @@ function validate4Params(args, params) {
 
 }
 
-function validate3Params(args) {
+function validate3Params(args, params) {
     console.log('Starting in validate3Params');
+    var requireCrossValidation = false;
+    if (params && params.RequireCrossValidation !== 'undefined' && params.RequireCrossValidation) {
+        requireCrossValidation = true;
+    }
+    console.log('requireCrossValidation: ' + requireCrossValidation);
+    var twoParameterMessage = "At least two of these arguments must have values: UUID, PT and BDNUM";
     /*Look at up to 4 parameters: UUID, PT, and FORCED.
      When !FORCED, all of the first 3 must be present.
      Otherwise, any one is sufficient.
@@ -2389,10 +2394,12 @@ function validate3Params(args) {
      */
     if ((!args.uuid.getValue() && !args.pt.getValue())) {
         console.log('missing parm(s)');
+        var errorMessage = "At least one of these arguments must have values: UUID, PT ";
+        if (requireCrossValidation) errorMessage = twoParameterMessage;
         return GGlob.JPromise.of(function (cb) {
             cb({
                 "valid": false,
-                "message": "At least one of these arguments must have values: UUID, PT ",
+                "message": errorMessage,
                 "overall": true
             });
         });
@@ -2403,6 +2410,11 @@ function validate3Params(args) {
             console.log('   and no other arg');
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
+            if (requireCrossValidation) {
+                return GGlob.JPromise.of(function (cb) {
+                    cb({ "valid": false, message: twoParameterMessage, "overall": true });
+                });
+            }
             return GGlob.JPromise.of(function (cb) {
                 cb({ "valid": true, "overall": true });
             });
@@ -2443,6 +2455,11 @@ function validate3Params(args) {
     }
     else if (args.pt.getValue()) {
         console.log('has PT');
+        if (requireCrossValidation) {
+            return GGlob.JPromise.of(function (cb) {
+                cb({ "valid": false, message: twoParameterMessage, "overall": true });
+            });
+        }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.pt.getValue())
             .andThen(function (resp) {
                 if (resp.content && resp.content.length >= 1) {
@@ -2470,10 +2487,12 @@ function validate3Params(args) {
     }
 
     console.log('neither UUID nor PT');
+    errorMessage = "One or both of these arguments must have a value: UUID, PT";
+    if (requireCrossValidation) errorMessage = twoParameterMessage;
     return GGlob.JPromise.of(function (cb) {
         cb({
             "valid": false,
-            "message": "One or both of these arguments must have a value: UUID, PT",
+            "message": errorMessage,
             "overall": true
         });
     });
@@ -3262,8 +3281,16 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
 /*replace code via substance name MAM 26 June 2017*/
 Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one code with another of the same type for a substance record identified by preferred term. Matches code ONLY by code system!" })
     .addArgument({
-        "key": "pt", name: "PT", description: "PT of the substance record", required: true,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
         usedForLookup: true
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record",
+        required: false, usedForLookup: true
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM",
+        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Actual code for the new item", required: true
@@ -3325,6 +3352,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
         "key": "reference tags", name: "REFERENCE TAGS",
         description: "pipe-delimited set of tags for the reference", required: false
     })
+    .addValidator(validate4Params, { RequireCrossValidation: true })
     .setExecutor(function (args) {
         var pt = args.pt.getValue();
         var codeValue = args.code.getValue();
@@ -3427,7 +3455,16 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
 
 Script.builder().mix({ name: "Replace Code Text", description: "Replaces the text (comment) of one code for a substance record identified by preferred term" })
     .addArgument({
-        "key": "pt", name: "PT", description: "PT of the substance record", required: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        usedForLookup: true
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record",
+        required: false, usedForLookup: true
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM",
+        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Existing code to match", required: true
@@ -3485,6 +3522,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
         "key": "reference tags", name: "REFERENCE TAGS",
         description: "pipe-delimited set of tags for the reference", required: false
     })
+    .addValidator(validate4Params, {RequireCrossValidation: true})
     .setExecutor(function (args) {
         var pt = args.pt.getValue();
         var codeValue = args.code.getValue();
@@ -3593,6 +3631,124 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
             });
     })
     .useFor(Scripts.addScript);
+/*Added 25 October 2019 MAM*/
+Script.builder().mix({ name: "Replace Code Type", description: "Replaces the type ('PRIMARY,' 'ALTERNATIVE', 'GENERIC (FAMILY)'..) of a code for a substance record" })
+    .addArgument({
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        usedForLookup: true
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        required: false, usedForLookup: true
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM",
+        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+    })
+    .addArgument({
+        "key": "code", name: "CODE", description: "Actual code for item to match", required: true,
+        usedForLookup: false
+    })
+    .addArgument({
+        "key": "code system", name: "CODE SYSTEM", description: "Code system of the existing code to match",
+        required: true, opPromise: CVHelper.getTermList("CODE_SYSTEM"), type: "cv",
+        cvType: "CODE_SYSTEM", usedForLookup: false
+    })
+    .addArgument({
+        "key": "code type", name: "CODE TYPE", description: "New type for the code. For instance, GENERIC",
+        required: true, opPromise: CVHelper.getTermList("CODE_TYPE"), type: "cv",
+        cvType: "CODE_TYPE", usedForLookup: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        description: "Text for the record change", required: false, usedForLookup: false
+    })
+    .addValidator(validate4Params, { RequireCrossValidation: true })
+    .setExecutor(function (args) {
+        var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
+        var codeInput = args.code.getValue();
+        var codeType = args['code type'].getValue();
+        var codeSystem = args['code system'].getValue();
+
+        var codesToUpdate = [];
+        var codeIndicesToUpdate = [];
+
+        console.log('Looking for code ' + codeInput
+            + ' of codeSystem ' + codeSystem);
+        var lookupCriterion = uuid;
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
+                console.log('using pt for lookup');
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (s) {
+                if (!s || !s.content || s.content.length === 0) {
+                    console.log('no results found for query of ' + lookupCriterion);
+                    return { valid: false, message: 'Error looking up record for ' + lookupCriterion };
+                }
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                return substance.fetch("references")
+                    .andThen(function (s2) {
+                        return substance.fetch("codes")
+                            .andThen(function (codes) {
+                                var valuesError = '';
+                                //iterate backwards over the collection to avoid issue 22 August 2019
+                                codes = _.forEachRight(codes, function (cd, codeIndex) {
+                                    if (cd.codeSystem === codeSystem && cd.code === codeInput) {
+                                        console.log('located code at index ' + codeIndex + ' to change type '
+                                            + codeType);
+
+                                        var code = Code.builder()
+                                            .setCode(codeInput)
+                                            .setType(codeType)
+                                            .setCodeSystem(codeSystem)
+                                            .setCodeComments(cd.comments)
+                                            .setPublic(cd.public)
+                                            .setUrl(cd.url)
+                                            .setAccess(cd.access);
+                                        _.forEach(cd.references, function (r) {
+                                            code.addReference(r);
+                                        });
+
+                                        //code.mix(code, cd);
+                                        codeIndicesToUpdate.push(codeIndex);
+                                        codesToUpdate.push(code);
+                                    }
+                                });
+
+                                if (codeIndicesToUpdate.length > 0 || codesToUpdate.length > 0) {
+                                    console.log('Replace Code Type is going to return patch ');
+                                    var codePatch = rec.patch();
+                                    _.forEach(codeIndicesToUpdate, function (c, i) {
+                                        codePatch = codePatch.remove("/codes/" + codeIndicesToUpdate[i]);
+                                    });
+                                    _.forEach(codesToUpdate, function (c, i) {
+                                        codePatch = codePatch.addData(c);
+                                    })
+
+                                    console.log('codePatch: ' + JSON.stringify(codePatch));
+                                    return codePatch
+                                        .add("/changeReason", args['change reason'].getValue())
+                                        .apply()
+                                        .andThen(_.identity);
+                                } else {
+                                    console.log('Replace Code Type is going to return message ' + valuesError);
+                                    return { "message": valuesError, "valid": false };
+                                }
+                            });
+                    });
+
+            });
+    })
+    .useFor(Scripts.addScript);
 
 /*Remove Name*/
 Script.builder().mix({ name: "Remove Name", description: "Removes a name from a substance record" })
@@ -3626,7 +3782,6 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
         description: "Text for the record change log", required: false
     })
-    /*.setRequireCrossValidation(true)*/
     .addValidator(validate4Params, { RequireCrossValidation: true })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
@@ -3704,7 +3859,7 @@ Script.builder().mix({ name: "Remove Code", description: "Removes a single code 
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
         description: "Text for the record change log", required: false
     })
-    .addValidator(validate4Params, null)
+    .addValidator(validate4Params, { RequireCrossValidation: true })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -3792,7 +3947,7 @@ Script.builder().mix({
         defaultValue: "Stem for the formation of URLs, with Code to be appended",
         description: "Text for the record change", required: true
     })
-    .addValidator(validate3Params, null)
+    .addValidator(validate3Params, {RequireCrossValidation: true})
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var codeSystem = args['code system'].getValue();
@@ -3855,6 +4010,14 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
         usedForLookup: true
     })
     .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        usedForLookup: true
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        usedForLookup: true
+    })
+    .addArgument({
         "key": "json", name: "JSON", description: "JSON (string) version of record to replace",
         required: true
     })
@@ -3862,6 +4025,7 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
         "key": "change reason", name: "CHANGE REASON",
         description: "Text for the record change", required: false
     })
+    .addValidator(validate4Params, {RequireCrossValidation: true})
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var jsonString = args.json.getValue();
@@ -3897,6 +4061,10 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
         usedForLookup: true
     })
     .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        usedForLookup: true
+    })
+    .addArgument({
         "key": "code system", name: "CODE SYSTEM",
         description: "Code system to modify", required: true, defaultValue: "CAS"
     })
@@ -3908,7 +4076,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Changing Code protection", description: "Text for the record change", required: false
     })
-    .addValidator(validate3Params,null)
+    .addValidator(validate4Params, { RequireCrossValidation: false })
     .setExecutor(function (args) {
         var ACCESS_NONE = '[NONE]';
         var uuid = args.uuid.getValue();
@@ -4633,6 +4801,320 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                             .add("/changeReason", args['change reason'].getValue())
                             .apply()
                             .andThen(_.identity);
+                    });
+            });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+/*Add a value to a property selected by the user*/
+Script.builder().mix({ name: "Add Property Value", description: "Add a value to a specified property for a substance record" })
+    .addArgument({
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "property name", name: "PROPERTY NAME", description: "Property to use", required: true,
+        opPromise: CVHelper.getTermList("PROPERTY_NAME"),
+        type: "cv", cvType: "PROPERTY_NAME"
+    })
+    .addArgument({
+        "key": "property category", name: "PROPERTY CATEGORY",
+        description: "classification of property within GSRS", required: false,
+        opPromise: CVHelper.getTermList("PROPERTY_TYPE"),
+        type: "cv", cvType: "PROPERTY_TYPE"
+    })
+    .addArgument({
+        "key": "low value", name: "LOW VALUE", description: "Minimum of the value range", required: false
+    })
+    .addArgument({
+        "key": "high value", name: "HIGH VALUE", description: "Maximum of the value range", required: false
+    })
+    .addArgument({
+        "key": "average", name: "AVERAGE",
+        description: "Middle of the value range", required: false
+    })
+    .addArgument({
+        "key": "text value", name: "TEXT VALUE",
+        description: "String to assign to the property", required: false
+    })
+    .addArgument({
+        "key": "units", name: "UNITS",
+        description: "Unit of measure for this value", required: false,
+        defaultValue: "Liters/Kilogram"
+    })
+    .addArgument({
+        "key": "reference type", name: "REFERENCE TYPE",
+        description: "Type of reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        type: "cv",
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: true
+    })
+    .addArgument({
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
+    })
+    .addArgument({
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the property (sets access for reference as well)",
+        defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Adding a value to a selected property",
+        description: "Text for the record change", required: false
+    })
+    .addValidator(validate4Params)
+    .setExecutor(function (args) {
+        var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
+        var lowValue = args["low value"].getValue();
+        var highValue = args["high value"].getValue();
+        var averageValue = args["average"].getValue();
+        var units = args.units.getValue();
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
+        var referenceUrl = args['reference url'].getValue();
+        var referenceTags = args['reference tags'].getValue();
+        var dataPublic = args.pd.isYessy();
+        var propertyName = args['property name'].getValue();
+        var category = args['property category'].getValue();
+        var textValue = args['text value'].getValue();
+
+        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
+        if (referenceUrl && referenceUrl.length > 0) {
+            reference = reference.setUrl(referenceUrl);
+        }
+        if (dataPublic) {
+            reference.setPublic(true);
+            reference.setPublicDomain(true);
+        } else {
+            reference.setPublic(false);
+            reference.setPublicDomain(false);
+        }
+        if (referenceTags && referenceTags.length > 0) {
+            var tags = referenceTags.split("|");
+            var tagSet = [];
+            _.forEach(tags, function (tag) {
+                tagSet.push(tag);
+            });
+            reference.tags = tagSet;
+        }
+
+        var s0;
+        var lookupCriterion = uuid;
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+
+        var prop = Property.builder().setName(propertyName);
+        prop.setType(category);
+        if (!isNaN(parseFloat(lowValue))) {
+            prop.setLow(lowValue);
+            console.log('set low value: ' + lowValue);
+        }
+        else {
+            console.log('omitted low value');
+        }
+        if (!isNaN(parseFloat(highValue))) {
+            prop.setHigh(highValue);
+            console.log('set high value: ' + highValue);
+        }
+        else {
+            console.log('omitted high value');
+        }
+        if (!isNaN(parseFloat(averageValue))) {
+            prop.setAverage(averageValue);
+            console.log('set avg value: ' + averageValue);
+        }
+        else {
+            console.log('omitted avg value');
+        }
+        if (units) prop.setUnits(units);
+        if (textValue) prop.setPropertyStringValue(textValue);
+
+        if (!dataPublic) prop.setAccess(["restricted"]);
+
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (s) {
+                var substance;
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                s0 = substance;
+                return substance.full();
+            })
+            .andThen(function (s) {
+                return s0.fetch("references")
+                    .andThen(function (refs) {
+                        _.forEach(refs, function (ref) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                                return false;
+                            }
+                        });
+                        if (reference) {
+                            prop.addReference(reference);
+                        }
+                        return s0.patch()
+                            .addData(prop)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
+                    });
+            });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+/*Add a reference directly to a Substance (not connected to a lower-level connection)*/
+Script.builder().mix({ name: "Add Reference", description: "Add a reference to a substance record" })
+    .addArgument({
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false
+    })
+    .addArgument({
+        "key": "reference type", name: "REFERENCE TYPE",
+        description: "Type of reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        type: "cv",
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference citation", name: "REFERENCE CITATION",
+        description: "Citation text for reference", required: true
+    })
+    .addArgument({
+        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
+        required: false
+    })
+    .addArgument({
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the reference",
+        defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "access", name: "ACCESS",
+        description: "Access tag for the reference",
+        opPromise: CVHelper.getTermList("ACCESS_GROUP"),
+        type: "cv",
+        cvType: "ACCESS_GROUP",
+        allowCVOverride: true
+    })
+    .addArgument({
+        "key": "reference file path", name: "REFERENCE FILE PATH",
+        description: "A file to attach to the reference", required: false
+    })
+    .addArgument({
+        "key": "reference tags", name: "REFERENCE TAGS",
+        description: "pipe-delimited set of tags for the reference", required: false
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Adding a reference to a property",
+        description: "Text for the record change", required: false
+    })
+    .addValidator(validate4Params)
+    .setExecutor(function (args) {
+        var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
+
+        var referenceType = args['reference type'].getValue();
+        var referenceCitation = args['reference citation'].getValue();
+        var referenceUrl = args['reference url'].getValue();
+        var referenceTags = args['reference tags'].getValue();
+        var dataPublic = args.pd.isYessy();
+        var referenceAccess = args['access'].getValue();
+        var referenceFilePath = args['reference file path'].getValue();
+
+        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
+        if (referenceUrl && referenceUrl.length > 0) {
+            reference = reference.setUrl(referenceUrl);
+        }
+        if (dataPublic) {
+            reference.setPublic(true);
+            reference.setPublicDomain(true);
+        } else {
+            reference.setPublic(false);
+            reference.setPublicDomain(false);
+        }
+        if (referenceTags && referenceTags.length > 0) {
+            var tags = referenceTags.split("|");
+            var tagSet = [];
+            _.forEach(tags, function (tag) {
+                tagSet.push(tag);
+            });
+            reference.tags = tagSet;
+        }
+        if (referenceFilePath && referenceFilePath.length > 0) {
+            reference.setUploadedFile(referenceFilePath);
+            console.log('adding uploaded file to reference');
+        }
+
+        var s0;
+        var lookupCriterion = uuid;
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        if (referenceAccess) reference.setAccess([referenceAccess]);
+
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (s) {
+                var substance;
+                var rec = s.content[0]; /*can be undefined... todo: handle*/
+                substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                s0 = substance;
+                return substance.full();
+            })
+            .andThen(function (s) {
+                return s0.fetch("references")
+                    .andThen(function (refs) {
+                        _.forEach(refs, function (ref) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                                return false;
+                            }
+                        });
+                        if (reference) {
+                            return s0.patch()
+                                .addData(reference)
+                                .add("/changeReason", args['change reason'].getValue())
+                                .apply()
+                                .andThen(_.identity);
+                        }
                     });
             });
     })

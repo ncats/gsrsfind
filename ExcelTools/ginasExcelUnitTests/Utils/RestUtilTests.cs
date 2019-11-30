@@ -38,6 +38,7 @@ namespace ginasExcelUnitTests.Utils
             var result = RestUtils.SearchMolfile(molfileText, configuration.SelectedServer.ServerUrl).Result;
             
             Console.WriteLine("result of molfile search: " + result);
+            Assert.AreEqual(1, result.Content.Length);
             Console.WriteLine("first term: " + result.Content[0].PrimaryTerm);
             Assert.IsTrue(result.Content.Length > 0);
         }

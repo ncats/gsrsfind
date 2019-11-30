@@ -1235,7 +1235,7 @@ namespace ginasExcelUnitTests
             parms[2] = "Error when this appears in output";
 
             string result = (string)method.Invoke(loader, parms);
-            string expected = "2019";
+            string expected = "24.49";
             workbook.Close(false);
             Assert.AreEqual(expected, result);
         }
