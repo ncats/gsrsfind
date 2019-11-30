@@ -37,7 +37,7 @@ var GSRSAPI = {
                 /*figure out authentication*/
                 if (g_api.GlobalSettings.authUsername
                     && g_api.GlobalSettings.authUsername.length > 0
-                    && g_api.GlobalSettings.authKey 
+                    && g_api.GlobalSettings.authKey
                     && g_api.GlobalSettings.authKey.length > 0) {
                     req.headers["auth-username"] = g_api.GlobalSettings.authUsername;
                     req.headers["auth-key"] = g_api.GlobalSettings.authKey;
@@ -105,7 +105,7 @@ var GSRSAPI = {
                         console.log(' at ' + _.now());
                         cb(response);
                     };
-                    console.log('b: ' + JSON.stringify(b));
+                    /*console.log('b: ' + JSON.stringify(b));*/
                     $.ajax({
                         url: req._url,
                         /*jsonp: cbackname,*/
@@ -745,7 +745,7 @@ var GSRSAPI = {
                         });
 
                         _.forEach(psubs, function (pSub) {
-                            
+
                             worker.process(pSub, worker._fetchers).get(function (rows) {
                                 _.forEach(rows, function (row) {
                                     worker._consumer(row);
@@ -984,13 +984,13 @@ var GSRSAPI = {
                         rq.contentType = ct;
                         return rq;
                     };
-                
+
                 return rq;
             }
         };
 
         g_api.RequestProcessor = {
-            SimpleProcess : function (req) {
+            SimpleProcess: function (req) {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
                     var contentType = req.contentType;
@@ -1145,12 +1145,16 @@ var GSRSAPI = {
                         return data;
                     },
                     data.addToPatch = function (patch) {
-                    var builtData = data.build();
-                    console.log('builtData: ' + JSON.stringify( builtData));
+                        var builtData = data.build();
+                        /*console.log('builtData: ' + JSON.stringify(builtData));*/
                         patch = patch.add(data._path, builtData);
-                    _.forEach(data._references, function (r) {
-                          patch = patch.add("/references/-", r.build());
-                        });
+
+                        if (data._references && data._references.length > 0) {
+                            _.forEach(data._references, function (r) {
+                                console.log('adding one reference, r ' + r);
+                                patch = patch.add("/references/-", r.build());
+                            });
+                        }
                         return patch;
                     },
                     data.mix = function (source) {
@@ -1274,7 +1278,7 @@ var GSRSAPI = {
             builder: function () {
                 var ref = CommonData.builder();
                 ref._type = "reference";
-                ref._path = "references/-";
+                ref._path = "/references/-";
                 ref._fileData = null;
                 ref._uploadFileUrl = null;
 
@@ -1294,6 +1298,17 @@ var GSRSAPI = {
                     ref.publicDomain = pd;
                     return ref;
                 };
+                ref.setUploadFileUrl = function (u) {
+                    ref._uploadFileUrl = u;
+                    return ref;
+                };
+                ref.setFileData = function (fd, ft) {
+                    var formData = new FormData();
+                    formData.append('file-name', fd);
+                    //formData.append('file-type', ft);
+                    _fileData = formData;
+                    return ref;
+                }
                 ref.setUploadedFile = function (fileUrl) {
                     ref.uploadedFile = fileUrl;
                     return ref;
@@ -1313,7 +1328,6 @@ var GSRSAPI = {
                         return setUploadFileUrl(uploadInfo.url);
                     });
                 }
-
                 /*@Override*/
                 var oldBuild = ref.build;
                 ref.build = function () {
@@ -1400,6 +1414,7 @@ var GSRSAPI = {
                 scr.argMap = {};
                 scr.arguments = [];
                 scr.validators = [];
+                scr.validatorParms = [];
                 scr.addArgument = function (arg) {
                     if (arg._type !== "argument") {
                         arg = Argument.builder().mix(arg);
@@ -1451,8 +1466,9 @@ var GSRSAPI = {
                     scr.executor = exec;
                     return scr;
                 };
-                scr.addValidator = function (valid) {
+                scr.addValidator = function (valid, parms) {
                     scr.validators.push(valid);
+                    scr.validatorParms.push(parms);
                     return scr;
                 };
                 scr.useFor = function (cb) {
@@ -1516,6 +1532,7 @@ var GSRSAPI = {
                     _.forEach(scr.arguments, function (a) {
                         cargs.args[a.getKey()] = a;
                     });
+
                     cargs.validate = function () {
                         var proms = _.chain(cargs.getArguments())
                             .map(function (a) {
@@ -1523,7 +1540,7 @@ var GSRSAPI = {
                             })
                             .value();
                         for (var i = 0; i < scr.validators.length; i++) {
-                            proms.push(scr.validators[i](cargs.args));
+                            proms.push(scr.validators[i](cargs.args, scr.validatorParms[i]));
                         }
                         return g_api.JPromise.join(proms)
                             .andThen(function (plist) {
@@ -1586,6 +1603,7 @@ var GSRSAPI = {
                 arg.opPromise = JPromise.ofScalar([]);
                 arg.cvType = "";
                 arg.usedForLookup = false;
+                arg.allowCVOverride = false;
                 /*name of the argument*/
                 arg.setName = function (nm) {
                     arg.name = nm;
@@ -1607,6 +1625,10 @@ var GSRSAPI = {
                     arg.required = r;
                     return arg;
                 };
+                arg.setAllowCVOverride = function (a) {
+                    arg.allowCVOverride = a;
+                    return arg;
+                }
                 arg.setOptions = function (opPromise) {
                     if (opPromise._promise) {
                         arg.opPromise = opPromise;
@@ -1637,13 +1659,14 @@ var GSRSAPI = {
                         }
                     }
 
-                    if (arg.type === "cv") {
+                    if (arg.type === "cv" && !arg.allowCVOverride) {
                         return arg.opPromise.andThen(function (o) {
                             if (!_.includes(o, arg.getValue())) {
                                 console.log('cv: ' + o);
                                 return {
                                     "valid": false,
-                                    "message": "Argument '" + arg.getName() + "' has value '" + arg.getValue() + "' which is not in the CV"
+                                    "message": "Argument '" + arg.getName() + "' has value '"
+                                        + arg.getValue() + "' which is not in the CV"
                                 };
                             }
                             return validFunction;
@@ -1919,7 +1942,7 @@ FetcherRegistry.addFetcher(
                 returnValue = 'Validated (UNII)';
             }
             cb(returnValue);
-        });        
+        });
     }).addTag("Record")
 );
 
@@ -1996,12 +2019,12 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
 FetcherRegistry.addFetcher(
     FetcherMaker.make("Equivalence Factor", function (simpleSub) {
         return simpleSub.fetch("structure/mwt").andThen(function (mwt) {
-                return simpleSub.fetch("relationships")
-                    .andThen(function (r) {
-                        var amuuid = _.chain(r)
-                            .filter({ type: "ACTIVE MOIETY" })
-                            .map(function (ro) {
-                                return ro.relatedSubstance.refuuid;
+            return simpleSub.fetch("relationships")
+                .andThen(function (r) {
+                    var amuuid = _.chain(r)
+                        .filter({ type: "ACTIVE MOIETY" })
+                        .map(function (ro) {
+                            return ro.relatedSubstance.refuuid;
                         })
                         .value()[0];
                     return SubstanceFinder.get(amuuid)
@@ -2152,6 +2175,7 @@ FetcherRegistry.addFetcher(
             });
     }).addTag("Properties")
 );
+
 /*******************
 CV helper (TODO:move to main library)
 *******************/
@@ -2168,7 +2192,7 @@ var CVHelper = {
         });
     },
     getDictionary: function (domain) {
-        console.log('getDictionary called with domain: ' + domain);
+        /*console.log('getDictionary called with domain: ' + domain);*/
         return GGlob.CVFinder.searchByDomain(domain).andThen(function (r) {
             /*console.log('getDictionary andThen, r: '+ JSON.stringify(r));*/
             return "vocabulary:" + domain + ":" + JSON.stringify(r);
@@ -2178,8 +2202,15 @@ var CVHelper = {
 };
 
 
-function validate4Params(args) {
+function validate4Params(args, params) {
+    var requireCrossValidation = false;
     console.log('Starting in validate4Params');
+    var requireCrossValidation = false;
+    if (params && params.RequireCrossValidation !== 'undefined' && params.RequireCrossValidation) {
+        requireCrossValidation = true;
+    }
+    console.log('requireCrossValidation: ' + requireCrossValidation);
+    var twoParameterMessage = "At least two of these arguments must have values: UUID, PT and BDNUM";
     /*Look at up to 4 parameters: UUID, PT, BDNUM and FORCED.
      When !FORCED, all of the first 3 must be present.
      Otherwise, any one is sufficient.
@@ -2188,8 +2219,12 @@ function validate4Params(args) {
     if (!args.uuid.getValue() && !args.pt.getValue() && !args.bdnum.getValue()) {
         console.log('missing parm(s)');
         return GGlob.JPromise.of(function (cb) {
+            var errorMessage = "At least one of these arguments must have values: UUID, PT and BDNUM";
+            if (requireCrossValidation) {
+                errorMessage = twoParameterMessage;
+            }
             cb({
-                "valid": false, "message": "At least one of these arguments must have values: UUID, PT and BDNUM",
+                "valid": false, "message": errorMessage,
                 "overall": true
             });
         });
@@ -2199,7 +2234,15 @@ function validate4Params(args) {
         if (!args.pt.getValue() && !args.bdnum.getValue()) {
             console.log('   and no other arg');
             /*we do have a UUID but PT and BDNUM are empty and FORCED is on
-             can forego any further checking!*/
+             can forego any further checking, unless we require more than one!*/
+            if (requireCrossValidation) {
+                return GGlob.JPromise.of(function (cb) {
+                    cb({
+                        "valid": false, "message": twoParameterMessage, "overall": true
+                    });
+                });
+            }
+
             return GGlob.JPromise.of(function (cb) {
                 cb({ "valid": true, "overall": true });
             });
@@ -2263,6 +2306,15 @@ function validate4Params(args) {
             });
     }
     else if (args.pt.getValue()) {
+        if (requireCrossValidation && !args.bdnum.getValue()) {
+            return GGlob.JPromise.of(function (cb) {
+                cb({
+                    "valid": false,
+                    "message": twoParameterMessage,
+                    "overall": true
+                });
+            });
+        }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.pt.getValue())
             .andThen(function (resp) {
                 if (resp.content && resp.content.length >= 1) {
@@ -2305,17 +2357,19 @@ function validate4Params(args) {
                         console.log('Skipping BDNum look up ...');
                         return { valid: true };
                     }
-                } else {
-                    return {
-                        "valid": false, "message": "Could not find record with that PT",
-                        "overall": true
-                    };
                 }
             });
 
     }
     if (args.bdnum.getValue()) {
         return GGlob.JPromise.of(function (cb) {
+            if (requireCrossValidation) {
+                return {
+                    "valid": false,
+                    "message": twoParameterMessage,
+                    "overall": true
+                }
+            }
             cb({ valid: true });
         });
 
@@ -2737,7 +2791,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Name",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate4Params)
+    .addValidator(validate4Params, null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -2758,7 +2812,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         if (referenceUrl && referenceUrl.length > 0) {
             reference = reference.setUrl(referenceUrl);
         }
-        
+
         console.log('referenceFilePath: ' + referenceFilePath);
         if (referenceFilePath && referenceFilePath.length > 0) {
             reference.setUploadedFile(referenceFilePath);
@@ -2789,7 +2843,7 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
                 lookupCriterion = pt;
             }
             else {
-                console.log('using bdnum '  + bdnum);
+                console.log('using bdnum ' + bdnum);
                 lookupCriterion = bdnum;
             }
         }
@@ -2914,7 +2968,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         defaultValue: "Added Code",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate4Params)
+    .addValidator(validate4Params, null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -3033,7 +3087,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                                 return false;
                                             }
                                         }
-                                        else if(!replaceExisting) {
+                                        else if (!replaceExisting) {
                                             console.log('detected duplicate');
                                             valuesOK = false;
                                             valuesError = 'This substance already has a code for system '
@@ -3047,7 +3101,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                     var codePatch = rec.patch();
                                     _.forEach(codesIndicesToRemove, function (index) {
                                         console.log('removing index ' + index);
-                                        codePatch=codePatch.remove("/codes/" + index);
+                                        codePatch = codePatch.remove("/codes/" + index);
                                     });
 
                                     console.log('codePatch: ' + JSON.stringify(codePatch));
@@ -3074,7 +3128,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
     })
     .addArgument({
         "key": "pt", name: "PT", description: "Preferred Term of the primary record (used for validation)",
-            required: false, usedForLookup: true
+        required: false, usedForLookup: true
     })
     .addArgument({
         "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record",
@@ -3083,7 +3137,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
     .addArgument({
         "key": "pt2", name: "PT2",
         description: "Preferred Term of the secondary record (used for validation)", required: false,
-            usedForLookup: true
+        usedForLookup: true
     })
     .addArgument({
         "key": "relationship type", name: "RELATIONSHIP TYPE",
@@ -3122,7 +3176,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         defaultValue: "Added Code",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate2Substances)
+    .addValidator(validate2Substances, null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var uuid2 = args.uuid2.getValue();
@@ -3572,7 +3626,8 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
         description: "Text for the record change log", required: false
     })
-    .addValidator(validate4Params)
+    /*.setRequireCrossValidation(true)*/
+    .addValidator(validate4Params, { RequireCrossValidation: true })
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -3626,10 +3681,95 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         Scripts.addScript(s);
     });
 
+/*Remove Code*/
+Script.builder().mix({ name: "Remove Code", description: "Removes a single code from a substance record. Note: this method makes changes to existing records" })
+    .addArgument({
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", usedForLookup: true
+    })
+    .addArgument({
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        usedForLookup: true
+    })
+    .addArgument({
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        usedForLookup: true
+    })
+    .addArgument({
+        "key": "code", name: "CODE", description: "Code value of the code to delete", required: true
+    })
+    .addArgument({
+        "key": "code system", name: "CODE SYSTEM", description: "Code system of the code to delete"
+    })
+    .addArgument({
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
+        description: "Text for the record change log", required: false
+    })
+    .addValidator(validate4Params, null)
+    .setExecutor(function (args) {
+        var uuid = args.uuid.getValue();
+        var pt = args.pt.getValue();
+        var bdnum = args.bdnum.getValue();
+        var codeToRemove = args.code.getValue();
+        var codeSystemToRemove = args['code system'].getValue();
+        console.log('Looking for codeToRemove: ' + codeToRemove + '; codeSystemToRemove: '
+            + codeSystemToRemove);
+
+        var s0;
+        var lookupCriterion = uuid;
+        if (!uuid || uuid.length === 0) {
+            if (pt && pt.length > 0) {
+                lookupCriterion = pt;
+            }
+            else {
+                lookupCriterion = bdnum;
+            }
+        }
+        console.log('lookupCriterion = ' + lookupCriterion);
+        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
+            .andThen(function (resp) {
+                if (resp.content && resp.content.length >= 1) {
+                    console.log('looked up substance successfully');
+                    var rec = resp.content[0];
+                    substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                    s0 = substance;
+                    return substance.full();
+                }
+                return { valid: false, message: 'Error looking up substance' };
+            })
+            .andThen(function (s) {
+                var codeIndex = -1;
+                for (var i = 0; i < s.codes.length; i++) {
+                    if (s.codes[i].name === codeToRemove && s.codes[i].codeSystem === codeSystemToRemove) {
+                        codeIndex = i;
+                        break;
+                    }
+                }
+
+                if (codeIndex <= -1) {
+                    return {
+                        valid: false, message: "Unable to locate code to delete: "
+                            + codeSystemToRemove + '.' + codeToRemove
+                    }
+                }
+                return s0.patch()
+                    .remove("/codes/" + codeIndex)
+                    .add("/changeReason", args['change reason'].getValue())
+                    .apply()
+                    .andThen(function (s0) {
+                        return s0;
+                    });
+            });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
     name: "Fix Code URLS",
-    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"})
+    description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
+})
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
         usedForLookup: true
@@ -3652,7 +3792,7 @@ Script.builder().mix({
         defaultValue: "Stem for the formation of URLs, with Code to be appended",
         description: "Text for the record change", required: true
     })
-    .addValidator(validate3Params)
+    .addValidator(validate3Params, null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var codeSystem = args['code system'].getValue();
@@ -3768,7 +3908,7 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
     .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Changing Code protection", description: "Text for the record change", required: false
     })
-    .addValidator(validate3Params)
+    .addValidator(validate3Params,null)
     .setExecutor(function (args) {
         var ACCESS_NONE = '[NONE]';
         var uuid = args.uuid.getValue();
@@ -4275,7 +4415,7 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Replace Name",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate4Params)
+    .addValidator(validate4Params,null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -4341,7 +4481,7 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
 /*Add a volume of distribution*/
 Script.builder().mix({ name: "Volume of Distribution", description: "Add values to Volume of Distribution Property for a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false, 
+        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -4396,7 +4536,7 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Adding a value to the Volume of Distribution property",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate4Params)
+    .addValidator(validate4Params,null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();
@@ -4475,24 +4615,24 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                 s0 = substance;
                 return substance.full();
             })
-            .andThen(function(s){
+            .andThen(function (s) {
                 return s0.fetch("references")
-                .andThen(function (refs) {
-                _.forEach(refs, function (ref) {
-                    if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-                        console.log('Duplicate reference found! Will skip creation of new one.');
-                        reference = ref;
-                        return false;
-                    }
-                });
-                if (reference) {
-                    prop.addReference(reference);
-                }
-                return s0.patch()
-                    .addData(prop)
-                    .add("/changeReason", args['change reason'].getValue())
-                    .apply()
-                    .andThen(_.identity);
+                    .andThen(function (refs) {
+                        _.forEach(refs, function (ref) {
+                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
+                                console.log('Duplicate reference found! Will skip creation of new one.');
+                                reference = ref;
+                                return false;
+                            }
+                        });
+                        if (reference) {
+                            prop.addReference(reference);
+                        }
+                        return s0.patch()
+                            .addData(prop)
+                            .add("/changeReason", args['change reason'].getValue())
+                            .apply()
+                            .andThen(_.identity);
                     });
             });
     })
@@ -4502,7 +4642,8 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
 
 Script.builder().mix({
     name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
-        validForSheetCreation: false})
+    validForSheetCreation: false
+})
     .addArgument({
         "key": "molfile", name: "Molfile", description: "structure to save", required: true
     })
@@ -4576,7 +4717,7 @@ Script.builder().mix({ name: "Add Note", description: "Adds a note to a substanc
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Note",
         description: "Text for the record change", required: false
     })
-    .addValidator(validate4Params)
+    .addValidator(validate4Params,null)
     .setExecutor(function (args) {
         var uuid = args.uuid.getValue();
         var pt = args.pt.getValue();

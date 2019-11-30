@@ -97,7 +97,7 @@
             // button3
             // 
             this.button3.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.DataLoadingIcon;
-            this.button3.Label = " Load Data";
+            this.button3.Label = " Load/Edit Data";
             this.button3.Name = "button3";
             this.button3.ShowImage = true;
             this.button3.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button3_Click_1);
@@ -105,7 +105,7 @@
             // button4
             // 
             this.button4.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.CreateSheetIcon;
-            this.button4.Label = " Create Loading Sheet";
+            this.button4.Label = " Create Editing Sheet";
             this.button4.Name = "button4";
             this.button4.ShowImage = true;
             this.button4.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button4_Click);

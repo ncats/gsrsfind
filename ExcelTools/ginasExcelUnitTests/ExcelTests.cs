@@ -1209,6 +1209,36 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(dataResult.url.Length > 4);
         }
 
+        [TestMethod]
+        public void GetPropertyValueTestNum()
+        {
+            string methodToTest = "GetPropertyValue";
+            DataLoader loader = new DataLoader();
+            MethodInfo method = loader.GetType().GetMethod(methodToTest,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            string sheetFilePath = @"..\..\..\Test_Files\Number in C2.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+
+            Dictionary<int, string> ColumnKeys = new Dictionary<int, string>();
+
+            ColumnKeys.Add(3, "key");
+            FieldInfo keyInfo = loader.GetType().GetField("ColumnKeys", BindingFlags.Instance | BindingFlags.NonPublic);
+            keyInfo.SetValue(loader, ColumnKeys);
+
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            Worksheet sheet = (Worksheet)workbook.Worksheets[1];
+            Range range = sheet.Range["C2"];
+            object[] parms = new object[3];
+
+            parms[0] = range;
+            parms[1] = "key";
+            parms[2] = "Error when this appears in output";
+
+            string result = (string)method.Invoke(loader, parms);
+            string expected = "2019";
+            workbook.Close(false);
+            Assert.AreEqual(expected, result);
+        }
         private Workbook ReadDefaultExcelWorkbook()
         {
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";

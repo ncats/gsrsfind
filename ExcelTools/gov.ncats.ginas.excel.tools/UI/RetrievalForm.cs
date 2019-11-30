@@ -299,13 +299,20 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
                 string debugInfo = (string)ExecuteScript(script);
-                debugInfo = debugInfo.Replace("|", Environment.NewLine);
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
-                saveFileDialog.Title = "Save diagnostic information?";
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                if( !string.IsNullOrEmpty(debugInfo))
                 {
-                    FileUtils.WriteToFile(saveFileDialog.FileName, debugInfo);
+                    debugInfo = debugInfo.Replace("|", Environment.NewLine);
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "txt files (*.txt)|*.txt|log file (*.log)|*.log|All files (*.*)|*.*";
+                    saveFileDialog.Title = "Save diagnostic information?";
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        FileUtils.WriteToFile(saveFileDialog.FileName, debugInfo);
+                    }
+                }
+                else
+                {
+                    UIUtils.ShowMessageToUser("No JavaScript debug information found!");
                 }
                 _savedDebugInfo = true;
             }
