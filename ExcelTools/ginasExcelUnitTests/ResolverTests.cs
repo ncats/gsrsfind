@@ -746,7 +746,7 @@ namespace ginasExcelUnitTests
             string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
             chemNames.Add(nameForTest);
-            chemNames.Add("BUCLIZINE");
+            chemNames.Add("BUCLIZINE HYDROCHLORIDE");
             //chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("LYCOPODIUM CLAVATUM SPORE");//structurally diverse
@@ -831,9 +831,9 @@ namespace ginasExcelUnitTests
             chemNames.Add("BURIXAFOR");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("MANGO SEED OIL");//structurally diverse
-            chemNames.Add("TRABEDERSEN"); //nucleic acid
+            chemNames.Add("LEXAPTEPID PEGOL"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
-            chemNames.Add("ANTI - PSGL - 1 ANTIBODY SELK2"); //concept
+            chemNames.Add("CI-201-678 FREE BASE"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("All Names");
             Queue<string> scripts = new Queue<string>();
@@ -905,7 +905,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
+            chemNames.Add("LYSIMACHIA QUADRIFOLIA WHOLE");//structurally diverse
             List<string> resolvers = new List<string>();
             resolvers.Add("Latin Binomial");
             Queue<string> scripts = new Queue<string>();
@@ -936,7 +936,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
+            chemNames.Add("ORYZA SATIVA WHOLE");//structurally diverse
             List<string> resolvers = new List<string>();
             resolvers.Add("Part");
             Queue<string> scripts = new Queue<string>();
@@ -1000,7 +1000,7 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             List<string> chemNames = new List<string>();
-            chemNames.Add("STIBAMINE GLUCOSIDE");
+            chemNames.Add("BALOXAVIR");
             chemNames.Add("NAFCILLIN SODIUM ANHYDROUS");
 
             List<string> resolvers = new List<string>();
@@ -1036,8 +1036,8 @@ namespace ginasExcelUnitTests
             chemNames.Add("ETHYL-1-(((2,4-DICHLOROPHENYL)ACETYL)OXY)CYCLOHEXANE-CARBOXYLATE");
             chemNames.Add("2,6-DICHLOROPHENOXY-.ALPHA.-PROPIONIC ACID");
             chemNames.Add("CETRIMIDE"); //mixture
-            chemNames.Add("DICHAPETALUM MADAGASCARIENSE WHOLE");//structurally diverse
-            chemNames.Add("LITENIMOD"); //nucleic acid
+            chemNames.Add("LYSIMACHIA QUADRIFOLIA WHOLE");//structurally diverse
+            chemNames.Add("LEXAPTEPID PEGOL"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
             chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
             List<string> resolvers = new List<string>();

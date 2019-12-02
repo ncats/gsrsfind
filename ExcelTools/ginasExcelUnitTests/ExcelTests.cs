@@ -989,7 +989,7 @@ namespace ginasExcelUnitTests
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.CreateSheet(workbook, scriptUtils, retrievalForm, true);
             int numSheetsAfter = workbook.Sheets.Count;
-            Assert.AreEqual((numSheetsBefore + 1), numSheetsAfter);
+            Assert.AreEqual((numSheetsBefore + 2), numSheetsAfter);
             Worksheet newSheet = (Worksheet)workbook.Sheets["Add Name"];
             string script = "GSRSAPI_consoleStack.join('|')";// "$('#console').val()";
             string debugInfo = (string)retrievalForm.ExecuteScript(script);

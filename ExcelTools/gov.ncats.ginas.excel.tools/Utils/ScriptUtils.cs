@@ -17,6 +17,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
         private object LOCK_OBJECT = new object();
 
         private Dictionary<string, Vocab> vocabularies = new Dictionary<string, Vocab>();
+        internal const string BOOLEAN_VOCABULARY_NAME = "BOOLEAN VOCABULARY";
+
         public Dictionary<string, Vocab> Vocabularies
         {
             get
@@ -147,6 +149,10 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             List<VocabItem> vocabItems = new List<VocabItem>();
             log.DebugFormat("In GetVocabItems, vocabName:{0}", vocabName);
+            if( vocabName.Equals(BOOLEAN_VOCABULARY_NAME))
+            {
+                return GetBooleanVocabularyItems();
+            }
             if (!vocabularies.ContainsKey(vocabName)) return vocabItems;
             Vocab vocab = vocabularies[vocabName];
             if(vocab == null || vocab.Content ==null || vocab.Content[0] ==null)
@@ -193,6 +199,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.DebugFormat("{0} using script name {1} ",
                 MethodBase.GetCurrentMethod().Name, ScriptName);
             ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + ScriptName+ "');");
+            object scriptResult = ScriptExecutor.ExecuteScript(tempScriptName);
+            log.DebugFormat("result of test script: {0}", scriptResult);
             string runnerName = "tmpRunner";
             ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
 
@@ -311,6 +319,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             TimeSpan elapsed = DateTime.Now.Subtract(start);
             log.DebugFormat("millisec in {0}: {1}", MethodBase.GetCurrentMethod().Name,
                 elapsed.TotalMilliseconds);
+        }
+
+        public List<VocabItem> GetBooleanVocabularyItems()
+        {
+            List<VocabItem> booleanVocab = new List<VocabItem>();
+            booleanVocab.Add(new VocabItem("true", "TRUE", false));
+            booleanVocab.Add(new VocabItem("false", "FALSE", false));
+            return booleanVocab;
         }
     }
 

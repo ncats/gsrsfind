@@ -86,6 +86,16 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
             Assert.AreEqual("The Value", transformed);
         }
 
+        [TestMethod]
+        public void GetBooleanVocabularyItemsTest()
+        {
+            ScriptUtils scriptUtils = new ScriptUtils();
+            List<VocabItem> booleanVocabularyItems = scriptUtils.GetBooleanVocabularyItems();
+            Assert.IsTrue(booleanVocabularyItems.Any(v => v.Term.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                && booleanVocabularyItems.Any(v => v.Term.Equals("false", StringComparison.InvariantCultureIgnoreCase)));
+
+
+        }
         private Vocab CreateSimpleVocab()
         {
             Vocab vocab = new Vocab();

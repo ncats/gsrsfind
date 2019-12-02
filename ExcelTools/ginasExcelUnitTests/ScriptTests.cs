@@ -733,6 +733,63 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+        public void ReplaceCodeTypeWorksTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string ptForTest = "ANDROSTERONE SULFATE";
+            string uuid = "88813ffe-ff1f-4a47-870b-26635fa101ef";
+            string bdnum = "0005779AB";
+            List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
+
+            scriptUtils.ScriptName = "Replace Code Type";
+            string codeSystem = "UNIPROT";
+            CodeProxy firstCode = codesBefore.First(c => c.CodeSystem.Equals(codeSystem));
+            string oldCode = firstCode.Code;
+            string codeComment = firstCode.Comments;
+            string url = firstCode.Url;
+            string newComment = codeComment + " A";
+            string newType = firstCode.Type.Equals("PRIMARY", StringComparison.InvariantCultureIgnoreCase)
+                ? "ALTERNATIVE" : "PRIMARY";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuid));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('bdnum', '{0}')", bdnum));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", oldCode));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code type', '{0}')", newType));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
+                codeSystem));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'Code type modification to test script')");
+            string callbackKey = JSTools.RandomIdentifier();
+
+            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['" + callbackKey
+                + "']=b;window.external.Notify('" + callbackKey + "');})");
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(SCRIPT_INTERVAL);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
+            Assert.AreEqual(codesBefore.Count, codesAfter.Count);
+            string msg = string.Format("looking for code with system {0}, code {1}, url {2}, comment {3}",
+                codeSystem, oldCode, url, newComment);
+            Console.WriteLine(msg);
+            Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(codeSystem) && c.Code.Equals(oldCode)
+                && c.Type.Equals(newType) ));
+        }
+
+        [TestMethod]
         public void CreateSubstanceTest()
         {
             CheckForm();

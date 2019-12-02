@@ -102,7 +102,7 @@ namespace ginasExcelUnitTests.Utils
         internal List<CodeProxy> GetCodesEtcForName(string name)
         {
             string query =
-                string.Format("select code_system, code, comments, url from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
+                string.Format("select code_system, code, comments, url,type from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
                  name);
             List<CodeProxy> codes = new List<CodeProxy>();
             NpgsqlCommand command = connection.CreateCommand();
@@ -117,11 +117,13 @@ namespace ginasExcelUnitTests.Utils
                 string code = reader.GetString(1);
                 string comments = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
                 string url = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                string type = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
                 CodeProxy codeProxy = new CodeProxy();
                 codeProxy.CodeSystem = codeSystem;
                 codeProxy.Code = code;
                 codeProxy.Url = url;
                 codeProxy.Comments = comments;
+                codeProxy.Type = type;
                 codes.Add(codeProxy);
             }
             reader.Close();

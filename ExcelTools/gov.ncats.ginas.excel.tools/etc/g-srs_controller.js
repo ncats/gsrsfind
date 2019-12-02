@@ -2784,7 +2784,9 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
         cvType: "LANGUAGE"
     })
     .addArgument({
-        "key": "pd", name: "PD", description: "Public Domain status of the name (sets access for reference as well)", defaultValue: false, required: false
+        "key": "pd", name: "PD",
+        description: "Public Domain status of the name (sets access for reference as well)",
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference type", name: "REFERENCE TYPE",
@@ -2949,12 +2951,12 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
     .addArgument({
         "key": "allow multiples", name: "ALLOW MULTIPLES",
         description: "Allow the entry of multiple codes within the same code system",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference type", name: "REFERENCE TYPE",
@@ -3188,7 +3190,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the relationship (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "change reason", name: "CHANGE REASON",
@@ -3326,7 +3328,7 @@ Script.builder().mix({ name: "Replace Code by Name", description: "Replaces one 
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference type", name: "REFERENCE TYPE",
@@ -3496,7 +3498,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference type", name: "REFERENCE TYPE",
@@ -4042,8 +4044,7 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
                 return updatePatch
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
-                    .andThen(function (arg) {
-                    });
+                    .andThen(function () {});
             })
     })
     .useFor(function (s) {
@@ -4212,7 +4213,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .setExecutor(function (args) {
         console.log('Starting in Create Substance executor');
@@ -4373,7 +4374,7 @@ Script.builder().mix({
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the code (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "cas", name: "CAS",
@@ -4694,7 +4695,7 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the property (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference tags", name: "REFERENCE TAGS",
@@ -4868,7 +4869,7 @@ Script.builder().mix({ name: "Add Property Value", description: "Add a value to 
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the property (sets access for reference as well)",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference tags", name: "REFERENCE TAGS",
@@ -5018,7 +5019,7 @@ Script.builder().mix({ name: "Add Reference", description: "Add a reference to a
     .addArgument({
         "key": "pd", name: "PD",
         description: "Public Domain status of the reference",
-        defaultValue: false, required: false
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "access", name: "ACCESS",
@@ -5177,7 +5178,8 @@ Script.builder().mix({ name: "Add Note", description: "Adds a note to a substanc
         required: true
     })
     .addArgument({
-        "key": "pd", name: "PD", description: "Public Domain status of the name (sets access for reference as well)", defaultValue: false, required: false
+        "key": "pd", name: "PD", description: "Public Domain status of the name (sets access for reference as well)",
+        defaultValue: false, required: false, type: "boolean"
     })
     .addArgument({
         "key": "reference type", name: "REFERENCE TYPE",

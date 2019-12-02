@@ -150,7 +150,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 {
                     cell.AddComment(argDescription);
                 }
-
+                object argTypeRaw = scriptExecutor.ExecuteScript("tmpScript.arguments.getItem(" + i + ").type");
                 cell.ColumnWidth = 21;
                 cell.Interior.Pattern = XlPattern.xlPatternSolid;
                 cell.Interior.PatternColorIndex = XlPattern.xlPatternAutomatic;
@@ -173,6 +173,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
                         vocabularyName);
 
+                if( string.IsNullOrWhiteSpace(vocabularyName) 
+                    && argTypeRaw != null && argTypeRaw.ToString().Equals("boolean", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    vocabularyName = ScriptUtils.BOOLEAN_VOCABULARY_NAME;
+                } 
                 AddVocabulary(workbook, scriptUtils, scriptExecutor, sortAlpha, vocabularyName,
                     numberOfRows, cell, 1);
             }
