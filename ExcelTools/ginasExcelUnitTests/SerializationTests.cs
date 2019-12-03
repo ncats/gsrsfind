@@ -52,5 +52,19 @@ namespace ginasExcelUnitTests
             Assert.IsNotNull(config.SelectedServer);
             Console.WriteLine(config.ToString());
         }
+
+        [TestMethod]
+        public void TestGetValue()
+        {
+            ApplicationField field = new ApplicationField();
+            field.FieldName = "Submission Date";
+            
+            field.FieldValue = new DateTime(2018, 2, 14);
+
+            string outputValue = field.GetValue();
+            Console.WriteLine(outputValue);
+            string expected = "02/14/2018";
+            Assert.AreEqual(expected, outputValue);
+        }
     }
 }
