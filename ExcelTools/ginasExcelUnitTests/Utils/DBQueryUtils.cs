@@ -79,12 +79,14 @@ namespace ginasExcelUnitTests.Utils
             return names;
         }
 
-        internal List<Tuple<string, string>> GetCodesForName(string name)
+        internal List<CodeProxy> GetCodesForName(string name)
         {
             string query =
-                string.Format("select code_system, code from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
+                string.Format("select code_system, code, type, code_text, comments from ix_ginas_code where owner_uuid in (select owner_uuid from ix_ginas_name where upper(name) = upper('{0}'))",
                  name);
-            List<Tuple<string, string>> codes = new List<Tuple<string, string>>();
+            
+
+            List<CodeProxy> codes = new List<CodeProxy>();
             NpgsqlCommand command = connection.CreateCommand();
             command.CommandText = query;
             command.CommandType = CommandType.Text;
@@ -93,7 +95,13 @@ namespace ginasExcelUnitTests.Utils
 
             while (reader.Read() == true)
             {
-                codes.Add(new Tuple<string, string>(reader.GetString(0), reader.GetString(1)));
+                CodeProxy codeProxy = new CodeProxy();
+                codeProxy.CodeSystem = reader.GetString(0);
+                codeProxy.Code = reader.GetString(1);
+                codeProxy.Type = reader.GetString(2);
+                codeProxy.CodeText = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                codeProxy.Comments = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                codes.Add(codeProxy);
             }
             reader.Close();
             return codes;

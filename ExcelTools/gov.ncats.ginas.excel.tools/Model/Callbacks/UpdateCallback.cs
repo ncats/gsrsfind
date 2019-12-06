@@ -67,8 +67,15 @@ namespace gov.ncats.ginas.excel.tools.Model.Callbacks
 
         public override void Start()
         {
-            base.Start();
-            SetRangeText( STATUS_STARTED);
+            if (!is_executed)
+            {
+
+                base.Start();
+                SetRangeText(STATUS_STARTED);
+            }
+            {
+                log.Debug("Already completed!");
+            }
         }
 
         public int RunnerNumber

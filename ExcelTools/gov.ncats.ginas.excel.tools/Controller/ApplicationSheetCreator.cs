@@ -10,6 +10,7 @@ using Microsoft.Office.Interop.Excel;
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using System.Configuration;
 
 namespace gov.ncats.ginas.excel.tools.Controller
 {
@@ -24,17 +25,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         static List<ApplicationField> _ingredientFieldsToMonitor = null;
 
+        static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
         static ApplicationSheetCreator()
         {
-            string handleApps =System.Configuration.ConfigurationManager.AppSettings.Get("handleProductApplications");
-            log.DebugFormat("handleApps: {0}", handleApps);
-            if(string.IsNullOrWhiteSpace(handleApps)  
-                || handleApps.Equals("false", StringComparison.CurrentCultureIgnoreCase))
+            if (config.AppSettings.Settings["handleProductApplications"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
             {
-                return;
+                _ingredientFieldsToMonitor = ApplicationMetadata.Metadata.Where(f => f.FieldLevel == ApplicationField.Level.Ingredient
+                    && !string.IsNullOrEmpty(f.HandleChange)).ToList();
             }
-            _ingredientFieldsToMonitor = ApplicationMetadata.Metadata.Where(f => f.FieldLevel == ApplicationField.Level.Ingredient
-            && !string.IsNullOrEmpty(f.HandleChange)).ToList();
+            
         }
 
         public void CreateApplicationSheet()
@@ -47,6 +46,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             sheetSections.Add(firstSheetInfo);
             SheetSectionInfo secondSheetInfo = new SheetSectionInfo();
             secondSheetInfo.FieldNames.AddRange(ApplicationMetadata.GetFieldNames(ApplicationField.Level.Product));
+            IEnumerable<string> prodNameFieldNames = ApplicationMetadata.GetFieldNames(ApplicationField.Level.ProductName);
+
+            secondSheetInfo.FieldNames.AddRange(prodNameFieldNames.Where(fn=> !secondSheetInfo.FieldNames.Contains(fn)));
             secondSheetInfo.Direction = "[One per Application for now]";
             sheetSections.Add(secondSheetInfo);
             SheetSectionInfo thirdSheetInfo = new SheetSectionInfo();
@@ -85,7 +87,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 ApplicationField field = ApplicationMetadata.GetFieldForVocab(vocabName);
                 log.DebugFormat("Located field {0} for vocab {1} and will now assign vocabulary.", field.FieldName, vocabName);
                 Range rangeToSearch = _worksheet.Range["A1"].EntireRow;
-                if (field.FieldLevel == ApplicationField.Level.Product)
+                if (field.FieldLevel == ApplicationField.Level.Product || field.FieldLevel == ApplicationField.Level.ProductName)
                 {
                     rangeToSearch = _worksheet.Range["A4", "Z6"].EntireRow;
                 }

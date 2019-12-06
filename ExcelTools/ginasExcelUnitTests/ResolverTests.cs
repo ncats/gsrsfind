@@ -436,6 +436,109 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+        public void InChiKeyFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string nameForTest = "UREA STIBAMINE";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("InChIKey");
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(700);
+            string expectedInChIKey = "STIGEALBGPUGBV-UHFFFAOYSA-M";
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.AreEqual(expectedInChIKey, results[results.Length-1]);
+        }
+
+        [TestMethod]
+        public void LyChIKeyFetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string nameForTest = "UREA STIBAMINE";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Full Lychi");
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(700);
+            string expectedLyChI = "XSQKK8DTS-S5VUUKRSZH-SHYLNMPNDQ3-SH3X4K8PBLHA";
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.AreEqual(expectedLyChI, results[results.Length - 1]);
+        }
+
+        [TestMethod]
+        public void LyChIPart1FetcherTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            //BIS(DIMETHYLTHIOCARBAMOYL) SULFIDE:
+            string nameForTest = " 0105068AB";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(nameForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Lychi L1");
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(700);
+            string expectedLyChI = "4FPJWYZR2";
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            string[] results = resolverResults[nameForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.AreEqual(expectedLyChI, results[results.Length - 1]);
+        }
+
+        [TestMethod]
         public void SmilesEtcFetcherTest()
         {
             CheckForm();

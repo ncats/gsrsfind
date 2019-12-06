@@ -113,7 +113,7 @@ namespace ginasExcelUnitTests
 
             ScriptUtils scriptUtils = new ScriptUtils();
             string ptForTest = "PT c77f1ff0-eee1-4726-88b8-864111547c6a";
-            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
+            List<CodeProxy> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
             scriptUtils.ScriptName = "Add Code";
@@ -153,9 +153,10 @@ namespace ginasExcelUnitTests
             Thread.Sleep(SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
+            List<CodeProxy> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
             Assert.AreEqual(codesBefore.Count + 1, codesAfter.Count);
-            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+            Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(newCodeSystem) 
+            && c.Code.Equals(newCode)));
         }
 
         [TestMethod]
@@ -323,20 +324,23 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
-        public void ReplaceCodeByNameTest()
+        public void ReplaceCodeTest()
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
             string ptForTest = "ANDROSTERONE SULFATE";
-            List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
+            List<CodeProxy> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
             string uuidCrossRef = "88813ffe-ff1f-4a47-870b-26635fa101ef";
 
             string newRef = "Ref " + Guid.NewGuid();
-            scriptUtils.ScriptName = "Replace Code by Name";
+            scriptUtils.ScriptName = "Replace Code";
             string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
             string newCodeSystem = "UNIPROT";
-            string oldCode = codesBefore.First(c => c.Item1.Equals(newCodeSystem)).Item2;
+            string oldCode = codesBefore.First(c => c.CodeSystem.Equals(newCodeSystem)).Code;
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+            string commentGuid = Guid.NewGuid().ToString();
+            string commentValue = "made-up value to test software " + commentGuid.Split('-')[0];
+            string textValue = "made-up value to test software " + commentGuid.Split('-')[1];
 
             scriptUtils.ScriptExecutor = retrievalForm;
             SheetUtils sheetUtils = new SheetUtils();
@@ -346,7 +350,8 @@ namespace ginasExcelUnitTests
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidCrossRef));
             scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
-            scripts.Enqueue("tmpRunner.setValue('comments', 'made-up value to test software')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('comments', '{0}')", textValue));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('code text', '{0}')", commentValue));
             scripts.Enqueue("tmpRunner.setValue('code type', 'PRIMARY')");
             scripts.Enqueue(string.Format("tmpRunner.setValue('code system', '{0}')",
                 newCodeSystem));
@@ -370,9 +375,13 @@ namespace ginasExcelUnitTests
             Thread.Sleep(SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            List<Tuple<string, string>> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
+            List<CodeProxy> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
             Assert.AreEqual(codesBefore.Count, codesAfter.Count);
-            Assert.IsTrue(codesAfter.Any(c => c.Item1.Equals(newCodeSystem) && c.Item2.Equals(newCode)));
+            Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(newCodeSystem) 
+                && c.Code.Equals(newCode)));
+            CodeProxy matchingCode = codesAfter.First(c => c.CodeSystem.Equals(newCodeSystem) && c.Code.Equals(newCode));
+            Assert.AreEqual(textValue, matchingCode.CodeText);
+            Assert.AreEqual(commentValue, matchingCode.Comments);
         }
 
 

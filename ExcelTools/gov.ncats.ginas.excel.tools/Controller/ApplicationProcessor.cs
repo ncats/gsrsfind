@@ -34,31 +34,49 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (!AppendEntityFieldsToJson(application, stringBuilder)) return string.Empty; ;
 
             stringBuilder.Append(", \"applicationProductList\": [");
+            stringBuilder.Append("{");
+
             for (int p = 0; p < application.LowerLevelEntities.Count; p++)
             {
-                stringBuilder.Append("{");
                 AppendEntityFieldsToJson(application.LowerLevelEntities[p], stringBuilder);
+                stringBuilder.Append(", ");
+                stringBuilder.Append(" \"applicationProductNameList\": [");
 
-                stringBuilder.Append(", \"applicationIngredientList\": [");
-                for (int i = 0; i < application.LowerLevelEntities[p].LowerLevelEntities.Count; i++)
+                List<ApplicationEntity> productNames =
+                    application.LowerLevelEntities[p].LowerLevelEntities.Where(
+                        e => e.ItemLevel == ApplicationField.Level.ProductName).ToList();
+                for (int pn = 0; pn < productNames.Count; pn++)
                 {
                     stringBuilder.Append("{");
-                    AppendEntityFieldsToJson(application.LowerLevelEntities[p].LowerLevelEntities[i], stringBuilder);
+                    AppendEntityFieldsToJson(productNames[pn], stringBuilder);
                     stringBuilder.Append("}");
-                    if (i < application.LowerLevelEntities[p].LowerLevelEntities.Count - 1) stringBuilder.Append(",");
+                    if (pn < productNames.Count - 1) stringBuilder.Append(",");
+                }
+                stringBuilder.Append("]");
+                stringBuilder.Append(", \"applicationIngredientList\": [");
+                List<ApplicationEntity> ingredients =
+                    application.LowerLevelEntities[p].LowerLevelEntities.Where(
+                        e => e.ItemLevel == ApplicationField.Level.Ingredient).ToList();
+                for (int i = 0; i < ingredients.Count; i++)
+                {
+                    stringBuilder.Append("{");
+
+                    AppendEntityFieldsToJson(ingredients[i], stringBuilder);
+                    stringBuilder.Append("}");
+                    if (i < ingredients.Count - 1) stringBuilder.Append(",");
                 }
                 stringBuilder.Append(" ] ");
                 stringBuilder.Append("}");
-                if (p < application.LowerLevelEntities.Count - 1) stringBuilder.Append(",");
             }
             stringBuilder.Append(" ] ");
             stringBuilder.Append("}");
+
             return stringBuilder.ToString();
         }
 
         private bool AppendEntityFieldsToJson(ApplicationEntity entity, StringBuilder json)
         {
-            if (_urlEndPoint.Contains("updateApplication") 
+            if (_urlEndPoint.Contains("updateApplication")
                 && entity.ItemLevel == ApplicationField.Level.Application)
             {
                 object applicationId = SheetUtils.GetSheetPropertyValue(_worksheet, APPLICATION_ID_PROPERTY);
@@ -76,9 +94,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 }
             }
 
-            for (int f = 0; f < entity.EntityFields.Count; f++)
+            List<ApplicationField> fields = entity.EntityFields;
+            for (int f = 0; f < fields.Count; f++)
             {
-                ApplicationField field = entity.EntityFields[f];
+                ApplicationField field = fields[f];
                 if (string.IsNullOrEmpty(field.JsonFieldName)) continue;
 
                 if (!string.IsNullOrEmpty(field.ParentEntityName))
@@ -87,23 +106,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     json.Append(field.ParentEntityName);
                     json.Append("\": [{");
                 }
-                if (string.IsNullOrEmpty(field.VocabularyName))
-                {
-                    json.AppendFormat("\"{0}\" : \"{1}\"", field.JsonFieldName, field.GetValue());
-                }
-                else
-                {
-                    json.AppendFormat("\"{0}\" : ", field.JsonFieldName);
-                    json.Append("{ ");
-                    json.AppendFormat("\"value\": \"{0}\"", field.GetValue());
-                    json.Append(" } ");
-                }
+                json.AppendFormat("\"{0}\" : \"{1}\"", field.JsonFieldName, field.GetValue());
 
                 if (!string.IsNullOrEmpty(field.ParentEntityName))
                 {
                     json.Append(" } ]");
                 }
-                if (f < entity.EntityFields.Count - 1) json.Append(",");
+                if (f < fields.Count - 1) json.Append(",");
             }
             return true;
         }
@@ -115,8 +124,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             List<ApplicationEntity> ingredients = ParseEntity(worksheet, ApplicationField.Level.Ingredient);
             if (ScriptExecutor != null) ResolveIngredients(ingredients);
 
+            List<ApplicationEntity> productNames = ParseEntity(worksheet, ApplicationField.Level.ProductName);
+
             List<ApplicationEntity> products = ParseEntity(worksheet, ApplicationField.Level.Product);
+            //safe assumption because we support only 1 product for now
             products.First().LowerLevelEntities = ingredients;
+            products.First().LowerLevelEntities.AddRange(productNames);
+
             List<ApplicationEntity> topLevel = ParseEntity(worksheet, ApplicationField.Level.Application);
             ApplicationEntity application = topLevel.First();
             application.LowerLevelEntities = products;
@@ -170,11 +184,29 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     if (headerCell == null || headerCell.Offset[rowOffset, 0].Value2 == null) continue;
                     string fieldName = headerCell.Value2 as string;
-                    string fieldValue = headerCell.Offset[rowOffset, 0].Value2.ToString();
+                    string dataType = headerCell.Offset[rowOffset, 0].Value2.GetType().Name;
                     ApplicationField baseField = fields.First(f => f.FieldLevel == level
                         && f.FieldName.Equals(fieldName, StringComparison.CurrentCultureIgnoreCase));
                     ApplicationField entityField = baseField.Clone();
-                    entityField.FieldValue = fieldValue;
+
+                    if (entityField.IsDate())
+                    {
+                        log.Debug("Handling a date field");
+                        try
+                        {
+                            entityField.FieldValue = DateTime.FromOADate(Convert.ToDouble(headerCell.Offset[rowOffset, 0].Value2));
+                        }
+                        catch(ArgumentException )
+                        {
+                            log.Warn("Date value not recognized: " + headerCell.Offset[rowOffset, 0].Value2);
+                            entityField.FieldValue = "";
+                        }
+                    }
+                    else
+                    {
+                        string fieldValue = headerCell.Offset[rowOffset, 0].Value2.ToString();
+                        entityField.FieldValue = fieldValue;
+                    }
                     entity.EntityFields.Add(entityField);
                 }
                 entities.Add(entity);
@@ -259,7 +291,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string key = JSTools.RandomIdentifier(10);
             scriptUtils.BuildScriptParameters(scriptParameters.Keys);
             log.Debug("finished scriptUtils.BuildScriptParameters");
-            scriptUtils.StartOneLoad(scriptParameters, key, this.GinasConfiguration);
+            scriptUtils.StartOneLoad(scriptParameters, key, GinasConfiguration);
             log.Debug("completed scriptUtils.StartOneLoad");
             return true;
         }
@@ -363,7 +395,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private void TranslateVocabularies(ApplicationEntity entity)
         {
             log.DebugFormat("Starting in {0} for item at level {1}", MethodBase.GetCurrentMethod().Name,
-                entity.ItemLevel);
+                (entity == null ? "[null]" : entity.ItemLevel.ToString()));
             foreach (ApplicationField field in entity.EntityFields)
             {
                 if (!string.IsNullOrEmpty(field.VocabularyName))

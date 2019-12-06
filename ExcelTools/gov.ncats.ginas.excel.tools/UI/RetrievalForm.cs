@@ -102,6 +102,15 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         public void UpdateStatus(string message)
         {
+            if(labelStatus.InvokeRequired)
+            {
+                log.Debug("using invoke");
+                labelStatus.Invoke((MethodInvoker)delegate
+                {
+                    labelStatus.Text = message;
+                });
+                return;
+            }
             labelStatus.Text = message;
             this.Focus();
         }
