@@ -138,15 +138,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 KeepCheckingCallbacks = false;
                 StatusUpdater.UpdateStatus(statusMessage);
                 ManageSetupRemainingColumns();
-                //if (UIUtils.GetUserYesNo("Set up the necessary fields for substance creation?"))
-                //{
-                //    ManageSetupRemainingColumns();
-                //}
-                //else
-                //{
-                //    EndProcessNotification();
-                //}
-
                 return true;
             }
             else

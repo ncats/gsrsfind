@@ -135,6 +135,7 @@ namespace gov.ncats.ginas.excel.tools.Model
 
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Await.Warning", "CS4014:Await.Warning")]
         public void CreateMolfileImage(Range cell, string molfile, Range cellForId)
         {
             string cleanMolfile = molfile.Replace("\r", "");

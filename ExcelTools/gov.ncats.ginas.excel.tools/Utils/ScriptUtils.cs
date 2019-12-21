@@ -201,6 +201,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + ScriptName+ "');");
             object scriptResult = ScriptExecutor.ExecuteScript(tempScriptName);
             log.DebugFormat("result of test script: {0}", scriptResult);
+            if( scriptResult == null || scriptResult.ToString().Length == 0 )
+            {
+                ScriptExecutor.ExecuteScript(tempScriptName + "=Scripts.get('" + ScriptName + "');");
+                object scriptResult2 = ScriptExecutor.ExecuteScript(tempScriptName);
+                log.DebugFormat("result of test script(2): {0}", scriptResult2);
+            }
             string runnerName = "tmpRunner";
             ScriptExecutor.ExecuteScript(runnerName + "=" + tempScriptName + ".runner();");
 

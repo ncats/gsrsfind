@@ -614,7 +614,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             return 1;
         }
-
         public static async Task CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
         {
             string molfileFieldName = "Molfile";

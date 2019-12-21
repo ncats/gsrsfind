@@ -63,7 +63,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("DisplayCurrentConfiguration");
             comboBoxURLs.Items.Clear();
             CurrentConfiguration.Servers.ForEach(s => comboBoxURLs.Items.Add(s.ServerUrl));
-            if(CurrentConfiguration.SelectedServer != null)
+            if (CurrentConfiguration.SelectedServer != null)
             {
                 comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
                 log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
@@ -75,8 +75,11 @@ namespace gov.ncats.ginas.excel.tools.UI
 
             textBoxBatchSize.Text = CurrentConfiguration.BatchSize.ToString();
             textBoxExpirationOffset.Text = CurrentConfiguration.ExpirationOffset.ToString("0.00");
-            textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
-            textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
+            if (CurrentConfiguration.SelectedServer != null)
+            {
+                textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
+                textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
+            }
             checkBoxDebugInfo.Checked = CurrentConfiguration.DebugMode;
             checkBoxSortVocabs.Checked = CurrentConfiguration.SortVocabsAlphabetically;
             comboBoxURLs.SelectedIndexChanged += ComboBoxURLs_SelectedIndexChanged;

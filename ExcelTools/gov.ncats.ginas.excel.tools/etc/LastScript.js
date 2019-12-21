@@ -121,6 +121,7 @@ function runCommandForCSharp(stuffToRun) {
     }
     catch (ex) {
         console.log('error running script: ' + JSON.stringify(ex));
+        console.log('script was: ' + stuffToRun + " at " + (new Date()));
         return 'error running script: ' + JSON.stringify(ex);
     }
     if (result) {

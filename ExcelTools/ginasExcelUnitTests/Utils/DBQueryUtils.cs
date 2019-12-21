@@ -104,6 +104,7 @@ namespace ginasExcelUnitTests.Utils
                 codes.Add(codeProxy);
             }
             reader.Close();
+            command.Dispose();
             return codes;
         }
 
@@ -134,6 +135,7 @@ namespace ginasExcelUnitTests.Utils
                 codeProxy.Type = type;
                 codes.Add(codeProxy);
             }
+            command.Dispose();
             reader.Close();
             return codes;
         }
@@ -209,6 +211,7 @@ namespace ginasExcelUnitTests.Utils
                 version = reader.GetInt32(0);
             }
             reader.Close();
+            command.Dispose();
             return version;
         }
 
@@ -243,6 +246,35 @@ namespace ginasExcelUnitTests.Utils
             }
             reader.Close();
             return structures;
+        }
+
+        internal List<RelationshipProxy> GetRelationshipsForUuid(string uuid)
+        {
+            List<RelationshipProxy> relationships = new List<RelationshipProxy>();
+            string query = string.Format("select r.uuid, r.owner_uuid, r.type, r.related_substance_uuid, sr.refuuid from ix_ginas_relationship r, ix_ginas_substanceref sr where r.owner_uuid = '{0}' " 
+                + "and r.deprecated = 'false' and r.related_substance_uuid = sr.uuid",
+                uuid);
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+            string uuidValue;
+            string ownerUuid;
+            string type;
+            string relatedSubstanceUuid;
+            while (reader.Read())
+            {
+                uuidValue = reader.GetString(0);
+                ownerUuid = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                type = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                relatedSubstanceUuid = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+
+                RelationshipProxy relationship = new RelationshipProxy(uuidValue, ownerUuid, relatedSubstanceUuid, type);
+                relationships.Add(relationship);
+            }
+            reader.Close();
+            return relationships;
         }
 
         internal List<CodeProxy> GetCodesOfSystemForName(string name, string codeSystem)

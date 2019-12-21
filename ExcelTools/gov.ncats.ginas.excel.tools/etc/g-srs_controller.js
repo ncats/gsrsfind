@@ -102,7 +102,7 @@ var GSRSAPI = {
                     var cbackname = 'jsoncallback' + ++CALLBACK_NUMBER;
                     window[cbackname] = function (response) {
                         console.log('ajax call success (1)');
-                        console.log(' at ' + _.now());
+                        console.log(' at ' + (new Date(_.now())));
                         cb(response);
                     };
                     console.log('b: ' + JSON.stringify(b));
@@ -122,7 +122,7 @@ var GSRSAPI = {
                         },
                         success: function (response) {
                             console.log('ajax call success ');
-                            console.log('	at ' + _.now());
+                            console.log('	at ' + (new Date(_.now())));
                             /*console.log('	with response ' + (typeof (response) == 'string') ? response
                                 : JSON.stringify(response));*/
                             cb(response);
@@ -436,10 +436,27 @@ var GSRSAPI = {
                         .queryStringData({
                             q: smi,
                             type: "exact",
-                            sync: "true" /*shouldn't be sync*/
+                            sync: "true" /*works this way*/
                         });
-                    return g_api.httpProcess(req).andThen(function (tmp) {
-                        return tmp;
+                    return g_api.httpProcess(req)
+                        .andThen(function (firstResult) {
+                            console.log('firstResult: ' + JSON.stringify(firstResult));
+                            /*look into the first object returned by the search. 20 December 2019 MAM*/
+                            if (firstResult.count == 0 && !_.isUndefined(firstResult.uri)
+                                && firstResult.uri.length > 0) {
+                                var pos = firstResult.path.indexOf('status');
+                                var newUrl = g_api.GlobalSettings.getBaseURL() + firstResult.path.substring(pos);
+                                console.log('URL for search results: ' + newUrl);
+                                var req2 = g_api.Request.builder()
+                                    .url(newUrl);
+                                return g_api.httpProcess(req2)
+                                    .andThen(function (result) {
+                                        return result.content;
+                                    });
+                            }
+                            else {
+                                return firstResult;
+                            }
                     });
                 };
                 sfinder.saveTemporaryStructure = function (smi) {
@@ -454,7 +471,7 @@ var GSRSAPI = {
                         .setContents({ "body": smi });
                     return g_api.httpProcess(req)
                         .andThen(function (tmp) {
-                            console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));
+                            /*console.log('saveTemporaryStructure tmp:' + JSON.stringify(tmp));*/
                             return tmp;
                         });
                 };
@@ -630,6 +647,20 @@ var GSRSAPI = {
                 };
 
                 b._method = "PUT";
+                b._transform = function (a) {
+                    /*modify this to do something*/
+                    return a;
+                };
+
+                b.appendTransform = function (t) {
+                    var oldTransform = b._transform;
+                    
+                    b._transform = function (s) {
+                        var sNew = oldTransform(s);
+                        return t(sNew);
+                    };
+                    return b;
+                }
 
                 /*change the method type*/
                 b.setMethod = function (meth) {
@@ -653,15 +684,33 @@ var GSRSAPI = {
                         value: n
                     });
                 };
+                /**
+                 * more sophisticated.  Assumed that data knows where it's going.
+                 * @param {any} data
+                 */
                 b.addData = function (data) {
                     return data.addToPatch(b);
                 };
-                /*should return a promise*/
+
+                b.transform = function (fullSub) {
+                    console.log('b.transform');
+                    jsonpatch.apply(fullSub, b.ops);
+                    return b._transform(fullSub);
+                };
+        
+                /*should return a promise
+                 simplesub -unexpected.
+                 get full version
+                 */
+
                 b.apply = function (simpleSub) {
                     return simpleSub.full()
                         .andThen(function (ret) {
                             var rr = ret;
-                            jsonpatch.apply(rr, b.ops);
+                            rr=b.transform(rr);
+                            /*jsonpatch.apply(rr, b.ops); from external library.  apply may cause data scramble. Removes/Replace becuase it uses
+                             ordinals to identify items in collections.
+                             New method: transform.  Each method below will call transform rather than .apply.*/
                             var methodText = (b._method) ? b._method : "PUT";
                             console.log('methodText: ' + methodText);
                             var req = g_api.Request.builder()
@@ -684,7 +733,8 @@ var GSRSAPI = {
                     return simpleSub.full()
                         .andThen(function (ret) {
                             var rr = ret;
-                            jsonpatch.apply(rr, b.ops);
+                            rr = b.transform(rr);
+                            /*jsonpatch.apply(rr, b.ops);*/
                             return rr;
                         });
                 };
@@ -693,7 +743,8 @@ var GSRSAPI = {
                     return simpleSub.full()
                         .andThen(function (ret) {
                             var rr = ret;
-                            jsonpatch.apply(rr, b.ops);
+                            rr = b.transform(rr);
+                            /*jsonpatch.apply(rr, b.ops);*/
                             var req = g_api.Request.builder()
                                 .url(g_api.GlobalSettings.getBaseURL() + "substances/@validate")
                                 .method("POST")
@@ -1140,6 +1191,10 @@ var GSRSAPI = {
                         }
                         return data;
                     },
+                    data.setUuid = function (u) {
+                        data.uuid = u;
+                        return data;
+                    },
                     data.addReferenceUUID = function (ruuid) {
                         data.references.push(ruuid);
                         return data;
@@ -1549,21 +1604,24 @@ var GSRSAPI = {
                                         return !v.valid;
                                     })
                                     .value();
-                                console.log('cargs.validate about to return ' + JSON.stringify(invalid));
                                 return invalid;
                             });
                     };
                     cargs.execute = function () {
+                        console.log('About to call cargs.validate');
                         return cargs.validate()
                             .andThen(function (v) {
-
-                                if (v.length === 0 ||
-                                    (cargs.forced() &&
-                                        !_.filter(v, function (item) { return item.overall }).length > 0)) {
+                                console.log('v: ' + JSON.stringify(v));
+                                if (v.length === 0 || (cargs.forced() &&
+                                    !_.filter(v, function (item) {
+                                        console.log('item: ' + JSON.stringify(item));
+                                        return item.overall;
+                                    }).length > 0)) {
+                                    console.log('About to call scr.execute');
                                     return scr.execute(cargs.args)
                                         .andThen(function (r) {
                                             if (typeof r.valid === "undefined") {
-                                                return { "valid": true, "message": "Success", "returned": r };
+                                                return { valid: true, "message": "Success", "returned": r };
                                             } else {
                                                 return r;
                                             }
@@ -1575,7 +1633,7 @@ var GSRSAPI = {
                                         })
                                         .value()
                                         .join(";");
-                                    return { "valid": false, "message": msg };
+                                    return { valid: false, "message": msg };
                                 }
                             });
                     };
@@ -1653,7 +1711,7 @@ var GSRSAPI = {
                     if (arg.required) {
                         if (_.isUndefined(arg.getValue()) || arg.getValue() === "") {
                             return g_api.JPromise.ofScalar({
-                                "valid": false,
+                                valid: false,
                                 "message": "Argument '" + arg.getName() + "' must be specified"
                             });
                         }
@@ -1664,7 +1722,7 @@ var GSRSAPI = {
                             if (!_.includes(o, arg.getValue())) {
                                 console.log('cv: ' + o);
                                 return {
-                                    "valid": false,
+                                    valid: false,
                                     "message": "Argument '" + arg.getName() + "' has value '"
                                         + arg.getValue() + "' which is not in the CV"
                                 };
@@ -2231,7 +2289,7 @@ function validate4Params(args, params) {
                 errorMessage = twoParameterMessage;
             }
             cb({
-                "valid": false, "message": errorMessage,
+                valid: false, "message": errorMessage,
                 "overall": true
             });
         });
@@ -2244,12 +2302,12 @@ function validate4Params(args, params) {
              can forego any further checking, unless we require more than one!*/
             if (requireCrossValidation) {
                 return GGlob.JPromise.of(function (cb) {
-                    cb({"valid": false, "message": twoParameterMessage, "overall": true});
+                    cb({valid: false, "message": twoParameterMessage, "overall": true});
                 });
             }
 
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": true, "overall": true });
+                cb({ valid: true, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.uuid.getValue())
@@ -2261,7 +2319,7 @@ function validate4Params(args, params) {
                     if (uuid !== args.uuid.getValue()) {
                         /*is this even possible?*/
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The UUID for this record does not match the one provided",
                             "overall": true
                         };
@@ -2270,7 +2328,7 @@ function validate4Params(args, params) {
                     if (args.pt.getValue() && pt !== args.pt.getValue()) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
                         return {
-                            "valid": false, "message": "The PT does not match the value for this record",
+                            valid: false, "message": "The PT does not match the value for this record",
                             "overall": true
                         };
                     }
@@ -2291,7 +2349,7 @@ function validate4Params(args, params) {
                                 });
                                 if (!hasBdNumMatch) {
                                     return {
-                                        "valid": false,
+                                        valid: false,
                                         "message": "BDNUM does not match value in database",
                                         "overall": true
                                     }
@@ -2304,7 +2362,7 @@ function validate4Params(args, params) {
                     }
                 } else {
                     return {
-                        "valid": false, "message": "Could not find record with that UUID",
+                        valid: false, "message": "Could not find record with that UUID",
                         "overall": true
                     };
                 }
@@ -2314,7 +2372,7 @@ function validate4Params(args, params) {
         if (requireCrossValidation && !args.bdnum.getValue()) {
             return GGlob.JPromise.of(function (cb) {
                 cb({
-                    "valid": false,
+                    valid: false,
                     "message": twoParameterMessage,
                     "overall": true
                 });
@@ -2328,7 +2386,7 @@ function validate4Params(args, params) {
                     var pt = rec._name;
                     if (pt.toUpperCase() !== args.pt.getValue().toUpperCase()) {
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The PT of the record does not match the value provided",
                             "overall": true
                         };
@@ -2351,7 +2409,7 @@ function validate4Params(args, params) {
                                 });
                                 if (!hasBdNumMatch) {
                                     return {
-                                        "valid": false,
+                                        valid: false,
                                         "message": "BDNUM does not match value in database",
                                         "overall": true
                                     }
@@ -2367,7 +2425,7 @@ function validate4Params(args, params) {
                 else {
                     console.log('no results found for search!');
                     return {
-                        "valid": false,
+                        valid: false,
                         "message": "No substance found with preferred term '" + args.pt.getValue()
                             + "'",
                         "overall": true
@@ -2381,7 +2439,7 @@ function validate4Params(args, params) {
         return GGlob.JPromise.of(function (cb) {
             if (requireCrossValidation) {
                 return cb({
-                    "valid": false,
+                    valid: false,
                     "message": twoParameterMessage,
                     "overall": true
                 });
@@ -2415,7 +2473,7 @@ function validate3Params(args, params) {
         if (requireCrossValidation) errorMessage = twoParameterMessage;
         return GGlob.JPromise.of(function (cb) {
             cb({
-                "valid": false,
+                valid: false,
                 "message": errorMessage,
                 "overall": true
             });
@@ -2429,11 +2487,11 @@ function validate3Params(args, params) {
              can forego any further checking!*/
             if (requireCrossValidation) {
                 return GGlob.JPromise.of(function (cb) {
-                    cb({ "valid": false, message: twoParameterMessage, "overall": true });
+                    cb({ valid: false, message: twoParameterMessage, "overall": true });
                 });
             }
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": true, "overall": true });
+                cb({ valid: true, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.uuid.getValue())
@@ -2445,7 +2503,7 @@ function validate3Params(args, params) {
                     if (uuid !== args.uuid.getValue()) {
                         /*is this even possible?*/
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The UUID for this record does not match the one provided",
                             "overall": true
                         };
@@ -2454,7 +2512,7 @@ function validate3Params(args, params) {
                     if (args.pt && args.pt.getValue() && pt !== args.pt.getValue()) {
                         console.log('pt: ' + pt + '; pt from args: ' + args.pt.getValue());
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The PT does not match the value for this record",
                             "overall": true
                         };
@@ -2463,7 +2521,7 @@ function validate3Params(args, params) {
                     return { valid: true };
                 } else {
                     return {
-                        "valid": false,
+                        valid: false,
                         "message": "Could not find record with that UUID",
                         "overall": true
                     };
@@ -2474,7 +2532,7 @@ function validate3Params(args, params) {
         console.log('has PT');
         if (requireCrossValidation) {
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": false, message: twoParameterMessage, "overall": true });
+                cb({ valid: false, message: twoParameterMessage, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(args.pt.getValue())
@@ -2484,17 +2542,17 @@ function validate3Params(args, params) {
                     var pt = rec._name;
                     if (pt !== args.pt.getValue()) {
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The PT of the record does not match the value provided",
                             "overall": true
                         };
                     }
                     console.log(' about to return simple true');
-                    return { "valid": true, "overall": true };
+                    return { valid: true, "overall": true };
                 } else {
                     console.log(' about to return simple false');
                     return {
-                        "valid": false,
+                        valid: false,
                         "message": "Could not find record with that PT",
                         "overall": true
                     };
@@ -2508,7 +2566,7 @@ function validate3Params(args, params) {
     if (requireCrossValidation) errorMessage = twoParameterMessage;
     return GGlob.JPromise.of(function (cb) {
         cb({
-            "valid": false,
+            valid: false,
             "message": errorMessage,
             "overall": true
         });
@@ -2525,7 +2583,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
             /*we do have a UUID but PT is empty and FORCED is on
              can forego any further checking!*/
             return GGlob.JPromise.of(function (cb) {
-                cb({ "valid": true, "overall": true });
+                cb({ valid: true, "overall": true });
             });
         }
         return GGlob.SubstanceFinder.searchByExactNameOrCode(subUUIDArg.getValue())
@@ -2537,7 +2595,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     if (uuid !== subUUIDArg.getValue()) {
                         /*is this even possible?*/
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The UUID for this record does not match the one provided",
                             "overall": true
                         };
@@ -2546,7 +2604,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     if (subNameArg && subNameArg.getValue() && pt !== subNameArg.getValue()) {
                         console.log('pt: ' + pt + '; pt from args: ' + subNameArg.getValue());
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The PT does not match the value for this record",
                             "overall": true
                         };
@@ -2556,7 +2614,7 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                 } else {
                     console.log(' about to return simple false');
                     return {
-                        "valid": false,
+                        valid: false,
                         "message": "Could not find record with UUID " + subUUIDArg.getValue(),
                         "overall": true
                     };
@@ -2572,27 +2630,26 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
                     var pt = rec._name;
                     if (pt !== subNameArg.getValue()) {
                         return {
-                            "valid": false,
+                            valid: false,
                             "message": "The PT of the record does not match the value provided",
                             "overall": true
                         };
                     }
                     console.log(' about to return simple true');
-                    return { "valid": true, "overall": true };
+                    return { valid: true, "overall": true };
                 } else {
                     console.log(' about to return simple false');
                     return {
-                        "valid": false,
+                        valid: false,
                         "message": "Could not find record PT " + subNameArg.getValue(),
                         "overall": true
                     };
                 }
             });
-
     }
     return GGlob.JPromise.of(function (cb) {
         cb({
-            "valid": false,
+            valid: false,
             "message": "One or both of these arguments must have a value: UUID, PT",
             "overall": true
         });
@@ -2601,7 +2658,6 @@ function validateOneSubstance(subUUIDArg, subNameArg) {
 
 function validate2Substances(args) {
     console.log('Starting in validate2Substances. ');
-
     var proms = [];
     proms.push(validateOneSubstance(args.uuid, args.pt));
     proms.push(validateOneSubstance(args.uuid2, args.pt2));
@@ -2617,8 +2673,42 @@ function validate2Substances(args) {
                 }
             });
             console.log('validate2Substances about to return ' + valid);
-            if (valid) return { "valid": true, "overall": true };
-            return { "valid": false, message: messages.join(',') };
+            if (valid) return { valid: true, "overall": true };
+            return { valid: false, message: messages.join(',') };
+        });
+}
+
+function validateSubstanceWithStructure(args) {
+    console.log('starting in validateSubstanceWithStructure');
+    console.log(JSON.stringify(args.molfile));
+    if (args.FORCED.isYessy()) {
+        console.log('returning true because FORCED is on');
+        return JPromise.ofScalar( { valid: true, overall: true});
+    }
+    structureValue = '';
+    if (!_.isUndefined(args.smiles.getValue()) && args.smiles.getValue().length > 0) {
+        console.log('using SMILES');
+        structureValue = args.smiles.getValue();
+    } else if (!_.isUndefined(args.molfile.getValue()) && args.molfile.getValue().length > 0) {
+        console.log('using molfile');
+        structureValue = args.molfile.getValue();
+    }
+    if (structureValue === '') {
+        console.log('no structure; will return valid: true');
+        return JPromise.ofScalar({ valid: true, overall: true});
+    }
+    structureValue = structureValue;
+    console.log('structureValue: ' + structureValue);
+    return GGlob.SubstanceFinder.saveTemporaryStructure(structureValue)
+        .andThen(function (s) {
+            return SubstanceFinder.getExactStructureMatches(s.structure.id)
+                .andThen(function (searchResult) {
+                    console.log('searchResult: ' + JSON.stringify(searchResult));
+                    if (searchResult.content !== null && searchResult.content.length > 0) {
+                        return { valid: false, message: "Structure has 1 or more duplicates", overall: true }
+                    }
+                    return { valid: true };
+                });
         });
 }
 
@@ -2627,16 +2717,16 @@ Scripts
 ********************************/
 Script.builder().mix({ name: "Add Name", description: "Adds a name to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "name", name: "NAME", description: "Name text of the new name", required: true
@@ -2785,16 +2875,16 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
 
 Script.builder().mix({ name: "Add Code", description: "Adds a code to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Actual code for the new item", required: true
@@ -2889,6 +2979,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
         console.log('referenceFilePath: ' + referenceFilePath);
 
         var codesIndicesToRemove = [];
+        var codesToRemove = [];
 
         var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
         if (referenceUrl && referenceUrl.length > 0) {
@@ -2964,6 +3055,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                         if (code.codeSystem === codeSystem && code.code === codeInput) {
                                             console.log('adding code at index ' + codeIndex + ' to list');
                                             codesIndicesToRemove.push(codeIndex);
+                                            codesToRemove.push(code.uuid);
                                         }
                                     });
                                 }
@@ -2999,9 +3091,18 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                 if (valuesOK) {
                                     console.log('Add Code is going to return patch ');
                                     var codePatch = rec.patch();
-                                    _.forEach(codesIndicesToRemove, function (index) {
-                                        console.log('removing index ' + index);
-                                        codePatch = codePatch.remove("/codes/" + index);
+                                    _.forEach(codesToRemove, function (code) {
+                                    /*console.log('removing index ' + index);*/
+
+                                        codePatch.appendTransform(function (s) {
+                                            /*lodash remove deletes elements from the array and returns the deleted elements.
+                                             we definitely do NOT want the returned array!*/
+                                            _.remove(s.codes, function (c) {
+                                                return c.uuid === code;
+                                            });
+                                            return s;
+                                        });
+                                        /*codePatch = codePatch.remove("/codes/" + index);*/
                                     });
 
                                     console.log('codePatch: ' + JSON.stringify(codePatch));
@@ -3011,7 +3112,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                                         .andThen(_.identity);
                                 } else {
                                     console.log('Add Code is going to return message ' + valuesError);
-                                    return { "message": valuesError, "valid": false };
+                                    return { "message": valuesError, valid: false };
                                 }
                             });
                     });
@@ -3023,20 +3124,20 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
 /*Add relationship by MAM 14 June 2017*/
 Script.builder().mix({ name: "Add Relationship", description: "Adds a relationship to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the (primary) substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the (primary) substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the primary record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the primary record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
-        "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record",
+        "key": "uuid2", name: "UUID2", description: "UUID of the (secondary) substance record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "pt2", name: "PT2",
-        description: "Preferred Term of the secondary record (used for validation)", required: false,
+        description: "Preferred Term of the secondary record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -3164,16 +3265,16 @@ Script.builder().mix({
     description: "Replaces one code with another of the same type for a substance record identified by preferred term. Matches code ONLY by code system!"
 })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Actual code for the new item", required: true
@@ -3232,7 +3333,7 @@ Script.builder().mix({
         description: "pipe-delimited set of tags for the reference", required: false
     })
     .addArgument({
-        "key": "change reason", name: "CHANGE REASON", defaultValue: "Added Code",
+        "key": "change reason", name: "CHANGE REASON", defaultValue: "Updated Code",
         description: "Text for the record change", required: false
     })
     .addValidator(validate4Params, { RequireCrossValidation: true })
@@ -3304,45 +3405,59 @@ Script.builder().mix({
                     var rec = resp.content[0];
                     var substance = GGlob.SubstanceBuilder.fromSimple(rec);
                     console.log('Found a substance with PT: ' + pt);
+                    var refIsNew = true;
+
                     return substance.fetch("codes")
                         .andThen(function (codeCollection) {
                             return substance.fetch("references")
                                 .andThen(function (refs) {
-                                    var indexCodeToRemove = -1;
-                                    var indexReferenceToRemove = -1;
-                                    var indexReferencesToRemove = [];
+                                    var codeUuidToReplace = '';
                                     for (var i = 0; i < codeCollection.length; i++) {
                                         if (codeCollection[i].codeSystem === codeSystem) {
-                                            indexCodeToRemove = i;
+                                            codeUuidToReplace = codeCollection[i].uuid;
                                             break;
                                         }
                                     }
-
                                     _.forEach(refs, function (ref) {
                                         if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                             console.log('Duplicate reference found! Will skip creation of new one.');
                                             reference = ref;
+                                            refIsNew = false;
                                             return false;
                                         }
                                     });
                                     if (reference) {
                                         code.addReference(reference);
                                     }
-                                    if (indexCodeToRemove > -1) {
-                                        return rec.patch()
-                                            .remove("/codes/" + indexCodeToRemove)
-                                            .addData(code)
+                                    console.log('codeUuidToReplace: ' + codeUuidToReplace);
+                                    if (codeUuidToReplace.length > 0) {
+                                        code.setUuid(codeUuidToReplace);
+                                        var codePatch = rec.patch();
+                                        codePatch.appendTransform(function (s) {
+                                            for (var i = 0; i < s.codes.length; i++) {
+                                                if (s.codes[i].uuid === codeUuidToReplace) {
+                                                    console.log('going to replace code at pos ' + i);
+                                                    s.codes[i] = code;
+                                                }
+                                            }
+                                            return s;
+                                        });
+                                        if (refIsNew) {
+                                            codePatch.addData(reference);
+                                            console.log('added ref to patch');
+                                        }
+                                        return codePatch
                                             .add("/changeReason", args['change reason'].getValue())
                                             .apply()
                                             .andThen(_.identity);
                                     } else {
-                                        return { "message": "Error locating code to replace", "valid": false };
+                                        return { "message": "Error locating code to replace", valid: false };
                                     }
                                 })
                         })
                 } else {
                     console.log('Did not locate substance based on ' + pt);
-                    return { "message": "Did not locate substance based on " + pt, "valid": false };
+                    return { "message": "Did not locate substance based on " + pt, valid: false };
                 }
             });
     })
@@ -3350,16 +3465,16 @@ Script.builder().mix({
 
 Script.builder().mix({ name: "Replace Code Text", description: "Replaces the text (comment) of one code for a substance record identified by preferred term" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Existing code to match", required: true
@@ -3488,8 +3603,7 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                             return substance.fetch("references")
                                 .andThen(function (refs) {
                                     var indexCodeToRemove = -1;
-                                    var indexReferenceToRemove = -1;
-                                    var indexReferencesToRemove = [];
+                                    var codeUuidToReplace = '';
                                     _.forEach(refs, function (ref) {
                                         if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                             console.log('Duplicate reference found! Will skip creation of new one.');
@@ -3510,15 +3624,25 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                                 code.references = codeCollection[i].references;
                                             }
                                             indexCodeToRemove = i;
+                                            codeUuidToReplace = codeCollection[i].uuid;
                                             break;
                                         }
                                     }
 
-                                    if (indexCodeToRemove > -1) {
-                                        console.log('creating code with ref ' + code.references);
-                                        var p = rec.patch()
-                                            .remove("/codes/" + indexCodeToRemove)
-                                            .addData(code);
+                                    if (codeUuidToReplace.length > 0) {
+                                        console.log('going to update code with uuid ' + codeUuidToReplace);
+
+                                        var p = rec.patch();
+                                        p.appendTransform(function (s) {
+                                            for (var i = 0; i < s.codes.length; i++) {
+                                                if (s.codes[i].uuid === codeUuidToReplace) {
+                                                    console.log('going to replace code at pos ' + i);
+                                                    s.codes[i] = code;
+                                                }
+                                            }
+                                            return s;
+                                        });
+                                        
                                         if (reference) {
                                             console.log('Adding reference to patch');
                                             p.addData(reference);
@@ -3527,13 +3651,13 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                             .apply()
                                             .andThen(_.identity);
                                     } else {
-                                        return { "message": "Error locating code to replace", "valid": false };
+                                        return { "message": "Error locating code to replace", valid: false };
                                     }
                                 });
                         });
                 } else {
                     console.log('Did not locate substance based on ' + pt);
-                    return { "message": "Did not locate substance based on " + pt, "valid": false };
+                    return { "message": "Did not locate substance based on " + pt, valid: false };
                 }
             });
     })
@@ -3541,16 +3665,16 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
 /*Added 25 October 2019 MAM*/
 Script.builder().mix({ name: "Replace Code Type", description: "Replaces the type ('PRIMARY,' 'ALTERNATIVE', 'GENERIC (FAMILY)'..) of a code for a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "code", name: "CODE", description: "Actual code for item to match", required: true,
@@ -3580,8 +3704,6 @@ Script.builder().mix({ name: "Replace Code Type", description: "Replaces the typ
         var codeSystem = args['code system'].getValue();
 
         var codesToUpdate = [];
-        var codeIndicesToUpdate = [];
-
         console.log('Looking for code ' + codeInput
             + ' of codeSystem ' + codeSystem);
         var lookupCriterion = uuid;
@@ -3620,26 +3742,32 @@ Script.builder().mix({ name: "Replace Code Type", description: "Replaces the typ
                                             .setCodeComments(cd.comments)
                                             .setPublic(cd.public)
                                             .setUrl(cd.url)
+                                            .setUuid(cd.uuid)
                                             .setAccess(cd.access);
+
                                         _.forEach(cd.references, function (r) {
                                             code.addReference(r);
                                         });
 
-                                        //code.mix(code, cd);
-                                        codeIndicesToUpdate.push(codeIndex);
                                         codesToUpdate.push(code);
                                     }
                                 });
 
-                                if (codeIndicesToUpdate.length > 0 || codesToUpdate.length > 0) {
+                                if (codesToUpdate.length > 0) {
                                     console.log('Replace Code Type is going to return patch ');
                                     var codePatch = rec.patch();
-                                    _.forEach(codeIndicesToUpdate, function (c, i) {
-                                        codePatch = codePatch.remove("/codes/" + codeIndicesToUpdate[i]);
+                                    _.forEach(codesToUpdate, function (code) {
+                                        codePatch.appendTransform(function (s) {
+                                            console.log('inside transform');
+                                            for (var i = 0; i < s.codes.length; i++) {
+                                                if (s.codes[i].uuid === code.uuid) {
+                                                    console.log('going to replace code at pos ' + i);
+                                                    s.codes[i] = code;
+                                                }
+                                            }
+                                            return s;
+                                        });
                                     });
-                                    _.forEach(codesToUpdate, function (c, i) {
-                                        codePatch = codePatch.addData(c);
-                                    })
 
                                     console.log('codePatch: ' + JSON.stringify(codePatch));
                                     return codePatch
@@ -3648,8 +3776,8 @@ Script.builder().mix({ name: "Replace Code Type", description: "Replaces the typ
                                         .andThen(_.identity);
                                 } else {
                                     console.log('Replace Code Type is going to return message ' + valuesError);
-                                    return { "message": valuesError, "valid": false };
-                                }
+                                    return { "message": valuesError, valid: false };
+                                    }
                             });
                     });
 
@@ -3660,14 +3788,14 @@ Script.builder().mix({ name: "Replace Code Type", description: "Replaces the typ
 /*Remove Name*/
 Script.builder().mix({ name: "Remove Name", description: "Removes a name from a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", usedForLookup: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
@@ -3746,14 +3874,14 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
 /*Remove Code*/
 Script.builder().mix({ name: "Remove Code", description: "Removes a single code from a substance record. Note: this method makes changes to existing records" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", usedForLookup: true
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
@@ -3800,27 +3928,48 @@ Script.builder().mix({ name: "Remove Code", description: "Removes a single code 
             })
             .andThen(function (s) {
                 var codeIndex = -1;
+                var codeUuid = '';
                 console.log('total codes: ' + s.codes.length);
                 for (var i = 0; i < s.codes.length; i++) {
                     if (s.codes[i].code === codeToRemove && s.codes[i].codeSystem === codeSystemToRemove) {
+                        codeUuid = s.codes[i].uuid;
+                        console.log("looking to remove code with UUID " + codeUuid);
                         codeIndex = i;
                         break;
                     }
                 }
 
-                if (codeIndex <= -1) {
+                if (codeUuid.length === 0) {
                     return {
                         valid: false, message: "Unable to locate code to delete: "
                             + codeSystemToRemove + '.' + codeToRemove
                     }
                 }
-                return s0.patch()
+                var codePatch = s0.patch();
+                codePatch.appendTransform(function (s) {
+                    console.log('inside transform looking for code that matches ' + codeUuid + ' total before: ' + s.codes.length);
+                    /*lodash remove deletes elements from the array and returns the deleted elements.
+                    we definitely do NOT want the returned array!*/
+                    _.remove(s.codes, function (c) {
+                        return (c.uuid === codeUuid);
+                    });
+                    console.log(' total after: ' + s.codes.length);
+                    return s;
+                });
+
+                return codePatch
+                    .add("/changeReason", args['change reason'].getValue())
+                    .apply()
+                    .andThen(function (s0) {
+                         return s0;
+                     });
+                /*return s0.patch()
                     .remove("/codes/" + codeIndex)
                     .add("/changeReason", args['change reason'].getValue())
                     .apply()
                     .andThen(function (s0) {
                         return s0;
-                    });
+                    });*/
             });
     })
     .useFor(function (s) {
@@ -3830,15 +3979,15 @@ Script.builder().mix({ name: "Remove Code", description: "Removes a single code 
 
 /*Update the URL for a given code via substance name MAM 6 July 2017*/
 Script.builder().mix({
-    name: "Fix Code URLS",
+    name: "Fix Code URLs",
     description: "Replaces the URL associated with a code on a substance record when a code of that type already exists"
 })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the substance record", required: false,
+        "key": "pt", name: "PT", description: "Preferred Term of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -3882,7 +4031,6 @@ Script.builder().mix({
                 if (s.valid === false)
                     return s;
                 console.log('Looking at codes collection which has ' + s.codes.length);
-
                 var codesToUpdate = [];
                 var codeIndicesToUpdate = [];
 
@@ -3897,8 +4045,17 @@ Script.builder().mix({
 
                 var updatePatch = s0.patch();
                 /* This code handles multiple items*/
-                _.forEach(codesToUpdate, function (c, i) {
-                    updatePatch = updatePatch.replace("/codes/" + codeIndicesToUpdate[i], c);
+                _.forEach(codesToUpdate, function (code, index) {
+                    updatePatch.appendTransform(function (s) {
+                        console.log('inside transform');
+                        for (var i = 0; i < s.codes.length; i++) {
+                            if (s.codes[i].uuid === code.uuid) {
+                                console.log('going to replace code at pos ' + i);
+                                s.codes[i] = code;
+                            }
+                        }
+                        return s;
+                    });
                 });
                 return updatePatch
                     .add("/changeReason", args['change reason'].getValue())
@@ -3915,15 +4072,15 @@ Script.builder().mix({
 /*Set object MAM 5 July 2017*/
 Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire record based on JSON read in" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: true,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
@@ -3961,15 +4118,15 @@ Script.builder().mix({ name: "Set Object JSON", description: "Replace an entire 
 /*Update the visibility of a given code via UUID MAM 14 October 2017*/
 Script.builder().mix({ name: "Set Code Access", description: "Sets the permission on a code for a given substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the substance record", required: false,
+        "key": "pt", name: "PT", description: "Preferred Term of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)",
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)",
         usedForLookup: true
     })
     .addArgument({
@@ -4035,8 +4192,18 @@ Script.builder().mix({ name: "Set Code Access", description: "Sets the permissio
 
                 var updatePatch = s0.patch();
                 /* This code handles multiple items*/
-                _.forEach(codesToUpdate, function (c, i) {
-                    updatePatch = updatePatch.replace("/codes/" + codeIndicesToUpdate[i], c);
+                _.forEach(codesToUpdate, function (code, index) {
+                    updatePatch.appendTransform(function (s) {
+                        console.log('inside transform, looking at code with uuid ' + code.uuid);
+                        for (var i = 0; i < s.codes.length; i++) {
+                            if (s.codes[i].uuid === code.uuid) {
+                                s.codes[i] = code;
+                                console.log('going to replace code at pos ' + i);
+                            }
+                        }
+                        return s;
+                    })
+                    /*updatePatch = updatePatch.replace("/codes/" + codeIndicesToUpdate[i], c);*/
                 });
                 return updatePatch
                     .add("/changeReason", args['change reason'].getValue())
@@ -4122,6 +4289,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         defaultValue: "Creating new substance", description: "Text for the record change",
         required: false
     })
+    .addValidator(validateSubstanceWithStructure, null)
     .setExecutor(function (args) {
         console.log('Starting in Create Substance executor');
 
@@ -4133,7 +4301,6 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         var referenceUrl = args['reference url'].getValue();
         var smiles = args.smiles.getValue();
         var molfileText = args.molfile.getValue();
-        console.log('got molfile');
         var nameType = args['pt name type'].getValue();
         console.log('nameType: ' + nameType);
         var nameLang = args['pt language'].getValue();
@@ -4298,7 +4465,6 @@ Script.builder().mix({
         var referenceUrl = args['reference url'].getValue();
         var smiles = args.smiles.getValue();
         var molfileText = args.molfile.getValue();
-        console.log('got molfile');
         var nameType = args['pt name type'].getValue();
         console.log('nameType: ' + nameType);
         var nameLang = args['pt language'].getValue();
@@ -4432,7 +4598,7 @@ Script.builder().mix({
 /*Touch Record - retrieve a record and save again without making any changes to trigger update processing*/
 Script.builder().mix({ name: "Touch Record", description: "Retrieve a substance record and save again with no futher changes" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: true,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: true,
         usedForLookup: true
     })
     .addArgument({
@@ -4459,15 +4625,15 @@ Script.builder().mix({ name: "Touch Record", description: "Retrieve a substance 
 /*Replace one name with another*/
 Script.builder().mix({ name: "Replace Name", description: "Locates an existing name within a substance record and replaces it with a new name" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false,
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false,
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -4557,15 +4723,15 @@ Script.builder().mix({ name: "Replace Name", description: "Locates an existing n
 /*Add a volume of distribution*/
 Script.builder().mix({ name: "Volume of Distribution", description: "Add values to Volume of Distribution Property for a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false,
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false,
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -4719,15 +4885,15 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
 /*Add a value to a property selected by the user*/
 Script.builder().mix({ name: "Add Property Value", description: "Add a value to a specified property for a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false,
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false,
+        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
@@ -4899,139 +5065,6 @@ Script.builder().mix({ name: "Add Property Value", description: "Add a value to 
         Scripts.addScript(s);
     });
 
-/*Add a reference directly to a Substance (not connected to a lower-level connection)*/
-//Script.builder().mix({ name: "Add Reference", description: "Add a reference to a substance record" })
-//    .addArgument({
-//        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false
-//    })
-//    .addArgument({
-//        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)", required: false
-//    })
-//    .addArgument({
-//        "key": "bdnum", name: "BDNUM", description: "BDNUM of the record (used for validation)", required: false
-//    })
-//    .addArgument({
-//        "key": "reference type", name: "REFERENCE TYPE",
-//        description: "Type of reference (must match a vocabulary)",
-//        defaultValue: "SYSTEM", required: false,
-//        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
-//        type: "cv",
-//        cvType: "DOCUMENT_TYPE"
-//    })
-//    .addArgument({
-//        "key": "reference citation", name: "REFERENCE CITATION",
-//        description: "Citation text for reference", required: true
-//    })
-//    .addArgument({
-//        "key": "reference url", name: "REFERENCE URL", description: "URL for the reference",
-//        required: false
-//    })
-//    .addArgument({
-//        "key": "pd", name: "PD",
-//        description: "Public Domain status of the reference",
-//        defaultValue: false, required: false, type: "boolean"
-//    })
-//    .addArgument({
-//        "key": "access", name: "ACCESS",
-//        description: "Access tag for the reference",
-//        opPromise: CVHelper.getTermList("ACCESS_GROUP"),
-//        type: "cv",
-//        cvType: "ACCESS_GROUP",
-//        allowCVOverride: true
-//    })
-//    .addArgument({
-//        "key": "reference file path", name: "REFERENCE FILE PATH",
-//        description: "A file to attach to the reference", required: false
-//    })
-//    .addArgument({
-//        "key": "reference tags", name: "REFERENCE TAGS",
-//        description: "pipe-delimited set of tags for the reference", required: false
-//    })
-//    .addArgument({
-//        "key": "change reason", name: "CHANGE REASON", defaultValue: "Adding a reference to a property",
-//        description: "Text for the record change", required: false
-//    })
-//    .addValidator(validate4Params)
-//    .setExecutor(function (args) {
-//        var uuid = args.uuid.getValue();
-//        var pt = args.pt.getValue();
-//        var bdnum = args.bdnum.getValue();
-
-//        var referenceType = args['reference type'].getValue();
-//        var referenceCitation = args['reference citation'].getValue();
-//        var referenceUrl = args['reference url'].getValue();
-//        var referenceTags = args['reference tags'].getValue();
-//        var dataPublic = args.pd.isYessy();
-//        var referenceAccess = args['access'].getValue();
-//        var referenceFilePath = args['reference file path'].getValue();
-
-//        var reference = Reference.builder().mix({ citation: referenceCitation, docType: referenceType });
-//        if (referenceUrl && referenceUrl.length > 0) {
-//            reference = reference.setUrl(referenceUrl);
-//        }
-//        if (dataPublic) {
-//            reference.setPublic(true);
-//            reference.setPublicDomain(true);
-//        } else {
-//            reference.setPublic(false);
-//            reference.setPublicDomain(false);
-//        }
-//        if (referenceTags && referenceTags.length > 0) {
-//            var tags = referenceTags.split("|");
-//            var tagSet = [];
-//            _.forEach(tags, function (tag) {
-//                tagSet.push(tag);
-//            });
-//            reference.tags = tagSet;
-//        }
-//        if (referenceFilePath && referenceFilePath.length > 0) {
-//            reference.setUploadedFile(referenceFilePath);
-//            console.log('adding uploaded file to reference');
-//        }
-
-//        var s0;
-//        var lookupCriterion = uuid;
-//        if (!uuid || uuid.length === 0) {
-//            if (pt && pt.length > 0) {
-//                lookupCriterion = pt;
-//            }
-//            else {
-//                lookupCriterion = bdnum;
-//            }
-//        }
-//        if (referenceAccess) reference.setAccess([referenceAccess]);
-
-//        return GGlob.SubstanceFinder.searchByExactNameOrCode(lookupCriterion)
-//            .andThen(function (s) {
-//                var substance;
-//                var rec = s.content[0]; /*can be undefined... todo: handle*/
-//                substance = GGlob.SubstanceBuilder.fromSimple(rec);
-//                s0 = substance;
-//                return substance.full();
-//            })
-//            .andThen(function (s) {
-//                return s0.fetch("references")
-//                    .andThen(function (refs) {
-//                        _.forEach(refs, function (ref) {
-//                            if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
-//                                console.log('Duplicate reference found! Will skip creation of new one.');
-//                                reference = ref;
-//                                return false;
-//                            }
-//                        });
-//                        if (reference) {
-//                            return s0.patch()
-//                                .addData(reference)
-//                                .add("/changeReason", args['change reason'].getValue())
-//                                .apply()
-//                                .andThen(_.identity);
-//                        }
-//                    });
-//            });
-//    })
-//    .useFor(function (s) {
-//        Scripts.addScript(s);
-//    });
 
 Script.builder().mix({
     name: "Save Temporary Structure", description: "Saves a molfile or SMILES in a temporary area (disappears after service restart)",
@@ -5070,18 +5103,59 @@ Script.builder().mix({
         Scripts.addScript(s);
     });
 
+Script.builder().mix({
+    name: "Process Application", description: "Saves Application JSON to server",
+    validForSheetCreation: false
+})
+    .addArgument({
+        "key": "url", name: "URL", description: "Application-specific URL, different from general g-srs URL", required: true
+    })
+    .addArgument({
+        "key": "json", name: "JSON", description: "JSON representation of an Application object", required: true
+    })
+    .setExecutor(function (args) {
+        console.log('starting in script executor');
+        var url = args.url.getValue();
+        console.log('url: ' + url);
+        var obj = JSON.parse(args.json.getValue());
+
+        var req = Request.builder().url(url).body(obj).method("POST");
+        req.setContentType("application/json");
+        console.log('constructed req');
+
+        return RequestProcessor.SimpleProcess(req).andThen(function (r) {
+            console.log('result of application processing: ');
+            console.log(JSON.stringify(r));
+            var resultObj;
+            if (typeof r === 'string') {
+                console.log('parsed');
+                resultObj = JSON.parse(r);
+            }
+            else {
+                resultObj = r;
+            }
+            if (resultObj.applicationId) {
+                return { valid: true, message: "Created Application with ID " + resultObj.applicationId };
+            }
+            console.log(JSON.stringify(resultObj));
+            return { valid: false, message: "An error occurred while creating/modifying your application. " + resultObj };
+        });
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
 Script.builder().mix({ name: "Add Note", description: "Adds a note to a substance record" })
     .addArgument({
-        "key": "uuid", name: "UUID", description: "UUID of the substance record", required: false,
+        "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
         usedForLookup: true
     })
     .addArgument({
-        "key": "pt", name: "PT", description: "Preferred Term of the record (used for validation)",
+        "key": "pt", name: "PT", description: "Preferred Term of the record (used for lookup/validation)",
         required: false, usedForLookup: true
     })
     .addArgument({
         "key": "bdnum", name: "BDNUM",
-        description: "BDNUM of the record (used for validation)", required: false, usedForLookup: true
+        description: "BDNUM of the record (used for lookup/validation)", required: false, usedForLookup: true
     })
     .addArgument({
         "key": "note", name: "NOTE", description: "Note text of the new note item",

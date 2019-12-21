@@ -32,7 +32,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Await.Warning", "CS4014:Await.Warning")]
         public static async Task<string> SaveMolfileAndDisplay(string molfile, Range cell, string serverUrl,
             Range idCell)
         {

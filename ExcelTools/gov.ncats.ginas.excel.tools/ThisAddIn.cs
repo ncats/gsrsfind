@@ -54,10 +54,10 @@ namespace gov.ncats.ginas.excel.tools
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-            log.DebugFormat("ThisAddIn_Startup. Exe: {0}; Process: {1}; Module: {2}",
+            /*log.DebugFormat("ThisAddIn_Startup. Exe: {0}; Process: {1}; Module: {2}",
                 System.AppDomain.CurrentDomain.FriendlyName, 
                 System.Diagnostics.Process.GetCurrentProcess().ProcessName,
-                System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+                System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);*/
             Application.WorkbookActivate += Application_WorkbookActivate;
             Application.SheetBeforeRightClick += Application_SheetBeforeRightClick;
             Application.SheetActivate += Application_SheetActivate;

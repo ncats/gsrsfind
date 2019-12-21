@@ -36,6 +36,8 @@ namespace gov.ncats.ginas.excel.tools
             form.CurrentOperationType = OperationType.Resolution;
             form.Controller = retriever;
             form.Visible = false;
+            //form.Parent= (System.Windows.Forms.Control) e.Control;
+            //form.Owner = e.Control.Context;
             form.ShowDialog();
         }
 
@@ -129,12 +131,8 @@ namespace gov.ncats.ginas.excel.tools
                 sDFileProcessor.SetScriptExecutor(form);
                 form.CurrentOperationType = OperationType.ProcessSdFile;
                 form.Controller = sDFileProcessor;
-                //form.Visible = false;
-                //form.SetSize(1);
-                //form.Show();
                 sDFileProcessor.SetStatusUpdater(form);
                 sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet)window.Application.ActiveSheet);
-
             }
             catch(Exception ex)
             {

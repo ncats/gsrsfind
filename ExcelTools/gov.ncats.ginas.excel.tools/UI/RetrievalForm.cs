@@ -30,6 +30,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         bool _savedDebugInfo;
         string _initLoadingErrorMessage = "Error loading initial ginas page";
         string _secondMessage = "Close dialog and try again or notify your administrator";
+        bool firstNavigate = true;
 
         public RetrievalForm(string noConnectionMessage, string secondMessage)
         {
@@ -169,6 +170,15 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (webBrowser1.DocumentTitle.Equals(NAVIGATION_CANCELED))
             {
+                if(firstNavigate)
+                {
+                    log.Warn("first attempt to load intial page failed; will run again");
+                    firstNavigate = false;
+                    string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
+                    webBrowser1.Url = new Uri(initURL);
+                }
+                else
+                { 
                 log.Warn("detected NAVIGATION_CANCELED");
                     string html = FileUtils.GetErrorHtml();
                 html = html.Replace("$MESSAGE1$", _initLoadingErrorMessage);
@@ -184,7 +194,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                     {
                         Controller.CancelOperation("Unable to contact server " + _configuration.SelectedServer.ServerUrl);
                     }
-
+                }
             }
         }
 
