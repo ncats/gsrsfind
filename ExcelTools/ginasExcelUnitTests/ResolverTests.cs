@@ -934,9 +934,9 @@ namespace ginasExcelUnitTests
             chemNames.Add("BURIXAFOR");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("MANGO SEED OIL");//structurally diverse
-            chemNames.Add("LEXAPTEPID PEGOL"); //nucleic acid
+            chemNames.Add("DRISAPERSEN"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
-            chemNames.Add("CI-201-678 FREE BASE"); //concept
+            chemNames.Add("CEMIPLIMAB"); //concept
             List<string> resolvers = new List<string>();
             resolvers.Add("All Names");
             Queue<string> scripts = new Queue<string>();
@@ -1140,7 +1140,7 @@ namespace ginasExcelUnitTests
             chemNames.Add("2,6-DICHLOROPHENOXY-.ALPHA.-PROPIONIC ACID");
             chemNames.Add("CETRIMIDE"); //mixture
             chemNames.Add("LYSIMACHIA QUADRIFOLIA WHOLE");//structurally diverse
-            chemNames.Add("LEXAPTEPID PEGOL"); //nucleic acid
+            chemNames.Add("DEMATIRSEN"); //nucleic acid
             chemNames.Add("BIXALOMER");//polymer
             chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
             List<string> resolvers = new List<string>();
