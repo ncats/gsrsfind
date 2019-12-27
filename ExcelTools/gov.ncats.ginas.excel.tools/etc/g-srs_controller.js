@@ -3412,11 +3412,26 @@ Script.builder().mix({
                             return substance.fetch("references")
                                 .andThen(function (refs) {
                                     var codeUuidToReplace = '';
+                                    var totalCodesForSystem = 0;
                                     for (var i = 0; i < codeCollection.length; i++) {
                                         if (codeCollection[i].codeSystem === codeSystem) {
                                             codeUuidToReplace = codeCollection[i].uuid;
-                                            break;
+                                            totalCodesForSystem++;
                                         }
+                                    }
+                                    console.log('in Replace Code script, located ' + totalCodesForSystem +
+                                        ' codes for system ' + codeSystem);
+                                    if (totalCodesForSystem === 0) {
+                                        return {
+                                            message: "Error locating code for system '" + codeSystem + ".'",
+                                            valid: false
+                                        };
+                                    } else if (totalCodesForSystem > 1) {
+                                        return {
+                                            message: "Error! More than one code for system '" +
+                                                codeSystem + "' has been found.",
+                                            valid: false
+                                        };
                                     }
                                     _.forEach(refs, function (ref) {
                                         if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
