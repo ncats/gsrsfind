@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using gov.ncats.ginas.excel.tools.Model;
@@ -177,5 +178,39 @@ namespace gov.ncats.ginas.excel.tools.Utils
             public static char CR = (char)13; // Carriage Return
             public static char SUB = (char)26; // Substitute
         }
+
+        public static Dictionary<string, string> GetNucleotideMasterData()
+        {
+            string nucleotideDataFilePath = GetCurrentFolder() + @"\etc\NucleotideData.txt";
+            Dictionary<string, string> nucleotideData = new Dictionary<string, string>();
+            
+            string data= File.ReadAllText(nucleotideDataFilePath);
+            string[] lines = data.Split('\n');
+            foreach(string line in lines)
+            {
+                string[] tokens = line.Trim().Split(',');
+                nucleotideData.Add(tokens[0], tokens[1]);
+                nucleotideData.Add(tokens[2], tokens[3]);
+                nucleotideData.Add(tokens[4], tokens[5]);
+                nucleotideData.Add(tokens[6], tokens[7]);
+            }
+            return nucleotideData;
+        }
+
+        public static Dictionary<string, string> GetAminoAcidMasterData()
+        {
+            string nucleotideDataFilePath = GetCurrentFolder() + @"\etc\AminoAcidRepresentations.txt";
+            Dictionary<string, string> aminoAcidData = new Dictionary<string, string>();
+
+            string data = File.ReadAllText(nucleotideDataFilePath);
+            string[] lines = data.Split('\n');
+            foreach (string line in lines)
+            {
+                string[] tokens = line.Trim().Split('/');
+                aminoAcidData.Add(tokens[0], tokens[1]);
+            }
+            return aminoAcidData;
+        }
+
     }
 }

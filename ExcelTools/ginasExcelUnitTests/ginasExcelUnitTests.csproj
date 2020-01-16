@@ -111,6 +111,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\DataLoaderTests.cs" />
+    <Compile Include="Controller\SequenceProcessorTests.cs" />
     <Compile Include="Model\CodeProxy.cs" />
     <Compile Include="Model\PlantPart.cs" />
     <Compile Include="Model\RelatedSubstanceProxy.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="Utils\FieldMappingDialog.Designer.cs">
       <DependentUpon>FieldMappingDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Utils\FileUtilTests.cs" />
     <Compile Include="Utils\ScriptUtilsTests.cs" />
     <Compile Include="Utils\SDFileUtilsTests.cs" />
     <Compile Include="Utils\RestUtilTests.cs" />

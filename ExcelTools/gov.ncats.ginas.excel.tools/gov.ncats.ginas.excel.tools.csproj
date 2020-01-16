@@ -210,6 +210,7 @@
     <Compile Include="Controller\IController.cs" />
     <Compile Include="Controller\Retriever.cs" />
     <Compile Include="Controller\SDFileProcessor.cs" />
+    <Compile Include="Controller\SequenceProcessor.cs" />
     <Compile Include="Model\ApplicationEntity.cs" />
     <Compile Include="Model\ApplicationField.cs" />
     <Compile Include="Model\ApplicationMetadata.cs" />
@@ -234,6 +235,7 @@
     <Compile Include="Model\SDFileRecord.cs" />
     <Compile Include="Model\SearchValue.cs" />
     <Compile Include="Model\SheetSectionInfo.cs" />
+    <Compile Include="Model\StringReverser.cs" />
     <Compile Include="Model\StructureQueryResult.cs" />
     <Compile Include="Model\StructureReturn.cs" />
     <Compile Include="Model\Vocab.cs" />
@@ -306,6 +308,9 @@
     <None Include="etc\g-srs.config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="etc\AminoAcidRepresentations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="etc\g-srs_controller.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -315,6 +320,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="etc\json-patch.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="etc\NucleotideData.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="log4net.config">

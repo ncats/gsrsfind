@@ -48,11 +48,15 @@
             this.configurationGroup = this.Factory.CreateRibbonGroup();
             this.buttonConfigure = this.Factory.CreateRibbonButton();
             this.buttonAbout = this.Factory.CreateRibbonButton();
+            this.Sequences = this.Factory.CreateRibbonGroup();
+            this.buttonDnaToProtein = this.Factory.CreateRibbonButton();
+            this.buttonDnaToRetrovirusRna = this.Factory.CreateRibbonButton();
             this.ginasTab.SuspendLayout();
             this.retrievalgroup.SuspendLayout();
             this.updateGroup.SuspendLayout();
             this.groupSDFile.SuspendLayout();
             this.configurationGroup.SuspendLayout();
+            this.Sequences.SuspendLayout();
             this.SuspendLayout();
             // 
             // ginasTab
@@ -60,6 +64,7 @@
             this.ginasTab.Groups.Add(this.retrievalgroup);
             this.ginasTab.Groups.Add(this.updateGroup);
             this.ginasTab.Groups.Add(this.groupSDFile);
+            this.ginasTab.Groups.Add(this.Sequences);
             this.ginasTab.Groups.Add(this.configurationGroup);
             this.ginasTab.Label = "g-srs";
             this.ginasTab.Name = "ginasTab";
@@ -163,6 +168,25 @@
             this.buttonAbout.Name = "buttonAbout";
             this.buttonAbout.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAbout_Click);
             // 
+            // Sequences
+            // 
+            this.Sequences.Items.Add(this.buttonDnaToProtein);
+            this.Sequences.Items.Add(this.buttonDnaToRetrovirusRna);
+            this.Sequences.Label = "Sequences";
+            this.Sequences.Name = "Sequences";
+            // 
+            // buttonDnaToProtein
+            // 
+            this.buttonDnaToProtein.Label = "DNA to Protein";
+            this.buttonDnaToProtein.Name = "buttonDnaToProtein";
+            this.buttonDnaToProtein.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToProtein_Click);
+            // 
+            // buttonDnaToRetrovirusRna
+            // 
+            this.buttonDnaToRetrovirusRna.Label = "DNA to Retrovirus RNA";
+            this.buttonDnaToRetrovirusRna.Name = "buttonDnaToRetrovirusRna";
+            this.buttonDnaToRetrovirusRna.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToRetrovirusRna_Click);
+            // 
             // GinasRibbon
             // 
             this.Name = "GinasRibbon";
@@ -179,6 +203,8 @@
             this.groupSDFile.PerformLayout();
             this.configurationGroup.ResumeLayout(false);
             this.configurationGroup.PerformLayout();
+            this.Sequences.ResumeLayout(false);
+            this.Sequences.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -199,6 +225,9 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonSelectPT;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup groupSDFile;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAssureColumns;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup Sequences;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToProtein;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToRetrovirusRna;
     }
 
     partial class ThisRibbonCollection

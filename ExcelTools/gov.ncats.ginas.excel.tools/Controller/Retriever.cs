@@ -283,7 +283,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         }
 
 
-        private List<SearchValue> GetSearchValues(Excel.Range selection)
+        internal static List<SearchValue> GetSearchValues(Excel.Range selection)
         {
             List<SearchValue> searchValues = new List<SearchValue>();
             foreach (Excel.Range row in selection.Rows)

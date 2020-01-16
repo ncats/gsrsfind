@@ -1239,6 +1239,21 @@ namespace ginasExcelUnitTests
             workbook.Close(false);
             Assert.AreEqual(expected, result);
         }
+
+        [TestMethod]
+        public void TestSetCellValue()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet sheet = (Worksheet)workbook.Worksheets.Add();
+            int row = 5;
+            int col = 3;
+            string testValue = "Some data to put into a sheet";
+            SheetUtils.SetCellValue(sheet, row, col, testValue);
+
+            string actual = (string) sheet.Range["C5"].FormulaR1C1;
+            Assert.AreEqual(testValue, actual);
+        }
+
         private Workbook ReadDefaultExcelWorkbook()
         {
             string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";

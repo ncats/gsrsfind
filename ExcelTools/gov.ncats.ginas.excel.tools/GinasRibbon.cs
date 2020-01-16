@@ -163,5 +163,17 @@ namespace gov.ncats.ginas.excel.tools
             sDFileProcessor.SetScriptExecutor(form);
             sDFileProcessor.ManageSetupRemainingColumns();
         }
+
+        private void buttonDnaToProtein_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            SequenceProcessor.StartDnaToProtein(window);
+        }
+
+        private void buttonDnaToRetrovirusRna_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            SequenceProcessor.StartDnaToRetrovirusRna(window);
+        }
     }
 }

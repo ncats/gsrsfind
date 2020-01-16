@@ -751,6 +751,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             sheet.CustomProperties.Add(propertyName, propertyValue);
         }
 
+        public static void SetCellValue(Worksheet sheet, int row, int col, string value)
+        {
+            string rangeName = GetColumnName(col) + row;
+            sheet.Range[rangeName].Value2 = value;
+        }
+
         private static void FormatCellForParameter(Range cell)
         {
             cell.ColumnWidth = 21;
