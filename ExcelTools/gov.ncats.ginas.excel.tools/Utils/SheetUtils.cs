@@ -18,6 +18,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         private static readonly int MAX_COLUMNS = 16000;
         private static readonly int VOCABULARY_TEST_ROW = 1;
         private static readonly int COLUMN_WIDTH_APP_SHEET = 20;
+        private static readonly int MAX_COLUMN_CHARS = 32760;
 
         public GinasToolsConfiguration Configuration
         {

@@ -591,6 +591,112 @@ namespace ginasExcelUnitTests
         }
 
         [TestMethod]
+        public void MolfileTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string bdnumForTest = "0105021AB";
+            List<string> chemNames = new List<string>();
+            chemNames.Add(bdnumForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Molfile");
+            string expectedEnding = "M  END";
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(bdnumForTest));
+            string[] results = resolverResults[bdnumForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Any(r=> r.EndsWith(expectedEnding)));
+        }
+
+        [TestMethod]
+        public void NonChemicalMolfileTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            List<string> chemNames = new List<string>();
+            string bdnumForTest = "0105144AB";
+            chemNames.Add(bdnumForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Molfile+");
+            string expectedEnding = "M  END";
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(bdnumForTest));
+            string[] results = resolverResults[bdnumForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.AreEqual("", results[1]);
+        }
+
+        [TestMethod]
+        public void AltDefMolfileTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            List<string> chemNames = new List<string>();
+            string uniiForTest = "JBT6SFF5BV";
+            chemNames.Add(uniiForTest);
+            List<string> resolvers = new List<string>();
+            resolvers.Add("Molfile+");
+            string expectedEnding = "M  END";
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(3000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            string[] results = resolverResults[uniiForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Any(r => r.EndsWith(expectedEnding)));
+        }
+
+
+
+        [TestMethod]
         public void CasFetcherTest()
         {
             CheckForm();

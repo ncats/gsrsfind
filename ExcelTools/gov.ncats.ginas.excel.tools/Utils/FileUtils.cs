@@ -212,5 +212,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return aminoAcidData;
         }
 
+        public static string GetUniqueFileName(string extension)
+        {
+            var uniqueFileName = string.Format(@"{0}.{1}", Guid.NewGuid(),
+                extension);
+            return uniqueFileName;
+        }
+
     }
 }

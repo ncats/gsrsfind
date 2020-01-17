@@ -2,9 +2,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Model;
+using System.Collections.Generic;
 
 namespace ginasExcelUnitTests
 {
@@ -67,5 +69,20 @@ namespace ginasExcelUnitTests
             Assert.IsNotNull(config);
 
         }
+
+        [TestMethod]
+        public void TestGetUniqueFileName()
+        {
+            List<string> fileNames = new List<string>();
+            int iterations = 10;
+            for(int it = 0; it < iterations; it++)
+            {
+                fileNames.Add(FileUtils.GetUniqueFileName("data"));
+            }
+
+            Assert.IsTrue(fileNames.TrueForAll(f => f.EndsWith("data")));
+            Assert.AreEqual(fileNames.Distinct().Count(), fileNames.Count());
+        }
+
     }
 }

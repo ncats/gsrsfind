@@ -1892,6 +1892,52 @@ FetcherRegistry.addFetcher(
 );
 
 FetcherRegistry.addFetcher(
+    FetcherMaker.make("SMILES+", function (simpleSub) {
+        return simpleSub.fetch("structure/smiles")
+            .andThen(function (s) {
+                if (s && s.valid === false) {
+                    console.log("No structure found for substance.  Will look at related");
+                    return simpleSub.fetch("relationships")
+                        .andThen(function (r) {
+                            var altList = _.chain(r)
+                                .filter({ type: "SUBSTANCE->SUB_ALTERNATE" })
+                                .map(function (ro) {
+                                    console.log('going to fetch substance by ' + ro.relatedSubstance.refuuid);
+                                    return SubstanceFinder.searchByExactNameOrCode(ro.relatedSubstance.refuuid)
+                                        .andThen(function (resp) {
+                                            console.log('search returned ' + JSON.stringify(resp));
+                                            if (resp.content && resp.content.length >= 1) {
+                                                console.log('looked up substance by UUID');
+                                                var rec = resp.content[0];
+                                                var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                                                return substance.fetch("structure/smiles")
+                                                    .andThen(function (smi) {
+                                                        console.log('retrieved SMILES ' + smi);
+                                                        return smi;
+                                                    });
+                                            }
+                                            else {
+                                                console.log('search did not return content');
+                                                return '';
+                                            }
+                                        });
+                                })
+                                .value();
+                            if (altList.length > 0) {
+                                return altList[0];
+                            }
+                            return '';
+                        });
+
+                    /*return "";*/
+                }
+                
+                return simpleSub.structure.smiles;
+            });
+    }).addTag("Chemical")
+);
+
+FetcherRegistry.addFetcher(
     FetcherMaker.make("InChIKey", function (simpleSub) {
         return simpleSub.fetch("structure!$inchikey()")
             .andThen(function (ik) {
@@ -2032,7 +2078,51 @@ FetcherRegistry.addFetcher(FetcherMaker.makeScalarFetcher("_name", "Preferred Te
     .addFetcher(FetcherMaker.makeScalarFetcher("version", "Version").addTag("Record"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/formula", "Molecular Formula").addTag("Chemical"))
     .addFetcher(FetcherMaker.makeAPIFetcher("structure/molfile", "Molfile").addTag("Chemical"))
-    .addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
+
+FetcherRegistry.addFetcher(
+    FetcherMaker.make("Molfile+", function (simpleSub) {
+        return simpleSub.fetch("structure/molfile")
+            .andThen(function (s) {
+                if (s && s.valid === false) {
+                    console.log("No structure found for substance.  Will look at related");
+                    return simpleSub.fetch("relationships")
+                        .andThen(function (r) {
+                            var altList = _.chain(r)
+                                .filter({ type: "SUBSTANCE->SUB_ALTERNATE" })
+                                .map(function (ro) {
+                                    console.log('going to fetch substance by ' + ro.relatedSubstance.refuuid);
+                                    return SubstanceFinder.searchByExactNameOrCode(ro.relatedSubstance.refuuid)
+                                        .andThen(function (resp) {
+                                            console.log('total responses returned ' + resp.content.length);
+                                            if (resp.content && resp.content.length >= 1) {
+                                                console.log('looked up substance by UUID');
+                                                var rec = resp.content[0];
+                                                var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                                                return substance.fetch("structure/molfile")
+                                                    .andThen(function (molf) {
+                                                        console.log('About to return ' + molf);
+                                                        return molf;
+                                                    });
+                                            }
+                                            else {
+                                                console.log('search did not return content');
+                                                return '';
+                                            }
+                                        });
+                                })
+                                .value();
+                            if (altList.length > 0) return altList[0];
+                            return '';
+                        });
+                }
+                var molfile = simpleSub.structure.molfile;
+                console.log('simpleSub.structure: ' + molfile);
+                return molfile;
+            });
+    }).addTag("Chemical")
+);
+
+FetcherRegistry.addFetcher(FetcherMaker.makeAPIFetcher("structure/mwt", "Molecular Weight").addTag("Chemical"));
 
 /*FetcherRegistry.addFetcher(
     FetcherMaker.make("Structural Modifications", function (simpleSub) {

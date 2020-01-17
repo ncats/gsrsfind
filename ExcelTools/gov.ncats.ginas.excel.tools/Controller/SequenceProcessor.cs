@@ -12,37 +12,36 @@ namespace gov.ncats.ginas.excel.tools.Controller
 {
     public class SequenceProcessor
     {
-        private static Dictionary<string, string> tripletToAmino;
-        private static Dictionary<string, string> aminoLongToShort;
+        private static readonly Dictionary<string, string> tripletToAmino = FileUtils.GetNucleotideMasterData();
+        private static readonly Dictionary<string, string> aminoLongToShort = FileUtils.GetAminoAcidMasterData();
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        static SequenceProcessor()
-        {
-            tripletToAmino = FileUtils.GetNucleotideMasterData();
-            aminoLongToShort = FileUtils.GetAminoAcidMasterData();
-        }
 
         public static void StartDnaToProtein( Excel.Window excelWindow)
         {
+            log.Debug("StartDnaToProtein");
             Excel.Worksheet activeWorksheet = ((Excel.Worksheet)excelWindow.Application.ActiveSheet);
             Excel.Range selection = (Excel.Range)excelWindow.Application.Selection;
             if (selection == null)
             {
+                log.Debug("no access to Excel");
                 UIUtils.ShowMessageToUser("Error obtaining access to Excel!");
                 return;
             }
             List<SearchValue> searchValues = Retriever.GetSearchValues(selection);
             
-            if (searchValues.Any(v => string.IsNullOrWhiteSpace(v.Value)))
+            if (searchValues.All(v => string.IsNullOrWhiteSpace(v.Value)))
             {
+                log.Debug("no data selected");
                 UIUtils.ShowMessageToUser("Please select a chemical name or ID");
                 return;
             }
             searchValues.ForEach(sv =>
             {
-                if( !string.IsNullOrWhiteSpace(sv.Value))
+                log.Debug("processing " + sv.Value);
+                if ( !string.IsNullOrWhiteSpace(sv.Value))
                 {
                     List<string> proteinEquivalent = ConvertDnaSequence(sv.Value);
+                    log.Debug("got back data");
                     int col = SheetUtils.FindColumn(selection, sv.Value, sv.RowNumber);
                     col++;
                     SheetUtils.SetCellValue(activeWorksheet, sv.RowNumber, col, string.Join(" ", proteinEquivalent));
@@ -61,7 +60,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             List<SearchValue> searchValues = Retriever.GetSearchValues(selection);
 
-            if (searchValues.Any(v => string.IsNullOrWhiteSpace(v.Value)))
+            if (searchValues.All(v => string.IsNullOrWhiteSpace(v.Value)))
             {
                 UIUtils.ShowMessageToUser("Please select a chemical name or ID");
                 return;
@@ -81,37 +80,45 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public static List<string> ConvertDnaSequence(string dnaSequence)
         {
             //step 1: uppercase
-            string processingSequence = dnaSequence.Trim().ToUpper();
+            string processingSequence = dnaSequence.Replace(" ","").Replace("\n","").Trim().ToUpper();
+            log.Debug("converted sequence to upper case: " + processingSequence);
             //step 2: break up into triplets
             List<string> dnaTriplets = CreateTriplets(processingSequence);
+            log.Debug("broke up into triplets");
             //step 3: convert DNA to RNA 
             List<string> rnaTriplets = new List<string>();
             dnaTriplets.ForEach(s => rnaTriplets.Add( ConvertDnaToRna(s)));
+            log.Debug("converted to RNA");
             //step 4: convert RNA to protein
             List<string> protein = ConvertRnaToProteinSequence(rnaTriplets);
+            log.Debug("converted to protein");
             return protein;
         }
 
         public static List<string> ConvertDnaSequenceForRetrovirus(string dnaSequence)
         {
             //step 1: uppercase
-            string processingSequence = dnaSequence.Trim().ToUpper();
+            string processingSequence = dnaSequence.Replace(" ", "").Trim().ToUpper();
+            log.Debug("converted sequence to upper case: " + processingSequence);
+
             //step 2: break up into triplets
             List<string> dnaTriplets = CreateTriplets(processingSequence);
+            log.Debug("created triplets");
 
             //step 3: reverse the sequence -- both the triplets themselves and 
             // the characters within the triplets
             List<string> backwardDnaTriplets = new List<string>();
             dnaTriplets.ForEach(t=> backwardDnaTriplets.Add(t.ReverseString()));
             backwardDnaTriplets.Reverse();
+            log.Debug("reversed the sequence");
 
             //step 4: create complementary sequence
             List<string> backwardComplementaryDnaTriplets = GetComplementaryDnaSequence(backwardDnaTriplets);
-
+            log.Debug("created complementary sequence");
             //step 5: convert to RNA
             List<string> rnaTriplets = new List<string>();
             backwardComplementaryDnaTriplets.ForEach(s => rnaTriplets.Add(ConvertDnaToRna(s)));
-
+            log.Debug("converted to retroviral RNA");
             return rnaTriplets;
         }
 
@@ -147,7 +154,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 if( !tripletToAmino.ContainsKey(triplet))
                 {
-                    proteinSequence.Add("No match for: " + triplet);
+                    proteinSequence.Add(string.Format("No match for: '{0}'",
+                         triplet));
                     continue;
                 }
                 string longProtein = tripletToAmino[triplet];

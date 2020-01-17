@@ -213,6 +213,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3171B3E640CE53EE2EA8531F2201F49C"
+        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_33D922639AF6EE5292A55E79F5A18884"
         "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
         "MsmSig" = "8:_UNDEFINED"
@@ -353,12 +359,6 @@
         {
         "MsmKey" = "8:_5FB738CB64F11CDFDD94E9AC2C3C0CDE"
         "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_609300E959714E12942281D1BDC727EB"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -531,12 +531,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9077B574E6ED60887CC3E9083CB6EEEF"
-        "OwnerKey" = "8:_F11B1223BD1D42D38DD68C3B3BB7A68E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_9086F4DDD8DB4E13BF051A5712D9285A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -556,7 +550,7 @@
         "Entry"
         {
         "MsmKey" = "8:_93058410A2557AE0ACE375AFF01FB919"
-        "OwnerKey" = "8:_9077B574E6ED60887CC3E9083CB6EEEF"
+        "OwnerKey" = "8:_3171B3E640CE53EE2EA8531F2201F49C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -928,12 +922,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_93058410A2557AE0ACE375AFF01FB919"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_C7F8C2DABD9C2BE2A76FB2490CC2880D"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -947,6 +935,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_A9A20DC660B158ED7026123C91051AE5"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_93058410A2557AE0ACE375AFF01FB919"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2623,6 +2617,37 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3171B3E640CE53EE2EA8531F2201F49C"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_3171B3E640CE53EE2EA8531F2201F49C"
+                    {
+                    "Name" = "8:System.Runtime.CompilerServices.Unsafe.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:System.Runtime.CompilerServices.Unsafe.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_33D922639AF6EE5292A55E79F5A18884"
             {
             "AssemblyRegister" = "3:1"
@@ -3367,26 +3392,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_609300E959714E12942281D1BDC727EB"
-            {
-            "SourcePath" = "8:..\\gov.ncats.ginas.excel.tools\\etc\\application.metadata.json"
-            "TargetName" = "8:application.metadata.json"
-            "Tag" = "8:"
-            "Folder" = "8:_21B9ED81017C47C3A69A76B358E50E4A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_60ADAE3D4B8C98AF392B8BB3077828F3"
             {
             "AssemblyRegister" = "3:1"
@@ -4092,37 +4097,6 @@
                     }
                 }
             "SourcePath" = "8:System.Net.NameResolution.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_9077B574E6ED60887CC3E9083CB6EEEF"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_9077B574E6ED60887CC3E9083CB6EEEF"
-                    {
-                    "Name" = "8:System.Runtime.CompilerServices.Unsafe.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:System.Runtime.CompilerServices.Unsafe.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_16E356C2F2F340B5890702B122ECE80E"

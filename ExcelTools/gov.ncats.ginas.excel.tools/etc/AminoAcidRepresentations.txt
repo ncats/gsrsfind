@@ -16,3 +16,5 @@ Glu/E
 Cys/C
 Arg/R
 Gly/G
+Trp/W
+Tyr/Y
