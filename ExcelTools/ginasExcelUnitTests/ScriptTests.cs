@@ -447,8 +447,6 @@ namespace ginasExcelUnitTests
                 newCodeSystem));
             scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
                 "https://www.uniprot.org/uniprot/", newCode));
-            scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
-
             scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
             scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
             scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");

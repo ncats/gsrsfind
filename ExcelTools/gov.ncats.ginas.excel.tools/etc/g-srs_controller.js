@@ -2794,7 +2794,10 @@ function validateSubstanceWithStructure(args) {
             return SubstanceFinder.getExactStructureMatches(s.structure.id)
                 .andThen(function (searchResult) {
                     console.log('searchResult: ' + JSON.stringify(searchResult));
-                    if (searchResult.content !== null && searchResult.content.length > 0) {
+                    console.log('searchResult.length: ' + searchResult.length);
+                    if (searchResult.length > 0 ||
+                        (!_.isUndefined(searchResult.content) && searchResult.content.length>0)) {
+                        console.log('duplicate(s) detected!')
                         return { valid: false, message: "Structure has 1 or more duplicates", overall: true }
                     }
                     return { valid: true };
