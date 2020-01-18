@@ -494,7 +494,7 @@ namespace ginasExcelUnitTests
         {
             int maxRep = 10;
             CheckForm();
-            string ptForTest = "ANDROSTERONE SULFATE";
+            string ptForTest = "Nouveau truc";
             for (int i = 0; i < maxRep; i++)
             {
                 ScriptUtils scriptUtils = new ScriptUtils();
@@ -504,7 +504,7 @@ namespace ginasExcelUnitTests
                 {
                     Console.WriteLine("Looking at code {0} {1}", code.CodeSystem, code.Code);
                 }
-                string uuidCrossRef = "88813ffe-ff1f-4a47-870b-26635fa101ef";
+                string uuidCrossRef = "2972dbd6-8e73-4c10-9da0-d7783b3bb47b";
 
                 string newRef = "Ref " + Guid.NewGuid();
                 scriptUtils.ScriptName = "Replace Code";
@@ -531,7 +531,6 @@ namespace ginasExcelUnitTests
                     newCodeSystem));
                 scripts.Enqueue(string.Format("tmpRunner.setValue('code url', '{0}{1}')",
                     "https://www.uniprot.org/uniprot/", newCode));
-                scripts.Enqueue("tmpRunner.setValue('allow multiples', 'true')");
                 scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
                 scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
                 scripts.Enqueue("tmpRunner.setValue('change reason', 'New code added via script')");
