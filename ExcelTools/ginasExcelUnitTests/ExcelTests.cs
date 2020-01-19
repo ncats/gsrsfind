@@ -169,7 +169,7 @@ namespace ginasExcelUnitTests
             Retriever retriever = new Retriever();
             string methodToTest = "GetSearchValues";
             MethodInfo method = retriever.GetType().GetMethod(methodToTest, 
-                BindingFlags.NonPublic | BindingFlags.Instance);
+                BindingFlags.NonPublic | BindingFlags.Static);
             object[] parms = new object[1];
             parms[0] = selection;
             List<SearchValue> valuesForSearch = (List<SearchValue>) method.Invoke(retriever, parms);

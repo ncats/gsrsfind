@@ -1,0 +1,29 @@
+{
+  "uuid": "11032062-0356-41f8-bcbd-41fa28ae1311",
+  "created": 1548892102375,
+  "createdBy": "mitch",
+  "lastEdited": 1548892102375,
+  "lastEditedBy": "mitch",
+  "deprecated": false,
+  "comments": "",
+  "relatedSubstance": {
+    "uuid": "d71063d3-e273-4110-a5e0-bfe738939c44",
+    "created": 1548892102374,
+    "createdBy": "mitch",
+    "lastEdited": 1548892102374,
+    "lastEditedBy": "mitch",
+    "deprecated": false,
+    "refPname": "QUERCUS PUBESCENS BARK",
+    "refuuid": "3368c960-b299-4a65-8289-6ad941be2e36",
+    "substanceClass": "reference",
+    "approvalID": "2Z0I8ZZA65",
+    "name": "QUERCUS PUBESCENS BARK",
+    "linkingID": "2Z0I8ZZA65",
+    "references": [],
+    "access": []
+  },
+  "originatorUuid": "11032062-0356-41f8-bcbd-41fa28ae1311",
+  "type": "PARENT ORGANISM->PART/FRACTION",
+  "references": [],
+  "access": []
+}

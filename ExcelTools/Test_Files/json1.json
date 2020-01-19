@@ -1,0 +1,27 @@
+{
+  "uuid": "f44c6452-39d8-4d41-83e5-f795131976fc",
+  "created": 1548892103398,
+  "createdBy": "mitch",
+  "lastEdited": 1548892103398,
+  "lastEditedBy": "mitch",
+  "deprecated": false,
+  "type": "MUST_BE_PRESENT",
+  "substance": {
+    "uuid": "8585e77e-a450-4043-98bf-0c8cf20e46cd",
+    "created": 1548892103395,
+    "createdBy": "mitch",
+    "lastEdited": 1548892103395,
+    "lastEditedBy": "mitch",
+    "deprecated": false,
+    "refPname": "CINNAMALDEHYDE PROPYLENEGLYCOL ACETAL, (2S,4S)-",
+    "refuuid": "c3a71904-3529-4481-96df-b72a89a72862",
+    "substanceClass": "reference",
+    "approvalID": "4I57N448PQ",
+    "name": "CINNAMALDEHYDE PROPYLENEGLYCOL ACETAL, (2S,4S)-",
+    "linkingID": "4I57N448PQ",
+    "references": [],
+    "access": []
+  },
+  "references": [],
+  "access": []
+}

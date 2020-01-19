@@ -1,0 +1,263 @@
+result: {
+  "args": {
+    "FORCED": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "FORCED",
+      "name": "FORCED",
+      "description": "Override of normal validation",
+      "required": false
+    },
+    "pt": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "pt",
+      "name": "PT",
+      "description": "Preferred Term of the new substance",
+      "required": true,
+      "value": "3-(TRIETHOXYSILYL)PROPYLAMINE"
+    },
+    "pt language": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "LANGUAGE",
+      "key": "pt language",
+      "name": "PT LANGUAGE",
+      "description": "language for Preferred Term",
+      "required": true,
+      "defaultValue": "English",
+      "type": "cv",
+      "value": "en"
+    },
+    "pt name type": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "NAME_TYPE",
+      "key": "pt name type",
+      "name": "PT NAME TYPE",
+      "description": "2/3-letter name type (e.g., cn, of) for Preferred Term",
+      "required": true,
+      "defaultValue": "cn",
+      "type": "cv",
+      "value": "cn"
+    },
+    "substance class": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "SUBSTANCE_CLASS",
+      "key": "substance class",
+      "name": "SUBSTANCE CLASS",
+      "description": "Category",
+      "required": true,
+      "defaultValue": "chemical",
+      "type": "cv",
+      "value": "chemical"
+    },
+    "smiles": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "smiles",
+      "name": "SMILES",
+      "description": "Structure as SMILES",
+      "required": false
+    },
+    "molfile": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "molfile",
+      "name": "MOLFILE",
+      "description": "Structure as molfile",
+      "required": false,
+      "value": "\n  SciTegic06281811262D\n\n 14 13  0  0  0  0            999 V2000\n   -0.0310    0.2172    0.0000 Si  0  0\n    0.6586    0.6586    0.0000 C   0  0\n   -0.6414    0.7690    0.0000 O   0  0\n   -0.6414   -0.3448    0.0000 O   0  0\n    0.4690   -0.4310    0.0000 O   0  0\n    1.3931    0.2793    0.0000 C   0  0\n   -1.4345    0.5172    0.0000 C   0  0\n   -1.4345   -0.1069    0.0000 C   0  0\n    0.1655   -1.2034    0.0000 C   0  0\n    2.0931    0.7345    0.0000 C   0  0\n   -2.0483    1.0724    0.0000 C   0  0\n   -2.0414   -0.6586    0.0000 C   0  0\n    0.6655   -1.8586    0.0000 C   0  0\n    2.8276    0.3552    0.0000 N   0  0\n  1  2  1  0\n  1  3  1  0\n  1  4  1  0\n  1  5  1  0\n  2  6  1  0\n  3  7  1  0\n  4  8  1  0\n  5  9  1  0\n  6 10  1  0\n  7 11  1  0\n  8 12  1  0\n  9 13  1  0\n 10 14  1  0\nM  END\n"
+    },
+    "reference type": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "DOCUMENT_TYPE",
+      "key": "reference type",
+      "name": "REFERENCE TYPE",
+      "description": "Type of reference (must match a vocabulary)",
+      "defaultValue": "SYSTEM",
+      "required": false,
+      "type": "cv",
+      "value": "CHEMID"
+    },
+    "reference citation": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "reference citation",
+      "name": "REFERENCE CITATION",
+      "description": "Citation text for reference",
+      "required": true,
+      "value": "0000919302"
+    },
+    "reference url": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "reference url",
+      "name": "REFERENCE URL",
+      "description": "URL for the reference",
+      "required": false,
+      "value": "https://chem.nlm.nih.gov/chemidplus/ID/0000919302"
+    },
+    "change reason": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "change reason",
+      "name": "CHANGE REASON",
+      "defaultValue": "Creating new substance",
+      "description": "Text for the record change",
+      "required": false,
+      "value": "New substance"
+    },
+    "pd": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "pd",
+      "name": "PD",
+      "description": "Public Domain status of the code (sets access for reference as well)",
+      "defaultValue": false,
+      "required": false,
+      "value": "Y"
+    }
+  }
+} runCommandForCSharp about to eval tmpRunner.setValue('substance class', 'chemical') result: {
+  "args": {
+    "FORCED": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "FORCED",
+      "name": "FORCED",
+      "description": "Override of normal validation",
+      "required": false
+    },
+    "pt": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "pt",
+      "name": "PT",
+      "description": "Preferred Term of the new substance",
+      "required": true,
+      "value": "3-(TRIETHOXYSILYL)PROPYLAMINE"
+    },
+    "pt language": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "LANGUAGE",
+      "key": "pt language",
+      "name": "PT LANGUAGE",
+      "description": "language for Preferred Term",
+      "required": true,
+      "defaultValue": "English",
+      "type": "cv",
+      "value": "en"
+    },
+    "pt name type": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "NAME_TYPE",
+      "key": "pt name type",
+      "name": "PT NAME TYPE",
+      "description": "2/3-letter name type (e.g., cn, of) for Preferred Term",
+      "required": true,
+      "defaultValue": "cn",
+      "type": "cv",
+      "value": "cn"
+    },
+    "substance class": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "SUBSTANCE_CLASS",
+      "key": "substance class",
+      "name": "SUBSTANCE CLASS",
+      "description": "Category",
+      "required": true,
+      "defaultValue": "chemical",
+      "type": "cv",
+      "value": "chemical"
+    },
+    "smiles": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "smiles",
+      "name": "SMILES",
+      "description": "Structure as SMILES",
+      "required": false
+    },
+    "molfile": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "molfile",
+      "name": "MOLFILE",
+      "description": "Structure as molfile",
+      "required": false,
+      "value": "\n  SciTegic06281811262D\n\n 14 13  0  0  0  0            999 V2000\n   -0.0310    0.2172    0.0000 Si  0  0\n    0.6586    0.6586    0.0000 C   0  0\n   -0.6414    0.7690    0.0000 O   0  0\n   -0.6414   -0.3448    0.0000 O   0  0\n    0.4690   -0.4310    0.0000 O   0  0\n    1.3931    0.2793    0.0000 C   0  0\n   -1.4345    0.5172    0.0000 C   0  0\n   -1.4345   -0.1069    0.0000 C   0  0\n    0.1655   -1.2034    0.0000 C   0  0\n    2.0931    0.7345    0.0000 C   0  0\n   -2.0483    1.0724    0.0000 C   0  0\n   -2.0414   -0.6586    0.0000 C   0  0\n    0.6655   -1.8586    0.0000 C   0  0\n    2.8276    0.3552    0.0000 N   0  0\n  1  2  1  0\n  1  3  1  0\n  1  4  1  0\n  1  5  1  0\n  2  6  1  0\n  3  7  1  0\n  4  8  1  0\n  5  9  1  0\n  6 10  1  0\n  7 11  1  0\n  8 12  1  0\n  9 13  1  0\n 10 14  1  0\nM  END\n"
+    },
+    "reference type": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "DOCUMENT_TYPE",
+      "key": "reference type",
+      "name": "REFERENCE TYPE",
+      "description": "Type of reference (must match a vocabulary)",
+      "defaultValue": "SYSTEM",
+      "required": false,
+      "type": "cv",
+      "value": "CHEMID"
+    },
+    "reference citation": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "reference citation",
+      "name": "REFERENCE CITATION",
+      "description": "Citation text for reference",
+      "required": true,
+      "value": "0000919302"
+    },
+    "reference url": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "reference url",
+      "name": "REFERENCE URL",
+      "description": "URL for the reference",
+      "required": false,
+      "value": "https://chem.nlm.nih.gov/chemidplus/ID/0000919302"
+    },
+    "change reason": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "change reason",
+      "name": "CHANGE REASON",
+      "defaultValue": "Creating new substance",
+      "description": "Text for the record change",
+      "required": false,
+      "value": "New substance"
+    },
+    "pd": {
+      "_type": "argument",
+      "opPromise": { "_promise": true },
+      "cvType": "",
+      "key": "pd",
+      "name": "PD",
+      "description": "Public Domain status of the code (sets access for reference as well)",
+      "defaultValue": false,
+      "required": false,
+      "value": "Y"
+    }
+  }
+}

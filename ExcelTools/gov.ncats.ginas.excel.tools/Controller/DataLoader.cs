@@ -1,16 +1,18 @@
-﻿using gov.ncats.ginas.excel.tools.Model;
-using gov.ncats.ginas.excel.tools.Model.Callbacks;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Diagnostics;
+using System.Timers;
+using System.Configuration;
+
+using gov.ncats.ginas.excel.tools.UI;
 using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Providers;
-using System.Timers;
-using gov.ncats.ginas.excel.tools.UI;
+using gov.ncats.ginas.excel.tools.Model;
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 namespace gov.ncats.ginas.excel.tools.Controller
 {
@@ -24,7 +26,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
-        
+        static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.        
 
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -432,11 +434,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         private string GetPropertyValue(Excel.Range row, string key, string def)
         {
-            if( ColumnKeys.ContainsValue(key))
+            if (ColumnKeys.ContainsValue(key))
             {
                 int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(key)).Key;
-                Excel.Range dataRow= row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
-                if(dataRow.Value2 != null ) return dataRow.Value2.ToString();
+                Excel.Range dataRow = row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
+                if (dataRow.Value2 == null) return def;
+                String propertyValue= dataRow.Value2.ToString();
+                if (config.AppSettings.Settings["trimTextInputForUpdate"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    propertyValue = propertyValue.Trim();
+                }
+                return propertyValue;
             }
             return def;
         }
