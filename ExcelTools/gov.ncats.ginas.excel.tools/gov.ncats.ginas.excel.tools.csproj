@@ -211,9 +211,10 @@
     <Compile Include="Controller\Retriever.cs" />
     <Compile Include="Controller\SDFileProcessor.cs" />
     <Compile Include="Controller\SequenceProcessor.cs" />
-    <Compile Include="Model\ApplicationEntity.cs" />
-    <Compile Include="Model\ApplicationField.cs" />
-    <Compile Include="Model\ApplicationMetadata.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationEntity.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationField.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationMetadata.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationProcessingResult.cs" />
     <Compile Include="Model\Callbacks\BatchCallback.cs" />
     <Compile Include="Model\Callbacks\Callback.cs" />
     <Compile Include="Model\Callbacks\DoubleCursorBasedResolverCallback.cs" />
@@ -225,6 +226,13 @@
     <Compile Include="Model\Callbacks\Update2Callback.cs" />
     <Compile Include="Model\Callbacks\UpdateCallback.cs" />
     <Compile Include="Model\Enums.cs" />
+    <Compile Include="Model\FDAApplication\Application.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationIndication.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationIngredient.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationLookup.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationProduct.cs" />
+    <Compile Include="Model\FDAApplication\ApplicationProductName.cs" />
+    <Compile Include="Model\FDAApplication\SubRelationship.cs" />
     <Compile Include="Model\FilePostReturn.cs" />
     <Compile Include="Model\GinasResult.cs" />
     <Compile Include="Model\GinasToolsConfiguration.cs" />
@@ -302,15 +310,15 @@
       <DependentUpon>RetrievalForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
+    <Content Include="etc\AminoAcidRepresentations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="etc\g-srs.tools.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="etc\g-srs.config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="etc\AminoAcidRepresentations.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="etc\g-srs_controller.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

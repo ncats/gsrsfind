@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace gov.ncats.ginas.excel.tools.Model
+namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
 {
 
     public class ApplicationEntity

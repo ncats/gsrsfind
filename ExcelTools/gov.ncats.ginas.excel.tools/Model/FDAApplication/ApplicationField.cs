@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace gov.ncats.ginas.excel.tools.Model
+namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
 {
     public class ApplicationField 
     {
@@ -14,7 +14,8 @@ namespace gov.ncats.ginas.excel.tools.Model
             Application = 1,
             Product = 2,
             Ingredient = 3,
-            ProductName =4
+            ProductName =4,
+            AddIngredient = 5
         }
 
         public string FieldName
@@ -82,6 +83,12 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         } = false;
+
+        public int Column
+        {
+            get;
+            set;
+        } = 0;
 
         public string GetValue()
         {

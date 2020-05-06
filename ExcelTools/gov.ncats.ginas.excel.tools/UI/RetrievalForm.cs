@@ -31,6 +31,8 @@ namespace gov.ncats.ginas.excel.tools.UI
         string _initLoadingErrorMessage = "Error loading initial ginas page";
         string _secondMessage = "Close dialog and try again or notify your administrator";
         bool firstNavigate = true;
+        private int callCount = 0;
+        private int maxCallCount = 10;
 
         public RetrievalForm(string noConnectionMessage, string secondMessage)
         {
@@ -125,7 +127,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 HandleDebugInfoSave();
             }
-            if( CurrentOperationType == OperationType.ProcessSdFile || CurrentOperationType == OperationType.ProcessApplication)
+            if( CurrentOperationType == OperationType.ProcessSdFile || CurrentOperationType == OperationType.ProcessApplication
+                || CurrentOperationType== OperationType.AddIngredient)
             {
                 this.Close();
             }
@@ -358,7 +361,13 @@ namespace gov.ncats.ginas.excel.tools.UI
                 _configuration.DebugMode );
             webBrowser1.Document.Title = "ginas Tools";
             
-            ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
+            var scriptResult = ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
+            log.DebugFormat("Result of setBaseURL: {0}", scriptResult);
+            if ( scriptResult == null || scriptResult.ToString().Length==0)
+            {
+                callCount++;
+                if( callCount< maxCallCount) BuildGinasToolsDocument();
+            }
             checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             if (CurrentOperationType == OperationType.Loading || CurrentOperationType== OperationType.ProcessApplication)
             {
@@ -407,6 +416,10 @@ namespace gov.ncats.ginas.excel.tools.UI
                 Controller.StartOperation();
                 webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
                 return;
+            }
+            else if( CurrentOperationType == OperationType.AddIngredient)
+            {
+                Controller.ContinueSetup();
             }
             buttonDebugDOM.Enabled = false; 
             buttonDebugDOM.Visible = false;

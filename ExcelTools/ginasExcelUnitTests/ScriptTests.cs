@@ -25,7 +25,7 @@ namespace ginasExcelUnitTests
         static TestRetrievalForm retrievalForm = null;
         static DBQueryUtils dBQueryUtils = new DBQueryUtils();
         static bool scriptRunnerReady = false;
-        static private int SCRIPT_INTERVAL = 7000;
+        static private int SCRIPT_INTERVAL = 9000;
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -95,12 +95,24 @@ namespace ginasExcelUnitTests
             {
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
-            Thread.Sleep(SCRIPT_INTERVAL);
+            int currentCheck = 1;
+            int maxCheck = 12;
+            int expectedNameCount = namesBefore.Count + 1;
+            int totalNames = namesBefore.Count;
+            List<string> namesAfter = new List<string>();
+            while ( currentCheck < maxCheck &&  totalNames < expectedNameCount)
+            {
+                Thread.Sleep(1000);
+                namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
+                totalNames = namesAfter.Count;
+                currentCheck++;
+            }
+
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
+            
             Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
             Assert.IsTrue(namesAfter.Contains(newName));
         }
@@ -1009,10 +1021,18 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(SCRIPT_INTERVAL);
+            int currentTest = 1;
+            int maxTests = 50;
+            string uuid = string.Empty;
+            while (currentTest<=maxTests && uuid.Length==0 )
+            {
+                Thread.Sleep(1000);
+                uuid = dBQueryUtils.GetUuidForPt(ptForTest);
+                currentTest++;
+                Console.WriteLine("currentTest: {0}; uuid: {1}; now: {2}", currentTest, uuid, DateTime.Now);
+            }
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            string uuid = dBQueryUtils.GetUuidForPt(ptForTest);
             Assert.IsTrue(uuid.Length > 10);
         }
 

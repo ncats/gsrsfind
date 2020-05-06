@@ -233,6 +233,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
         public void ManageSetupRemainingColumns()
         {
+            log.Debug("starting in ManageSetupRemainingColumns");
             if (_sheetUtils == null)
             {
                 log.DebugFormat("{0} instantiated sheetUtilities", MethodBase.GetCurrentMethod().Name);

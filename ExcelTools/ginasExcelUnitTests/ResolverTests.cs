@@ -636,7 +636,6 @@ namespace ginasExcelUnitTests
             chemNames.Add(bdnumForTest);
             List<string> resolvers = new List<string>();
             resolvers.Add("Molfile+");
-            string expectedEnding = "M  END";
 
             scriptUtils.ScriptExecutor = retrievalForm;
             Queue<string> scripts = new Queue<string>();
@@ -650,7 +649,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(3000);
+            Thread.Sleep(4000);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -685,8 +684,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(3000);
-
+            Thread.Sleep(5000);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             string[] results = resolverResults[uniiForTest];

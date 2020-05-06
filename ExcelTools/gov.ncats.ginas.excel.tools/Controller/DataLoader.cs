@@ -27,7 +27,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
         static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.        
-
+        private bool _gotVocabularies = false;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,6 +54,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ScriptExecutor = form;
             scriptUtils = new ScriptUtils();
             scriptUtils.ScriptExecutor = ScriptExecutor;
+            _gotVocabularies = false;
 
             form.ShowDialog();
 
@@ -189,7 +190,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 _scriptName);
 
             scriptUtils.ScriptName = _scriptName;
+            if( !_gotVocabularies)
+            {
+                log.Debug("calling scriptUtils.StartVocabularyRetrievals()");
             scriptUtils.StartVocabularyRetrievals();
+                _gotVocabularies = true;
+            }
             if(scriptUtils.ExpectedVocabularies.Count == 0)
             {
                 StartFirstUpdateCallback();

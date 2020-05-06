@@ -181,7 +181,7 @@ namespace ginasExcelUnitTests.Utils
 
         internal string GetUuidForPt(string pt)
         {
-            string query = string.Format("select owner_uuid from ix_ginas_name n where upper(n.name) = upper('{0}') and preferred = true",
+            string query = string.Format("select owner_uuid from ix_ginas_name n where upper(n.name) = upper('{0}') and display_name = true",
                 pt);
             string uuid = string.Empty;
             NpgsqlCommand command = connection.CreateCommand();

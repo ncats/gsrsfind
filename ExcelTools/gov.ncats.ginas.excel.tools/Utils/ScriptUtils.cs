@@ -75,8 +75,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
         /// <summary>
         /// Returns the names of the vocabularies to be retrieved assynchronously
         /// </summary>
-        /// <param name="scriptName"></param>
-        /// <param name="ScriptExecutor"></param>
         /// <returns></returns>
         public List<string> StartVocabularyRetrievals()
         {
@@ -240,28 +238,43 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
         }
 
+        public void RunPreliminaries()
+        {
+            ScriptExecutor.ExecuteScript("tmpScript=Scripts.get('" + ScriptName + "');");
+            ScriptExecutor.ExecuteScript("tmpRunner=tmpScript.runner();");
+        }
+
         public void StartOneLoad(Dictionary<string, string> parameterValues, string loadingKey,
             GinasToolsConfiguration configuration)
         {
             log.DebugFormat("{0} handling loadingKey: {1}", MethodBase.GetCurrentMethod().Name,
                 loadingKey);
             string runnerName = "tmpRunner";
-            
-            ScriptExecutor.ExecuteScript(runnerName + ".clearValues();");
+            string clearScript = runnerName + ".clearValues();";
+            log.DebugFormat("going to run script {0}", clearScript);
+            if (ScriptExecutor == null)
+            {
+                log.Debug("ScriptExecutor null");
+            }
+            else
+            {
+                log.Debug("ScriptExecutor has a value");
+            }
+
+            ScriptExecutor.ExecuteScript(clearScript);
             try
             {
-                string url = (string) ScriptExecutor.ExecuteScript("GlobalSettings.getHomeURL()")
-                    + "upload";
-                log.DebugFormat("url for uploads: " + url);
+                log.Debug("setting up headers");
                 Dictionary<string, string> headers = new Dictionary<string, string>();
                 headers.Add("auth-userName", configuration.SelectedServer.Username);
                 headers.Add("auth-key", configuration.SelectedServer.PrivateKey);
                 foreach (string key in parameterValues.Keys)
                 {
+                    log.DebugFormat("processing at key {0}", key);
                     //see if there's a vocabulary translation
                     string parameterValue = parameterValues[key];
-
-                    if (scriptParameters.ContainsKey(key.ToUpper()))
+                    log.Debug("scriptParameters: " + scriptParameters ==null ? "null" : scriptParameters.Count.ToString());
+                    if (scriptParameters != null && scriptParameters.ContainsKey(key.ToUpper()))
                     {
                         ScriptParameter parameter = scriptParameters[key.ToUpper()];
                         if (parameter.Vocabulary != null && parameter.Vocabulary.Count > 0
@@ -276,7 +289,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         }
                         if (key.Contains("file path"))
                         {
-                            
+                            string url = (string)ScriptExecutor.ExecuteScript("GlobalSettings.getHomeURL()")
+                                + "upload";
+                            log.DebugFormat("url for uploads: " + url);
                             string filePath = parameterValue.Replace(@"\", "/");
                             log.DebugFormat("uploading using URL: {0} and file path: {1}", url, filePath);
                             bool binaryFile = FileUtils.IsBinary(filePath);
@@ -293,15 +308,23 @@ namespace gov.ncats.ginas.excel.tools.Utils
                             parameterValue = dataResult.url;
                         }
                     }
-                
                     string paramValueScript = string.Format(runnerName + ".setValue('{0}', '{1}')",
                                 key, parameterValue);
+                    if (ScriptExecutor == null) 
+                    {
+                        log.Debug("ScriptExecutor null");
+                    }
+                    else
+                    {
+                        log.Debug("has a value");
+                    }
                     ScriptExecutor.ExecuteScript(paramValueScript);
                 }
             }
             catch (Exception ex)
             {
-                log.Error(ex);
+                log.ErrorFormat("Error in {0}. message: {1}", MethodBase.GetCurrentMethod().Name, ex.Message);
+                log.Warn(ex.StackTrace);
             }
             string executionScript = runnerName + ".execute()" +
                                                      ".get(function(b){cresults['" +

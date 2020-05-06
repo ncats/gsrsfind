@@ -5,9 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Configuration;
 
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Utils;
+using gov.ncats.ginas.excel.tools.Model.FDAApplication;
+using Application = gov.ncats.ginas.excel.tools.Model.FDAApplication.Application;
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using gov.ncats.ginas.excel.tools.Providers;
 
 namespace gov.ncats.ginas.excel.tools.Controller
 {
@@ -21,7 +26,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private List<ApplicationEntity> _ingredients;
         private Dictionary<string, ApplicationEntity> _lookups;
         private string _urlEndPoint = "addApplication";
+        private string _updateUrlEndPoint = "api/v1/applicationssrs";//"updateApplication";//"applicationssrs";//
         internal const string APPLICATION_ID_PROPERTY = "Application ID";
+        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
+        private int _scriptNumber = 0;
+        private readonly float _secondsPerScript = 6;
+        internal const string ADD_INGREDIENT_SCRIPT_NAME = "Add Ingredient";
+        internal const string DEFAULT_PROVENANCE = "DARRTS";
 
         public ApplicationProcessor()
         {
@@ -196,7 +207,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         {
                             entityField.FieldValue = DateTime.FromOADate(Convert.ToDouble(headerCell.Offset[rowOffset, 0].Value2));
                         }
-                        catch(ArgumentException )
+                        catch (ArgumentException)
                         {
                             log.Warn("Date value not recognized: " + headerCell.Offset[rowOffset, 0].Value2);
                             entityField.FieldValue = "";
@@ -212,7 +223,6 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 entities.Add(entity);
                 rowOffset++;
             }
-
             return entities;
         }
 
@@ -233,6 +243,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
             log.Debug("Starting in StartOperation");
         }
 
+        /// <summary>
+        /// Called by ScriptExecutor when it receives info from JavaScript
+        /// </summary>
+        /// <param name="resultsKey"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public object HandleResults(string resultsKey, string message)
         {
             log.DebugFormat("Received results for key {0} message {1}", resultsKey, message);
@@ -243,7 +259,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             else
             {
-                if (message.Contains("\"valid\":true") && message.Contains(appIdInfo))
+                ApplicationProcessingResult processingResult = JSTools.GetApplicationResultFromString(message);
+                log.DebugFormat("received result with message {0}", processingResult.message);
+                if (processingResult.valid && processingResult.message.Contains(appIdInfo))
                 {
                     int pos = message.IndexOf(appIdInfo) + appIdInfo.Length;
                     int pos2 = message.IndexOf("\"", pos + 1);
@@ -252,9 +270,24 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         + appId);
                     SheetUtils.SetSheetPropertyValue(_worksheet, APPLICATION_ID_PROPERTY, appId);
                 }
+                else if (Callbacks != null)
+                {
+                    Callback callbackWithKey = Callbacks.FirstOrDefault(c => c.Key.Equals(resultsKey)).Value;
+                    if (callbackWithKey != null)
+                    {
+                        if (callbackWithKey is UpdateCallback)
+                            ((UpdateCallback)callbackWithKey).SetRangeText(processingResult.message);
+                        Callbacks.Remove(resultsKey);
+                        if( Callbacks.Count >0)
+                        {
+                            log.Debug(" Starting next callback");
+                            StartFirstUpdateCallback();
+                        }
+                    }
+                }
                 else
                 {
-                    UIUtils.ShowMessageToUser(message);
+                    UIUtils.ShowMessageToUser(processingResult.message);
                 }
 
                 log.Debug("calling StatusUpdater.Complete");
@@ -301,6 +334,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             log.Debug("ContinueSetup");
             Authenticate();
+            if (CurrentOperationType.Equals(OperationType.AddIngredient))
+            {
+                ScriptUtils scriptUtils = new ScriptUtils();
+                if (ScriptExecutor == null) log.Debug("ScriptExecutor is null!!!");
+                scriptUtils.ScriptExecutor = ScriptExecutor;
+                Callbacks = new Dictionary<string, Callback>();
+                ProcessIngredientsFromExcel((Worksheet)ExcelWindow.ActiveSheet);
+                return;
+            }
             ApplicationEntity application = GetApplication((Worksheet)ExcelWindow.SelectedSheets.Item[1]);
             if (application == null)
             {
@@ -346,7 +388,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 scriptBuilder.Append(identifier);
                 scriptBuilder.Append("'].add(row.split('	')[0], row); }).finisher(function(){ sendMessageBackToCSharp('");
                 scriptBuilder.Append(identifier);
-                scriptBuilder.Append("'); }).resolve();");
+                scriptBuilder.Append("'); }).resolve(true);");
                 string script = scriptBuilder.ToString();
                 ScriptExecutor.ExecuteScript(script);
             }
@@ -373,16 +415,88 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
+       
+        public void ProcessIngredientsFromExcel(Worksheet ingredientSheet)
+        {
+            List<ApplicationField> ingredientFields = ApplicationMetadata.GetFields(ApplicationField.Level.AddIngredient).ToList();
+            foreach (ApplicationField field in ingredientFields)
+            {
+                field.Column = SheetUtils.FindColumn(ingredientSheet.Range["A1", "Z1"], field.FieldName, 1);
+                if (field.Column <= 0)
+                {
+                    log.DebugFormat("Field {0} not found on sheet", field.FieldName);
+                }
+            }
+            List<ApplicationField> fieldsToProcess = ingredientFields.Where(f => f.Column > 0).ToList();
+            int statusCol = ingredientFields.First(f => f.FieldName.Equals("IMPORT STATUS", StringComparison.CurrentCultureIgnoreCase)).Column;
+            if (statusCol == 0)
+            {
+                string errorMessage = "Unable to locate status column";
+                log.Error(errorMessage);
+                UIUtils.ShowMessageToUser(errorMessage);
+                return;
+            }
+            log.DebugFormat("found status column: {0}", statusCol);
+
+            foreach (Range currentRowObject in ((Range)ExcelWindow.Application.Selection).Rows)
+            {
+                List<ApplicationField> fieldsForRow = new List<ApplicationField>(fieldsToProcess);
+                int currentRow = currentRowObject.Row;
+                Range statusCell = ingredientSheet.Range[SheetUtils.GetColumnName(statusCol) + currentRow.ToString()];
+                if (statusCell.Value2 != null)
+                {
+                    log.InfoFormat("Skipping row {0} because there is a value in the status column", currentRow);
+                    continue;
+                }
+                log.DebugFormat("looking at row {0}", currentRow);
+                fieldsForRow.ForEach(f =>
+                {
+                    f.FieldValue = SheetUtils.GetValueForRowAndColumn(ingredientSheet, currentRow, f.Column);
+                });
+
+                string provenance = ingredientFields.First(f => f.FieldName.Equals("Provenance", StringComparison.CurrentCultureIgnoreCase)).GetValue();
+                if (String.IsNullOrEmpty(provenance)) provenance = DEFAULT_PROVENANCE;
+
+                string appType = ingredientFields.First(f => f.FieldName.Equals("Application Type", StringComparison.CurrentCultureIgnoreCase)).GetValue();
+                string appNumber = ingredientFields.First(f => f.FieldName.Equals("Application Number", StringComparison.CurrentCultureIgnoreCase)).GetValue();
+                string center = ingredientFields.First(f => f.FieldName.Equals("Center", StringComparison.CurrentCultureIgnoreCase)).GetValue();
+                string bdnum = ingredientFields.First(f => f.FieldName.Equals("Ingredient BDNUM", StringComparison.CurrentCultureIgnoreCase)).GetValue();
+                log.DebugFormat("retrieved params for row {0}: appType={1}, appNumber={2}, center={3}, bdnum={4}. ",
+                    currentRow, appType, appNumber, center, bdnum);
+                string fullUrl = GinasConfiguration.SelectedServer.ServerUrl + config.AppSettings.Settings["applicationLookupUrl"].Value;
+                string fullUrlWithParameters = string.Format(fullUrl, appType, appNumber, center, provenance);
+                log.DebugFormat("looking up application using URL {0}", fullUrlWithParameters);
+                StringBuilder stringBuilder = new StringBuilder();
+                UpdateCallback callback = CreateIngredientUpdateCallback(statusCell, fullUrlWithParameters, fieldsForRow, stringBuilder);
+                Callbacks.Add(callback.getKey(), callback);
+                log.DebugFormat("completed row {0}", currentRow);
+            }
+            log.DebugFormat("going to call StartFirstUpdateCallback");
+            StartFirstUpdateCallback();
+        }
+
+        public void AddIngredient(Application application, int productItem, List<ApplicationIngredient> newIngredients)
+        {
+            List<ApplicationIngredient> applicationIngredients = new List<ApplicationIngredient>();
+            applicationIngredients.AddRange(application.applicationProductList[productItem].applicationIngredientList);
+            foreach (ApplicationIngredient ingredient in newIngredients)
+            {
+                applicationIngredients.Add(ingredient);
+            }
+            application.applicationProductList[productItem].applicationIngredientList = applicationIngredients.ToArray();
+        }
+
         private void StartVocabularyRetrievals()
         {
             log.Debug("Look-ups complete; now vocabularies");
             List<string> vocabularyNames = ApplicationMetadata.Metadata.Where(f =>
-                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList();
+                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList().ToHashSet().ToList();
+            vocabularyNames.ForEach(vn => log.Debug(vn));
             scriptUtils.ScriptExecutor = ScriptExecutor;
             scriptUtils.StartVocabularyRetrievals(vocabularyNames);
         }
 
-        public override void CompleteSheet()
+        public override void CompleteSheet()//unfortunate name
         {
             log.Debug("Calling StartResolution");
             StartResolution(false);
@@ -414,5 +528,98 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             entity.LowerLevelEntities.ForEach(e => TranslateVocabularies(e));
         }
+
+        public UpdateCallback CreateIngredientUpdateCallback(Range messageCell, string url, List<ApplicationField> fields,
+                StringBuilder messageBuilder)
+        {
+            if (GinasConfiguration == null)
+            {
+                log.Debug("configuration was null");
+                GinasConfiguration = FileUtils.GetGinasConfiguration();
+            }
+            UpdateCallback updateCallback = null;
+            try
+            {
+                updateCallback = CallbackFactory.CreateUpdateCallback(messageCell);
+                updateCallback.RunnerNumber = ++_scriptNumber;
+                log.DebugFormat("in {0}, processing URL {1}", MethodBase.GetCurrentMethod().Name, url);
+
+                string defaultValue = string.Empty;
+                updateCallback.ParameterValues = new Dictionary<string, string>();
+                updateCallback.ParameterValues.Add("getUrl", url);
+                log.DebugFormat("In {0}, setting parm {1} to {2}",
+                      MethodBase.GetCurrentMethod().Name,
+                      "url", url);
+                string postUrl = GinasConfiguration.SelectedServer.ServerUrl + _updateUrlEndPoint;
+                updateCallback.ParameterValues.Add("postUrl", postUrl);
+                log.DebugFormat("In {0}, setting parm {1} to {2}",
+                      MethodBase.GetCurrentMethod().Name,
+                      "postUrl", postUrl);
+                foreach (ApplicationField field in fields)
+                {
+                    if (!string.IsNullOrEmpty(field.JsonFieldName) && field.FieldValue != null && field.FieldValue.ToString().Length > 0)
+                    {
+                        log.DebugFormat("In {0}, setting parm {1} to {2}",
+                            MethodBase.GetCurrentMethod().Name,
+                            field.FieldName, field.FieldValue);
+                        updateCallback.ParameterValues.Add(field.JsonFieldName, field.FieldValue.ToString());
+                    }
+                }
+                string callbackKey = JSTools.RandomIdentifier();
+                DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
+                    (Callbacks.Count * Callbacks.Count * _secondsPerScript));//trying a quadratic term
+                updateCallback.SetExpiration(newExpirationDate);
+                updateCallback.SetKey(callbackKey);
+                updateCallback.LoadScriptName = ADD_INGREDIENT_SCRIPT_NAME;
+                string script = "tmpRunner.execute().get(function(b){cresults['"
+                    + callbackKey + "']=b;sendMessageBackToCSharp('" + callbackKey + "');})";
+                updateCallback.SetScript(script);
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Error creating update callback: {0}", ex.Message);
+                log.Debug(ex.StackTrace);
+                messageBuilder.Append(ex.Message);
+            }
+            return updateCallback;
+        }
+
+
+        protected override void StartFirstUpdateCallback()
+        {
+            log.DebugFormat("Starting in {0}", MethodBase.GetCurrentMethod().Name);
+            if (Callbacks.Count == 0) return;
+            if (Callbacks.Values.First() is UpdateCallback)
+            {
+                //scriptUtils.AssignVocabularies();
+                UpdateCallback updateCallback = Callbacks.Values.First() as UpdateCallback;
+                if ((GinasConfiguration.DebugMode || StatusUpdater.GetDebugSetting())
+                    && updateCallback.RunnerNumber % CONSOLE_CLEARANCE_INTERVAL == 0)
+                {
+                    SaveAndClearDebugInfo();
+                }
+                DateTime newExpirationDate = DateTime.Now.AddSeconds(GinasConfiguration.ExpirationOffset +
+                    updateCallback.RunnerNumber * _secondsPerScript);
+                updateCallback.SetExpiration(newExpirationDate);
+                scriptUtils.ScriptExecutor = this.ScriptExecutor;
+                scriptUtils.ScriptName = ADD_INGREDIENT_SCRIPT_NAME;
+                scriptUtils.RunPreliminaries();
+                RunUpdateCallback(updateCallback);
+                updateCallback.Start();
+            }
+        }
+
+        private void RunUpdateCallback(UpdateCallback updateCallback)
+        {
+            log.DebugFormat("RunUpdateCallback handling key {0}", updateCallback.getKey());
+            if (updateCallback.ParameterValues == null)
+            {
+                log.Fatal("Error! ParameterValues is null");
+                return;
+            }
+            log.DebugFormat("total parameters: {0}", updateCallback.ParameterValues.Count);
+            scriptUtils.StartOneLoad(updateCallback.ParameterValues, updateCallback.getKey(), this.GinasConfiguration);
+        }
+
     }
 }

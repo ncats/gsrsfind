@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using System.Reflection;
 
 using gov.ncats.ginas.excel.tools.Model;
+using gov.ncats.ginas.excel.tools.Model.FDAApplication;
 
 namespace gov.ncats.ginas.excel.tools.Utils
 {
@@ -17,7 +18,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         const String id_prefix = "gsrs_";
         static Random rnd = new Random();
 
-        public static string RandomIdentifier(int length  = id_length, bool foundDupe = false)
+        public static string RandomIdentifier(int length = id_length, bool foundDupe = false)
         {
             String ident;
             String alpha;
@@ -27,7 +28,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             int i;
 
-            for( int j = 0; j < length; j++)
+            for (int j = 0; j < length; j++)
             {
                 i = rnd.Next(alpha.Length);
                 ident = ident + alpha.Substring(i, 1);
@@ -67,11 +68,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 returnedValue.Content[0].Terms = returnedValue.Content[0].Terms.OrderBy(t => t.Display).ToArray();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.ErrorFormat("Error sorting 2: {0}", ex.Message, ex);
             }
-            
+
             return returnedValue;
         }
 
@@ -86,7 +87,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             if (string.IsNullOrWhiteSpace(htmlFragment)) return "";
             int pos = htmlFragment.IndexOf(">");
-            string tagName = htmlFragment.Substring(1, (pos-1));
+            string tagName = htmlFragment.Substring(1, (pos - 1));
             return tagName;
         }
 
@@ -107,7 +108,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static GinasResult GetGinasResultFromString(string ginasResultRaw)
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
-            GinasResult result = serializer.Deserialize<GinasResult > (ginasResultRaw);
+            GinasResult result = serializer.Deserialize<GinasResult>(ginasResultRaw);
             return result;
         }
         public static StructureReturn GetStructureFromString(string structureJson)
@@ -126,6 +127,26 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             return serializer.Deserialize<FilePostReturn>(rawData);
+        }
+
+        public static Application GetApplicationFromString(string appInput)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Application application = serializer.Deserialize<Application>(appInput);
+            return application;
+        }
+
+        public static string GetStringFromApplication(Application application)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            return serializer.Serialize(application);
+        }
+
+        public static ApplicationProcessingResult GetApplicationResultFromString( string resultInput)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            ApplicationProcessingResult result = serializer.Deserialize<ApplicationProcessingResult>(resultInput);
+            return result;
         }
     }
 }

@@ -21,6 +21,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public ControllerBase()
         {
+            log.Debug("ControllerBase constructor");
             GinasConfiguration = FileUtils.GetGinasConfiguration();
         }
 
@@ -185,13 +186,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
             int delim2 = rawVocab.IndexOf(":", delim1 + 1);
             if (delim1 < 0 || delim2 < 0) return;
             string vocabName = rawVocab.Substring(delim1 + 1, (delim2 - delim1 - 1));
-            rawVocab = rawVocab.Substring(delim2 + 1);
-            Vocab vocab = JSTools.GetVocabFromString(rawVocab);
+            if (scriptUtils.Vocabularies.ContainsKey(vocabName))
+            {
+                log.DebugFormat("We have previously received vocab {0}", vocabName);
+            }
+            else
+            {
+                rawVocab = rawVocab.Substring(delim2 + 1);
+                Vocab vocab = JSTools.GetVocabFromString(rawVocab);
 
-            scriptUtils.Vocabularies.Add(vocabName, vocab);
+                scriptUtils.Vocabularies.Add(vocabName, vocab);
+                log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
+                    vocabName, scriptUtils.ExpectedVocabularies.Count);
+            }
             scriptUtils.MarkVocabArrived(vocabName);
-            log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
-                vocabName, scriptUtils.ExpectedVocabularies.Count);
             if (scriptUtils.ExpectedVocabularies.Count == 0)
             {
                 CompleteSheet();

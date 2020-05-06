@@ -9,6 +9,7 @@
         GetStructures =4,
         ProcessSdFile = 5,
         ProcessApplication =6,
+        AddIngredient=7,
         Other = 6
     }
 

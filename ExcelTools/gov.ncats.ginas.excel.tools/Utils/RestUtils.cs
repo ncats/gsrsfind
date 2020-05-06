@@ -9,18 +9,21 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using System.Configuration;
 
 using Microsoft.Office.Interop.Excel;
 
 using gov.ncats.ginas.excel.tools.Model;
 using System.Text;
 using System.IO;
+using gov.ncats.ginas.excel.tools.Model.FDAApplication;
 
 namespace gov.ncats.ginas.excel.tools.Utils
 {
     class RestUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
 
         static RestUtils()
         {
@@ -464,5 +467,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
             return request;
         }
+
     }
 }

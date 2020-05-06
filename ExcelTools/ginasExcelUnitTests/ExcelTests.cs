@@ -1298,6 +1298,50 @@ namespace ginasExcelUnitTests
         {
             return excel.Workbooks.Open(filePath);
         }
+        [TestMethod]
+        public void testGetValueForRowAndColumnPos()
+        {
+            Workbook newBook = excel.Workbooks.Add();
+            Worksheet sheet = (Worksheet) newBook.Sheets.Add();
+            string rangeAddress = "C19";
+            string expectedValue = "Hello, world!";
+            Range range = sheet.Range[rangeAddress];
+            range.FormulaR1C1 = expectedValue;
+
+            string actualValue = SheetUtils.GetValueForRowAndColumn(sheet, 19, 3);
+            newBook.Close(false);
+            Assert.AreEqual(expectedValue, actualValue);
+        }
+
+        [TestMethod]
+        public void testGetValueForRowAndColumnNeg()
+        {
+            Workbook newBook = excel.Workbooks.Add();
+            Worksheet sheet = (Worksheet)newBook.Sheets.Add();
+            string rangeAddress = "C19";
+            string newValue = "Hello, world!";
+            Range range = sheet.Range[rangeAddress];
+            range.FormulaR1C1 = newValue;
+
+            string actualValue = SheetUtils.GetValueForRowAndColumn(sheet, 19, 5);
+            newBook.Close(false);
+            Assert.IsTrue(string.IsNullOrEmpty(actualValue));
+        }
+
+        [TestMethod]
+        public void testGetValueForRowAndColumnNumber()
+        {
+            Workbook newBook = excel.Workbooks.Add();
+            Worksheet sheet = (Worksheet)newBook.Sheets.Add();
+            string rangeAddress = "e20";
+            string expectedValue = "10.72";
+            Range range = sheet.Range[rangeAddress];
+            range.FormulaR1C1 = expectedValue;
+
+            string actualValue = SheetUtils.GetValueForRowAndColumn(sheet, 20, 5);
+            newBook.Close(false);
+            Assert.AreEqual(expectedValue, actualValue);
+        }
 
         private byte[] getBinaryData(string file)
         {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace gov.ncats.ginas.excel.tools.Model
+namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
 {
     /// <summary>
     /// Manages the metadat for Application creation
@@ -41,6 +41,11 @@ namespace gov.ncats.ginas.excel.tools.Model
         public static ApplicationField GetFieldForVocab(string vocabName)
         {
             return metadata.Where(f => !string.IsNullOrEmpty(f.VocabularyName) && f.VocabularyName.Equals(vocabName)).First();
+        }
+
+        public static ApplicationField GetFieldForVocab(string vocabName, ApplicationField.Level level)
+        {
+            return metadata.FirstOrDefault(f => !string.IsNullOrEmpty(f.VocabularyName) && f.VocabularyName.Equals(vocabName) && f.FieldLevel==level);
         }
 
         public static List<ApplicationField> Metadata

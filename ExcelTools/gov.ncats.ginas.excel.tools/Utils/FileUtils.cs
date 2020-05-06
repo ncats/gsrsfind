@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using gov.ncats.ginas.excel.tools.Model;
+using gov.ncats.ginas.excel.tools.Model.FDAApplication;
 
 namespace gov.ncats.ginas.excel.tools.Utils
 {
@@ -53,6 +54,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static void WriteToFile(string filePath, string stuff)
         {
             File.WriteAllText(filePath, stuff);
+        }
+
+
+        public static string ReadFromFile(string filePath)
+        {
+            return File.ReadAllText(filePath);
         }
 
         public static GinasToolsConfiguration GetGinasConfiguration()

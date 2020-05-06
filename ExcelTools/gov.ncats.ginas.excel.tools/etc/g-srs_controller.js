@@ -1,5 +1,10 @@
 ﻿var GSRSAPI_consoleStack = [];
 
+/*The version of JavaScript supported by the browser control in use as of April 2020 does not have a trim function*/
+''.trim || (String.prototype.trim = /* Use the native method if available, otherwise define a polyfill:*/
+    function () { /* trim returns a new string (which replace supports)*/
+        return this.replace(/^[\s\uFEFF]+|[\s\uFEFF]+$/g, '') // trim the left and right sides of the string
+    })
 var console = {
     log: function (msg) {
         //if (window['console']) window.console.log(msg);
@@ -80,7 +85,6 @@ var GSRSAPI = {
                     var b = req._b;
                     var contentType = 'application/json';
 
-                    console.log('in httpProcess, req.skipJson: ' + req.skipJson);
                     if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
@@ -92,6 +96,8 @@ var GSRSAPI = {
                     } else {
                         req._url = req._url + "?cache=" + g_api.UUID.randomUUID();
                     }
+                    console.log('in httpProcess, req.skipJson: ' + req.skipJson + "; method: " + req._method
+                        + "; url: " + req._url + "; b: " + JSON.stringify(b));
 
                     g_api.GlobalSettings.authenticate(req);
 
@@ -796,7 +802,6 @@ var GSRSAPI = {
                         });
 
                         _.forEach(psubs, function (pSub) {
-
                             worker.process(pSub, worker._fetchers).get(function (rows) {
                                 _.forEach(rows, function (row) {
                                     worker._consumer(row);
@@ -1045,7 +1050,7 @@ var GSRSAPI = {
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
                     var contentType = req.contentType;
-                    console.log('in SimpleProcess, req.skipJson: ' + req.skipJson);
+                    console.log('in SimpleProcess, req.skipJson: ' + req.skipJson + '; method:' + req._method);
                     if (b && !req.skipJson) {
                         b = JSON.stringify(b);
                     } else {
@@ -1127,6 +1132,22 @@ var GSRSAPI = {
                 };
             });
 
+        g_api.SimpleLookup = g_api.ResourceFinder.builder()
+            .resource("simple")
+            .extend(function (lookup) {
+                lookup.getData = function (url) {
+                    var req = g_api.Request.builder()
+                        .url(url)
+                        .method("GET")
+                        .setSkipJson(true);
+                    return g_api.httpProcess(req)
+                        .andThen(function (result) {
+                            console.log('in lookup.getData, result: ' + JSON.stringify(result));
+                            return result;
+                        });
+                };
+            });
+
         /********************************
         Models
         ********************************/
@@ -1165,7 +1186,7 @@ var GSRSAPI = {
                         return data.setProtected();
                     },
                     data.setPreferred = function (preferred) {
-                        data.preferred = true;
+                        data.preferred = preferred;
                         return data;
                     },
                     data.setDeprecated = function (d) {
@@ -1245,6 +1266,10 @@ var GSRSAPI = {
                 };
                 name.setNameOrgs = function (orgs) {
                     name.nameOrgs = orgs;
+                    return name;
+                },
+				name.setDisplay = function (displayBool) {
+                    name.displayName = displayBool;
                     return name;
                 };
                 return name;
@@ -1895,7 +1920,7 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("SMILES+", function (simpleSub) {
         return simpleSub.fetch("structure/smiles")
             .andThen(function (s) {
-                if (s && s.valid === false) {
+                if (s && (s.valid === false || jQuery.isEmptyObject(s))) {
                     console.log("No structure found for substance.  Will look at related");
                     return simpleSub.fetch("relationships")
                         .andThen(function (r) {
@@ -2083,7 +2108,7 @@ FetcherRegistry.addFetcher(
     FetcherMaker.make("Molfile+", function (simpleSub) {
         return simpleSub.fetch("structure/molfile")
             .andThen(function (s) {
-                if (s && s.valid === false) {
+                if (s && (s.valid === false || jQuery.isEmptyObject(s))) {
                     console.log("No structure found for substance.  Will look at related");
                     return simpleSub.fetch("relationships")
                         .andThen(function (r) {
@@ -2115,7 +2140,10 @@ FetcherRegistry.addFetcher(
                             return '';
                         });
                 }
-                var molfile = simpleSub.structure.molfile;
+                var molfile = '';
+                if (simpleSub && simpleSub.structure && simpleSub.structure.molfile) {
+                    molfile = simpleSub.structure.molfile;
+                }
                 console.log('simpleSub.structure: ' + molfile);
                 return molfile;
             });
@@ -2787,10 +2815,12 @@ function validateSubstanceWithStructure(args) {
         console.log('no structure; will return valid: true');
         return JPromise.ofScalar({ valid: true, overall: true});
     }
-    structureValue = structureValue;
     console.log('structureValue: ' + structureValue);
     return GGlob.SubstanceFinder.saveTemporaryStructure(structureValue)
         .andThen(function (s) {
+            if (jQuery.isEmptyObject(s)) {
+                return { valid: false, message: 'Error processing input structure' };
+            }
             return SubstanceFinder.getExactStructureMatches(s.structure.id)
                 .andThen(function (searchResult) {
                     console.log('searchResult: ' + JSON.stringify(searchResult));
@@ -4433,7 +4463,8 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         var name = Name.builder().setName(pt)
             .setType(nameType)
             .setPublic(dataPublic)
-            .setPreferred(true)
+            .setPreferred(false)
+            .setDisplay(true)
             .setLanguages(langs)
             .addReference(reference);
         console.log('created name');
@@ -4598,7 +4629,8 @@ Script.builder().mix({
         var name = Name.builder().setName(pt)
             .setType(nameType)
             .setPublic(dataPublic)
-            .setPreferred(true)
+            .setPreferred(false)
+            .setDisplay(true)
             .setLanguages(langs)
             .addReference(reference);
         console.log('created name');
@@ -5243,15 +5275,19 @@ Script.builder().mix({
                 resultObj = r;
             }
             if (resultObj.applicationId) {
-                return { valid: true, message: "Created Application with ID " + resultObj.applicationId };
+                return { valid: true, message: "Created Application with ID " + resultObj.applicationId, modification: false };
             }
             console.log(JSON.stringify(resultObj));
-            return { valid: false, message: "An error occurred while creating/modifying your application. " + resultObj };
+            return {
+                valid: false, message: "An error occurred while creating/modifying your application. " + JSON.stringify(resultObj),
+                modification: false
+            };
         });
     })
     .useFor(function (s) {
         Scripts.addScript(s);
     });
+
 Script.builder().mix({ name: "Add Note", description: "Adds a note to a substance record" })
     .addArgument({
         "key": "uuid", name: "UUID", description: "UUID of the substance record (used for lookup/validation)", required: false,
@@ -5283,7 +5319,7 @@ Script.builder().mix({ name: "Add Note", description: "Adds a note to a substanc
     })
     .addArgument({
         "key": "reference citation", name: "REFERENCE CITATION",
-        description: "Citation text for reference", required: true
+        description: "Citation text for reference", required: false
     })
     .addArgument({
         "key": "reference url", name: "REFERENCE URL",
@@ -5364,3 +5400,154 @@ Script.builder().mix({ name: "Add Note", description: "Adds a note to a substanc
     .useFor(function (s) {
         Scripts.addScript(s);
     });
+
+Script.builder().mix({
+    name: "Fetch Data", description: "retrieves the result of a GET (that requires authentication via SSO)",
+    validForSheetCreation: false
+})
+    .addArgument({
+        "key": "url", name: "URL", description: "web resource to fetch", required: true
+    })
+    .setExecutor(function (args) {
+        var url = args.url.getValue();
+        return GGlob.SimpleLookup.lookup(url)
+            .andThen(function (a) {
+                console.log("SimpleLookup received a: " + a);
+                if (typeof a === 'string' && a.indexOf('<html>') > -1) {
+                    return "Error: not authenticated";
+                }
+                console.log('going to return a ' + a);
+                return a;
+
+            });
+
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+
+
+Script.builder().mix({
+    name: "Add Ingredient", description: "retrieves an application then adds an ingredient",
+    validForSheetCreation: false
+})
+    .addArgument({
+        "key": "getUrl", name: "GET URL", description: "web resource from which to fetch Application", required: true
+    })
+    .addArgument({
+        "key": "postUrl", name: "POST URL", description: "web resource to which we return the updated Application", required: true
+    })
+    .addArgument({
+        "key": "ingredientBdnum", name: "Ingredient BDNUM", description: "BDNUM of new ingredient to add to existing Application", required: true
+    })
+    .addArgument({
+        "key": "basisOfStrengthBdnum", name: "Basis of Strength BDNUM", description: "BDNUM of substance that is the basis of strength of the ingredient", required: false
+    })
+    .addArgument({
+        "key": "ingredientType", name: "Ingredient Type", description: "Type/category of the ingredient", required: false
+    })
+    .addArgument({
+        "key": "average", name: "Average", description: "Average amount of the ingredient within the product", required: false
+    })
+    .addArgument({
+        "key": "low", name: "Low", description: "Low end of range for the amount of the ingredient within the product", required: false
+    })
+    .addArgument({
+        "key": "high", name: "High", description: "High end of range for the amount of the ingredient within the product", required: false
+    })
+    .addArgument({
+        "key": "unit", name: "Unit", description: "Unit for ingredient amount", required: false
+    })
+    .addArgument({
+        "key": "applicantIngredName", name: "Applicant Ingredient Name", description: "Name for ingredient within product", required: false
+    })
+
+    .setExecutor(function (args) {
+        console.log('starting in executor');
+        var url = args.getUrl.getValue();
+        var postUrl = args.postUrl.getValue();
+        var bdNumValue = args.ingredientBdnum.getValue();
+        var basisOfStrengthBdnum = args.basisOfStrengthBdnum.getValue();
+
+        var argsToProcess = ['average', 'low', 'high', 'unit', 'applicantIngredName'];
+
+        return GGlob.SimpleLookup.getData(url)
+            .andThen(function (a) {
+                console.log("SimpleLookup received: ");
+                if (typeof a === 'string' && a.indexOf('<html>') > -1) {
+                    return "Error: not authenticated";
+                }
+                var application;
+                if (typeof a == 'string') {
+                    application = JSON.parse(a);
+                }
+                else {
+                    application = a;
+                }
+                console.log(JSON.stringify(application));
+                if (!application.hasOwnProperty("createdBy")) {
+                    return {
+                        valid: false, message: "Error retrieving application. "
+                    };
+                }
+                var newIngredient = {};
+                newIngredient.bdnum = bdNumValue;
+                newIngredient.basisOfStrengthBdnum = basisOfStrengthBdnum;
+                newIngredient.ingredientType = args.ingredientType.getValue();
+                for (var a in argsToProcess) {
+                    var argName = argsToProcess[a];
+                    console.log('looking for argName ' + argName);
+                    if (typeof argName === 'function') continue;
+                    var val = args[argName].getValue();
+                    console.log('value of ' + argName + ' = ' + val);
+                    if (val && val.length > 0) {
+                        newIngredient[argName] = val;
+                    }
+                    console.log('setting complete');
+                }
+                var ingredientList = application.applicationProductList[0].applicationIngredientList;
+                console.log("application.applicationProductList (after): " + JSON.stringify(application.applicationProductList));
+                ingredientList[ingredientList.length] = newIngredient;
+                var applicationId = application.id;
+                console.log("applicationId: " + applicationId);
+                //now prep for saving the object
+                var fullPostUrl = postUrl + '?applicationId=' + applicationId;
+                console.log("fullPostUrl: " + fullPostUrl);
+                var req = Request.builder().url(fullPostUrl).body(application).method("PUT");
+                /*.queryStringData({
+                applicationId: applicationId
+                })*/
+                req.setContentType("application/json");
+
+                console.log('constructed req');
+                return RequestProcessor.SimpleProcess(req).andThen(function (r) {
+                    console.log('result of application processing: ');
+                    console.log(JSON.stringify(r));
+                    var resultObj;
+                    if (typeof r === 'string') {
+                        console.log('parsed');
+                        resultObj = JSON.parse(r);
+                    }
+                    else {
+                        resultObj = r;
+                    }
+                    if (resultObj.id) {
+                        return {
+                            valid: true, message: "success", additionalInformation: "Saved Application with ID " + resultObj.id,
+                            modification: true
+                        };
+                    }
+                    else {
+                        return {
+                            valid: false, message: "An error occurred while creating/modifying your application. " + JSON.stringify(resultObj),
+                            modification: true
+                        };
+                    }
+                });
+            });
+
+    })
+    .useFor(function (s) {
+        Scripts.addScript(s);
+    });
+

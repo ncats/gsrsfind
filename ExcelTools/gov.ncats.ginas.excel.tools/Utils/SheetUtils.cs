@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using gov.ncats.ginas.excel.tools.Model;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using gov.ncats.ginas.excel.tools.Model.FDAApplication;
 using gov.ncats.ginas.excel.tools.Providers;
 using Microsoft.Office.Interop.Excel;
 
@@ -81,7 +82,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 if (value is string)
                 {
                     string cellValue = (string)value;
-                    if (cellValue.Equals(textToFind)) return currentColumn;
+                    if (cellValue.Equals(textToFind, StringComparison.InvariantCultureIgnoreCase)) return currentColumn;
                 }
             }
             return 0;
@@ -200,9 +201,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             string sheetName = GetNewSheetName(workbook, requestedSheetName);
             newSheet.Name = sheetName;
             int row = 1;
+            int columnSpacing = 2;
+            if(requestedSheetName.Contains("Ingredient"))
+            {
+                columnSpacing = 1;
+            }
             foreach (SheetSectionInfo info in sheetInfoList)
             {
-                AddLine(newSheet, row, info.FieldNames, info.Direction);
+                AddLine(newSheet, row, info.FieldNames, info.Direction, columnSpacing);
                 row = row + 3;
             }
             workbook.Application.ActiveWindow.SplitColumn = 0;
@@ -212,7 +218,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return newSheet;
         }
 
-        private void AddLine(Worksheet sheet, int row, List<string> values, string lastValue)
+        private void AddLine(Worksheet sheet, int row, List<string> values, string lastValue, int columnIncrement=2)
         {
             string startingCellAddress = "A" + row;
             int columnOffset = 0;
@@ -228,7 +234,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
                 cell.Font.ThemeColor = XlThemeColor.xlThemeColorAccent1;
                 cell.Font.TintAndShade = -0.499984740745262;
-                columnOffset = columnOffset + 2;
+                columnOffset = columnOffset + columnIncrement;
             }
             Range lastCell = sheet.Range[startingCellAddress].Offset[0, columnOffset];
             lastCell.FormulaR1C1 = lastValue;
@@ -429,7 +435,19 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 else
                 {
                     Range currentCell = worksheet.Range[cellId];
-                    currentCell.Value = result;
+                    if( result.Length > MAX_COLUMN_CHARS)
+                    {
+                        string fileNameWithPath = worksheet.Application.ActiveWorkbook.Path
+                            + System.IO.Path.DirectorySeparatorChar 
+                            + FileUtils.GetUniqueFileName( "txt");
+                        FileUtils.WriteToFile(fileNameWithPath, result);
+                        currentCell.Value = fileNameWithPath;
+                    }
+                    else
+                    {
+                        currentCell.Value = result;
+                    }
+                    
                 }
             }
             return string.Empty;
@@ -758,6 +776,36 @@ namespace gov.ncats.ginas.excel.tools.Utils
             sheet.Range[rangeName].Value2 = value;
         }
 
+
+        public static ApplicationLookup GetApplicationLookupFromExcel(Range range)
+        {
+            if(range.Value2 != null && range.Offset[0, 1].Value2 !=null && range.Offset[0, 2].Value2 != null
+                && range.Offset[0, 3].Value2 != null)
+            {
+                string provInput = range.Value2.ToString();
+                string centerInput = range.Offset[0, 1].Value2.ToString();
+                string appTypeInput = range.Offset[0, 2].Value2.ToString();
+                string appNumberInput = range.Offset[0, 3].Value2.ToString();
+                log.DebugFormat("creating application lookup with provenance: {0}, center: {1}, type: {2}, number: {3}",
+                    provInput, centerInput, appTypeInput, appNumberInput);
+                ApplicationLookup lookup = new ApplicationLookup(provInput, centerInput,
+                    appTypeInput, appNumberInput);
+                return lookup;
+            }
+            return null;
+        }
+
+        public static string GetValueForRowAndColumn(Worksheet sheet, int row, int column)
+        {
+            string address = GetColumnName(column) + row;
+            Range range = sheet.Range[address];
+            if( range != null && range.Value2 != null)
+            {
+                return range.Value2.ToString();
+            }
+            return string.Empty;
+        }
+
         private static void FormatCellForParameter(Range cell)
         {
             cell.ColumnWidth = 21;
@@ -770,5 +818,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             cell.Font.TintAndShade = -4.99893185216834E-02;
 
         }
+
     }
 }
