@@ -36,8 +36,6 @@ namespace gov.ncats.ginas.excel.tools
             form.CurrentOperationType = OperationType.Resolution;
             form.Controller = retriever;
             form.Visible = false;
-            //form.Parent= (System.Windows.Forms.Control) e.Control;
-            //form.Owner = e.Control.Context;
             form.ShowDialog();
         }
 
