@@ -45,18 +45,21 @@
             this.buttonSdFileImport = this.Factory.CreateRibbonButton();
             this.buttonSelectPT = this.Factory.CreateRibbonButton();
             this.buttonAssureColumns = this.Factory.CreateRibbonButton();
-            this.configurationGroup = this.Factory.CreateRibbonGroup();
-            this.buttonConfigure = this.Factory.CreateRibbonButton();
-            this.buttonAbout = this.Factory.CreateRibbonButton();
             this.Sequences = this.Factory.CreateRibbonGroup();
             this.buttonDnaToProtein = this.Factory.CreateRibbonButton();
             this.buttonDnaToRetrovirusRna = this.Factory.CreateRibbonButton();
+            this.group1 = this.Factory.CreateRibbonGroup();
+            this.button5 = this.Factory.CreateRibbonButton();
+            this.configurationGroup = this.Factory.CreateRibbonGroup();
+            this.buttonConfigure = this.Factory.CreateRibbonButton();
+            this.buttonAbout = this.Factory.CreateRibbonButton();
             this.ginasTab.SuspendLayout();
             this.retrievalgroup.SuspendLayout();
             this.updateGroup.SuspendLayout();
             this.groupSDFile.SuspendLayout();
-            this.configurationGroup.SuspendLayout();
             this.Sequences.SuspendLayout();
+            this.group1.SuspendLayout();
+            this.configurationGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // ginasTab
@@ -65,8 +68,9 @@
             this.ginasTab.Groups.Add(this.updateGroup);
             this.ginasTab.Groups.Add(this.groupSDFile);
             this.ginasTab.Groups.Add(this.Sequences);
+            this.ginasTab.Groups.Add(this.group1);
             this.ginasTab.Groups.Add(this.configurationGroup);
-            this.ginasTab.Label = "g-srs";
+            this.ginasTab.Label = "GSRS";
             this.ginasTab.Name = "ginasTab";
             // 
             // retrievalgroup
@@ -147,6 +151,37 @@
             this.buttonAssureColumns.Visible = false;
             this.buttonAssureColumns.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAssureColumns_Click);
             // 
+            // Sequences
+            // 
+            this.Sequences.Items.Add(this.buttonDnaToProtein);
+            this.Sequences.Items.Add(this.buttonDnaToRetrovirusRna);
+            this.Sequences.Label = "Sequences";
+            this.Sequences.Name = "Sequences";
+            // 
+            // buttonDnaToProtein
+            // 
+            this.buttonDnaToProtein.Label = "DNA to Protein";
+            this.buttonDnaToProtein.Name = "buttonDnaToProtein";
+            this.buttonDnaToProtein.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToProtein_Click);
+            // 
+            // buttonDnaToRetrovirusRna
+            // 
+            this.buttonDnaToRetrovirusRna.Label = "DNA to Retrovirus RNA";
+            this.buttonDnaToRetrovirusRna.Name = "buttonDnaToRetrovirusRna";
+            this.buttonDnaToRetrovirusRna.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToRetrovirusRna_Click);
+            // 
+            // group1
+            // 
+            this.group1.Items.Add(this.button5);
+            this.group1.Label = "External Sources";
+            this.group1.Name = "group1";
+            // 
+            // button5
+            // 
+            this.button5.Label = "Get PubChem CIDs";
+            this.button5.Name = "button5";
+            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click);
+            // 
             // configurationGroup
             // 
             this.configurationGroup.Items.Add(this.buttonConfigure);
@@ -168,25 +203,6 @@
             this.buttonAbout.Name = "buttonAbout";
             this.buttonAbout.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAbout_Click);
             // 
-            // Sequences
-            // 
-            this.Sequences.Items.Add(this.buttonDnaToProtein);
-            this.Sequences.Items.Add(this.buttonDnaToRetrovirusRna);
-            this.Sequences.Label = "Sequences";
-            this.Sequences.Name = "Sequences";
-            // 
-            // buttonDnaToProtein
-            // 
-            this.buttonDnaToProtein.Label = "DNA to Protein";
-            this.buttonDnaToProtein.Name = "buttonDnaToProtein";
-            this.buttonDnaToProtein.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToProtein_Click);
-            // 
-            // buttonDnaToRetrovirusRna
-            // 
-            this.buttonDnaToRetrovirusRna.Label = "DNA to Retrovirus RNA";
-            this.buttonDnaToRetrovirusRna.Name = "buttonDnaToRetrovirusRna";
-            this.buttonDnaToRetrovirusRna.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToRetrovirusRna_Click);
-            // 
             // GinasRibbon
             // 
             this.Name = "GinasRibbon";
@@ -201,10 +217,12 @@
             this.updateGroup.PerformLayout();
             this.groupSDFile.ResumeLayout(false);
             this.groupSDFile.PerformLayout();
-            this.configurationGroup.ResumeLayout(false);
-            this.configurationGroup.PerformLayout();
             this.Sequences.ResumeLayout(false);
             this.Sequences.PerformLayout();
+            this.group1.ResumeLayout(false);
+            this.group1.PerformLayout();
+            this.configurationGroup.ResumeLayout(false);
+            this.configurationGroup.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -228,6 +246,8 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup Sequences;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToProtein;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToRetrovirusRna;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
     }
 
     partial class ThisRibbonCollection

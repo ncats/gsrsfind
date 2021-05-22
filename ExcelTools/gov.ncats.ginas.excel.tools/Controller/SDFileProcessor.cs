@@ -59,9 +59,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             log.DebugFormat("total columns: {0}", fieldNames.Count);
 
-            ImageOps imageOps = new ImageOps();
             //create a title row
-            _sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);
+            _sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, worksheet, 0);
         }
 
 

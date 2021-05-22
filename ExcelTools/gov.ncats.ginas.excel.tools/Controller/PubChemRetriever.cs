@@ -1,0 +1,185 @@
+﻿using gov.ncats.ginas.excel.tools.Model;
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using gov.ncats.ginas.excel.tools.Providers;
+using gov.ncats.ginas.excel.tools.UI;
+using gov.ncats.ginas.excel.tools.Utils;
+using Microsoft.Office.Interop.Excel;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace gov.ncats.ginas.excel.tools.Controller
+{
+    public class PubChemRetriever : ControllerBase
+    {
+
+        private const int INCHIKEY_LENGTH = 27;
+        private static object LOCK_OBJECT = new object();
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
+
+        public void HandleLookup(Application excel)
+        {
+            Range selectedRange = excel.Selection as Range;
+
+        }
+
+        public async Task<bool> StartResolution()
+        {
+
+            ItemsPerBatch = FileUtils.GetGinasConfiguration().BatchSize;
+            ScriptQueue = new Queue<string>();
+            Range r = null;
+            try
+            {
+                r = ExcelWindow.RangeSelection;
+            }
+            catch (Exception ex)
+            {
+                log.Debug("Error: " + ex.Message);
+
+            }
+            if (r == null)
+            {
+                return false;
+            }
+            ExcelSelection = r;
+
+            int currItem = 0;
+            int currItemWithinBatch = 0;
+            List<LookupDataCallback> dataToProcess = new List<LookupDataCallback>();
+            int totalItems = 0;
+            int currentBatch = 0;
+            //count the items
+            log.Debug("about to count data " );
+            foreach (Range cell in r.Cells)
+            {
+                string cellData = (string)cell.Text;
+                if (cell.Text != null && (!string.IsNullOrWhiteSpace(cellData) && IsPossibleInChiKey(cellData)))
+                {
+                    totalItems++;
+                }
+            }
+            int totalBatches = Convert.ToInt32( Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(ItemsPerBatch)));
+            log.DebugFormat("totalItems: {0}; totalBatches: {1}", totalItems, totalBatches);
+            foreach (Range cell in r.Cells)
+            {
+                if (StatusUpdater!= null && StatusUpdater.HasUserCancelled())
+                {
+                    log.Debug("user has cancelled process");
+                    return false;
+                }
+                string cellData = (string)cell.Text;
+                if (cell.Text != null && !string.IsNullOrWhiteSpace(cellData) && IsPossibleInChiKey(cellData))
+                {
+                    currItemWithinBatch++;
+                    currItem++;
+                    string cellText = (string)cell.Text;
+                    
+                    dataToProcess.Add(new LookupDataCallback(cell, cellText, string.Empty));
+                    if ((currItemWithinBatch % ItemsPerBatch) == 0)
+                    {
+                        string statusMessage = string.Format("Processing batch # {0} of {1}",
+                            (++currentBatch), totalBatches);
+                        log.Debug(statusMessage);
+                        if(StatusUpdater != null ) StatusUpdater.UpdateStatus(statusMessage);
+                        await ProcessOneBatch(dataToProcess);
+                        
+                        currItemWithinBatch = 0;
+                        log.Debug("Prepared batch containing " + ItemsPerBatch + " items");
+                        dataToProcess.Clear();
+                    }
+                }
+            }
+            if (StatusUpdater != null && StatusUpdater.HasUserCancelled())
+            {
+                log.Debug("user has cancelled process");
+                return false;
+            }
+
+            if (currItemWithinBatch > 0)// process any leftovers
+            {
+                string statusMessage = "Processing last batch";
+                if(StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
+
+                await ProcessOneBatch(dataToProcess);
+            }
+            if (StatusUpdater != null)
+            {
+                StatusUpdater.UpdateStatus("Complete");
+                StatusUpdater.Complete();
+            }
+            return true;
+        }
+
+
+        private async Task ProcessOneBatch(List<LookupDataCallback> submittable)
+        {
+            log.DebugFormat("Starting in ProcessOneBatch with data  {0}", submittable.Select(s => s.QueryData));
+            string pubChemBaseUrl = config.AppSettings.Settings["pubChemBaseUrl"].Value;
+            BatchLookup pubChemData = await RestUtils.RunPubChemQuery(submittable, pubChemBaseUrl);
+
+            pubChemData.LookupData.ForEach(l =>
+            {
+                log.DebugFormat("ProcessOneBatch processing data for InChIKey {0}", l.QueryData);
+                try
+                {
+
+                    Range returnRange = l.DataRange.Offset[0, 1];
+                    returnRange.FormulaR1C1 = l.Result;
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Error: {0}", ex);
+                }
+
+            });
+        }
+
+
+        public static bool IsPossibleInChiKey(string candidate)
+        {
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return false;
+            }
+            if (candidate.Trim().Length != INCHIKEY_LENGTH)
+            {
+                return false;
+            }
+            if (candidate[14] != '-' || candidate[25] != '-')
+            {
+                return false;
+            }
+            candidate = candidate.Remove(25, 1).Remove(14, 1);
+            if (candidate.ToArray().Any(c => !char.IsLetter(c)))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void StartOperation()
+        {
+            throw new NotImplementedException();
+        }
+
+        public object HandleResults(string resultsKey, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ContinueSetup()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool OkToWrite(int numberOfColumns)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

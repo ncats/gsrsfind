@@ -26,7 +26,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private string _scriptName;
         private readonly float _secondsPerScript = 10;
         private string _currentKey = string.Empty;
-        static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.        
+        static readonly Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.        
         private bool _gotVocabularies = false;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -36,7 +36,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private bool _assignedVocabs = false;
 
         private Dictionary<int, string> ColumnKeys = null;
-
+        private const int MAX_RECOMMENDED_ROWS = 2000;
+        
         /// <summary>
         /// First method to call for outside classes
         /// </summary>
@@ -105,15 +106,28 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
             scriptUtils.ScriptName = _scriptName;
             SetScriptParameters(ExcelSelection.Application.ActiveCell);
+            int totalSelectedRows = (ExcelSelection.Application.Selection as Excel.Range).Rows.Count;
+            if (totalSelectedRows > MAX_RECOMMENDED_ROWS)
+            {
+                log.DebugFormat("user has selected {0} rows to process, more than the recommended limit of {1} 130",
+                    totalSelectedRows, MAX_RECOMMENDED_ROWS);
+                if (!UIUtils.GetUserYesNo(
+                    string.Format("You are processing more records than the recommended limit ({0}).  Excel may become unstable!\nAre you sure you want to proceed?",
+                    MAX_RECOMMENDED_ROWS)))
+                {
+                    log.Info("user declined to proceed");
+                    StatusUpdater.Complete();
+                    return;
+                }
+            }
 
             Callback cb = CreateInitialUpdateCallback(ExcelSelection.Application.ActiveCell,
                 ref msg, true);
             if (!string.IsNullOrEmpty(msg)) StatusUpdater.UpdateStatus(msg);
             else
             {
-                msg = "Total selected rows: " + (ExcelSelection.Application as Excel.Range).Rows.Count;
+                msg = "Total selected rows: " + totalSelectedRows;
                 log.Debug(msg);
-
             }
             if (cb != null) ScriptExecutor.ExecuteScript("showPreview(tmpRunner)");
         }
@@ -144,6 +158,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
                         ScriptExecutor, GinasConfiguration.SortVocabsAlphabetically);
+                    StatusUpdater.Complete();
                 }
             }
             else
@@ -291,8 +306,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     tempVal = JSTools.RandomIdentifier(10, true);
                 }
-                //todo: verify this works!
                 int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(STATUS_KEY)).Key;
+                if(col <= 0)
+                {
+                    string errorMessage = "Error! A worksheet  for data loading/editing must have a column called 'IMPORT STATUS'";
+                    log.Error(errorMessage);
+                    message = errorMessage;
+                    UIUtils.ShowMessageToUser(errorMessage);
+                    return null;
+                }
                 string rangeDesc = SheetUtils.GetColumnName(col) + arow.Row;
                 updateCallback = CallbackFactory.CreateUpdateCallback(arow.Worksheet.Range[rangeDesc]);
                 updateCallback.RunnerNumber = _scriptNumber;
@@ -302,7 +324,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 updateCallback.SetKey(tempVal);
                 updateCallback.ParameterValues = paramValues;
                 updateCallback.LoadScriptName = _scriptName;
-                message = "Total selected rows: " + (application.Selection as Excel.Range).Rows.Count;
+                int totalSelectedRows = (application.Selection as Excel.Range).Rows.Count;
+                message = "Total selected rows: " + totalSelectedRows;
                 log.Debug(message);
             }
             catch (Exception ex)
@@ -446,7 +469,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 Excel.Range dataRow = row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
                 if (dataRow.Value2 == null) return def;
                 String propertyValue= dataRow.Value2.ToString();
-                if (config.AppSettings.Settings["trimTextInputForUpdate"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                if (!key.ToUpper().Contains("MOLFILE") && config.AppSettings.Settings["trimTextInputForUpdate"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
                 {
                     propertyValue = propertyValue.Trim();
                 }
@@ -476,6 +499,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 _currentKey = string.Empty;
             }
             GinasResult result = JSTools.GetGinasResultFromString(message);
+            if( !Callbacks.ContainsKey(resultsKey))
+            {
+                string msg = string.Format("Warning! Handling results for key '{0}' but this key was not found in the callback collection",
+                    resultsKey);
+                log.Warn(msg);
+                return "false";
+            }
             UpdateCallback updateCallback = Callbacks[resultsKey] as UpdateCallback;
             updateCallback.Execute(result.message);
             Callbacks.Remove(resultsKey);
@@ -534,6 +564,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     sheetUtils.Configuration = GinasConfiguration;
                     sheetUtils.CreateSheet(ExcelWindow.Application.ActiveWorkbook, scriptUtils,
                         ScriptExecutor, GinasConfiguration.SortVocabsAlphabetically);
+                    log.Debug("sheet created");
+                    StatusUpdater.Complete();
                 }
                 else
                 {
@@ -645,6 +677,5 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 }
             }
         }
-
     }
 }

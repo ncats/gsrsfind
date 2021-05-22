@@ -51,8 +51,14 @@ namespace ginasExcelUnitTests
 
             Dictionary<string, string> results = new Dictionary<string, string>();
 
+            if( message.Contains("\"valid\"") && message.Contains("\"message\""))
+            {
+                GinasResult result = JSTools.GetGinasResultFromString(message);
+                string[] textResults = { result.message };
+                resolverResults.Add(resultsKey, textResults);
+                return resolverResults;
+            }
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
-            ImageOps imageOps = new ImageOps();
 
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.Configuration = CurrentConfiguration;
@@ -194,6 +200,7 @@ namespace ginasExcelUnitTests
             Vocab referenceTypeVocab = JSTools.GetVocabFromString(rawVocabContent);
             Assert.IsTrue(referenceTypeVocab.Content[0].Terms.Length > 10);
         }
+
         [TestMethod]
         public void IsImageUrlTest()
         {
@@ -219,14 +226,6 @@ namespace ginasExcelUnitTests
             Assert.IsNull(output.defaultValue);
         }
 
-        /* Thie input url is too temporary for this test to work
-        [TestMethod]
-        public void RemoteFileExistsTestTrue()
-        {
-            string url1 = "http://localhost:9000/ginas/app/img/3982bff1-da0a-49a5-be34-4adb8c7648af.png?size=300";
-            Assert.IsTrue(ImageOps.RemoteFileExists(url1));
-        }
-        */
 
         [TestMethod]
         public void RemoteFileExistsTestFalse()
@@ -383,7 +382,6 @@ namespace ginasExcelUnitTests
             FieldInfo fieldInfo = retriever.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             retriever.LaunchCheckJob();
             Assert.IsNotNull(fieldInfo.GetValue(retriever));
-
         }
 
         private BatchCallback setupData()
@@ -932,7 +930,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
             
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1052,13 +1050,13 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             foreach (string name in chemNames)
             {
-                Console.WriteLine("Procesing name results for substance '{0}'", name);
+                Console.WriteLine("Processing name results for substance '{0}'", name);
                 string[] results = resolverResults[name];
                 List<string> allNamesFromFetcher = results[1].Split('|').ToList();
                 List<SubstanceNamesProxy> substanceNamesFromDb = dBQueryUtils.GetNamesForName(name);
@@ -1090,7 +1088,13 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+            int it = 0;
+            int maxIteration = 30;
+            while(resolverResults.Count < chemNames.Count && ++it<maxIteration)
+            {
+                Console.WriteLine("iteration {0} resolverResults.Count: {1}", it, resolverResults.Count);
             Thread.Sleep(1000);
+            }
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1295,6 +1299,93 @@ namespace ginasExcelUnitTests
                         break;
                 }
             }
+        }
+
+        [TestMethod]
+        public void ResolveMultipleMatchTest()
+        {
+            CheckForm();
+            ScriptUtils scriptUtils = new ScriptUtils();
+
+            string codeForTest = "03";
+            string expectedResult = "matched multiple records";
+            List<string> chemNames = new List<string>
+            {
+                codeForTest
+            };
+            List<string> resolvers = new List<string>
+            {
+                "SMILES"
+            };
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            string callbackKey = JSTools.RandomIdentifier();
+
+            string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            scripts.Enqueue(primaryScript);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            //allow the scripts to complete execution:
+            Thread.Sleep(2000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            Assert.IsTrue(resolverResults.ContainsKey(codeForTest));
+            string[] results = resolverResults[codeForTest];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            Assert.IsTrue(results.Contains(expectedResult));
+        }
+
+
+        [TestMethod]
+        public void SetObjectJsonTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";
+            List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
+
+            string pt = "PT-112";
+            scriptUtils.ScriptName = "Set Object JSON";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+            string vocabFilePath = @"..\..\..\Test_Files\F5I3T42BXCTrunc.json";
+            vocabFilePath = Path.GetFullPath(vocabFilePath);
+            string truncatedJson = File.ReadAllText(vocabFilePath);
+            truncatedJson = truncatedJson.Replace("'", "\\'");
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", pt));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('json', '{0}')", truncatedJson));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'truncated JSON')");
+            string identifier = JSTools.RandomIdentifier();
+            string script = "tmpRunner.execute().get(function(b){cresults['" + identifier
+                + "']=b;window.external.Notify('" + identifier + "');})";
+            Console.WriteLine("identifier: {0}; script: {1}", identifier, script);
+            scripts.Enqueue(script);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            Thread.Sleep(2000);
+
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            string[] results = resolverResults[identifier];
+            results.ToList().ForEach(r => Console.WriteLine(r));
+            string expectedResult = "Warning! The value of the JSON parameter is probably truncated.";
+            Assert.IsTrue(results.Contains(expectedResult));
         }
 
         private string MakeSearch(string key, List<string> names, List<string> fetcherNames)

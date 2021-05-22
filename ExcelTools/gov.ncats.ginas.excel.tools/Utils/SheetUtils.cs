@@ -51,12 +51,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
         }
 
         public static int FindRow(Range rangeToSearch, string textToFind,
-            int columnToSearch)
+            int columnToSearch, int startRow = 0)
         {
             foreach( Range currentSubRange in rangeToSearch.Areas)
             {
-                for (int row = 0; row < currentSubRange.Rows.Count; row++)
+                for (int row = startRow; row < currentSubRange.Rows.Count; row++)
                 {
+                    log.DebugFormat("searching row " + row);
                     int currentRow = currentSubRange.Row + row;
                     string cellName = GetColumnName(columnToSearch) + currentRow;
                     object value = currentSubRange.Worksheet.Range[cellName].Value;
@@ -317,17 +318,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return string.Empty;
         }
 
-        private List<VocabItem> GetVocab(string cvType)
-        {
-            log.DebugFormat("In GetVocab with cvType: {0}", cvType);
-            if (!string.IsNullOrWhiteSpace(cvType))
-            {
-                return VocabUtils.GetVocabularyItems(Configuration.SelectedServer.ServerUrl,
-                    cvType);
-            }
-            return new List<VocabItem>();
-        }
-
         public static Worksheet GetVocabularySheet(Workbook workbook)
         {
             Worksheet vocabSheet = null;
@@ -406,10 +396,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
 
 
         public string TransferDataToRow(string[] data, int currentColumn, int dataRow,
-            ImageOps imageOps, Worksheet worksheet, int firstPart = 1)
+            Worksheet worksheet, int firstPart = 1)
         {
-            string imageFormat = Properties.Resources.ImageFormat;
-
             for (int part = firstPart; part < data.Length; part++)
             {
                 int column = currentColumn + part;
@@ -435,6 +423,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 else
                 {
                     Range currentCell = worksheet.Range[cellId];
+                    log.DebugFormat("going to write data to cellId {0}; address: {1}; worksheet name: {2}", 
+                        cellId, currentCell.Address, worksheet.Name);
                     if( result.Length > MAX_COLUMN_CHARS)
                     {
                         string fileNameWithPath = worksheet.Application.ActiveWorkbook.Path
@@ -633,7 +623,9 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             return 1;
         }
-        public static async Task CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
+
+        //async Task 
+        public static void CheckSDSheetForDuplicates(Worksheet worksheet, List<string> messages, string serverUrl)
         {
             string molfileFieldName = "Molfile";
             string importStatusFieldName = "Import Status";
@@ -677,8 +669,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             {
                 if (cell.Value2 != null && !cell.Value2.Equals("Molfile"))
                 {
-                    string cellIdUniqueness = GetColumnName(uniquenessColumn) + cell.Row;
-                    Range uniquenessCell = worksheet.Range[cellIdUniqueness];
+                    //string cellIdUniqueness = GetColumnName(uniquenessColumn) + cell.Row;
+                    //Range uniquenessCell = worksheet.Range[cellIdUniqueness];
                     //MAM 6 November
                     //string structureId = await RestUtils.SaveMolfileAndDisplay(cell.Value2.ToString(), cell, serverUrl, uniquenessCell);
                     //Task<StructureQueryResult> results = RestUtils.SearchMolfile(structureId, serverUrl);

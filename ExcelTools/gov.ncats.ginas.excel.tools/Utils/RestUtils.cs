@@ -17,13 +17,13 @@ using gov.ncats.ginas.excel.tools.Model;
 using System.Text;
 using System.IO;
 using gov.ncats.ginas.excel.tools.Model.FDAApplication;
+using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 namespace gov.ncats.ginas.excel.tools.Utils
 {
-    class RestUtils
+    public class RestUtils
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
 
         static RestUtils()
         {
@@ -32,10 +32,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
             RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
             RestClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+
+            PubChemClient= new HttpClient();
+            PubChemClient.DefaultRequestHeaders.Accept.Clear();
+            PubChemClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            PubChemClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Await.Warning", "CS4014:Await.Warning")]
         public static async Task<string> SaveMolfileAndDisplay(string molfile, Range cell, string serverUrl,
             Range idCell)
         {
@@ -66,7 +70,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                             if (idCell != null)
                             {
                                 log.DebugFormat("structure id {0} for cell {1}", r.Structure.Id, idCell.Address);
-                                SearchMolfile(r.Structure.Id, serverUrl, idCell);
+                                await SearchMolfile(r.Structure.Id, serverUrl, idCell);
                             }
                             return r.Structure.Id;
                         }
@@ -126,6 +130,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             set;
         }
 
+        public static HttpClient PubChemClient
+        {
+            get;
+            set;
+        }
         public static bool IsValidHttpUrl(string urlText)
         {
             Uri uriResult;
@@ -466,6 +475,75 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
 
             return request;
+        }
+
+        public static async Task<BatchLookup> RunPubChemQuery(IEnumerable<LookupDataCallback> callbacks, string serverUrl)
+        {
+            string inchiKeyData= "inchikey=" + string.Join(",", callbacks.Select(c=>c.QueryData));
+            log.DebugFormat("starting in RunPubChemQuery; query: {0}", inchiKeyData);
+            List<LookupDataCallback> results = new List<LookupDataCallback>();
+            List<string> noResults = new List<string>(); //records where lookup has produced an error
+
+            if (PubChemClient.BaseAddress == null)
+            {
+                PubChemClient.BaseAddress = new Uri(serverUrl);
+                int totalSecondsForTimeout = 10 + callbacks.Count();
+                PubChemClient.Timeout = new TimeSpan(totalSecondsForTimeout * TimeSpan.TicksPerSecond);
+            }
+
+            //run a query that will return a list of objects with CID and InChIKey.  Use the InChIKey in the 
+            // output to match the input
+            string fullUrl = serverUrl + "/rest/pug/compound/inchikey/property/inchikey/JSON";
+            log.DebugFormat("{0} using URL {1}", MethodBase.GetCurrentMethod().Name, fullUrl);
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl)
+            {
+                Content = new StringContent(inchiKeyData, Encoding.UTF8, "application/x-www-form-urlencoded")
+            };
+            log.DebugFormat("starting query");
+            using (HttpResponseMessage response = await PubChemClient.SendAsync(message))
+            {
+                log.DebugFormat("completed query");
+                if (response.IsSuccessStatusCode)
+                {
+                    try
+                    {
+                        PubChemReturn r = await response.Content.ReadAsAsync<PubChemReturn>();
+                        if (r.PropertyTable != null && r.PropertyTable.Properties!= null)
+                        {
+                            r.PropertyTable.Properties.ForEach(p => {
+                                LookupDataCallback lookupDataCallback = callbacks.FirstOrDefault(c => c.QueryData.Equals(p.InChIKey));
+                                if( lookupDataCallback != null)
+                                {
+                                    results.Add(new LookupDataCallback(lookupDataCallback.DataRange, lookupDataCallback.QueryData,
+                                        p.Cid));
+                                }
+                            });
+                        }
+                        log.Debug("PubChem query result: " + response.ReasonPhrase);
+                        
+                    }
+                    catch (Exception e2)
+                    {
+                        log.ErrorFormat("Error during POST to PubChem: " + e2.Message);
+                        throw e2;
+                    }
+                }
+                else if( response.ReasonPhrase.Contains("NotFound"))
+                {
+                    log.DebugFormat("No data found: {0}", response.ReasonPhrase);
+                    noResults.Add(response.ReasonPhrase);
+                }
+                else
+                {
+                    throw new Exception(response.ReasonPhrase);
+                }
+            }
+            callbacks.ToList().Where(c => !results.Any(r => r.DataRange.Equals(c.DataRange) && r.QueryData.Equals(c.QueryData))).ToList()
+                .ForEach(nl => {
+                    results.Add(new LookupDataCallback(nl.DataRange, nl.QueryData, "no data found"));
+                });
+            
+            return new BatchLookup(results);
         }
 
     }

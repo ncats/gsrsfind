@@ -278,7 +278,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         if (callbackWithKey is UpdateCallback)
                             ((UpdateCallback)callbackWithKey).SetRangeText(processingResult.message);
                         Callbacks.Remove(resultsKey);
-                        if( Callbacks.Count >0)
+                        if (Callbacks.Count > 0)
                         {
                             log.Debug(" Starting next callback");
                             StartFirstUpdateCallback();
@@ -289,9 +289,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     UIUtils.ShowMessageToUser(processingResult.message);
                 }
-
-                log.Debug("calling StatusUpdater.Complete");
-                StatusUpdater.Complete();
+                if (CurrentOperationType != OperationType.AddIngredient || Callbacks == null || Callbacks.Count == 0)
+                {
+                    log.Debug("calling StatusUpdater.Complete");
+                    StatusUpdater.Complete();
+                }
             }
             return message;
         }
@@ -341,16 +343,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 scriptUtils.ScriptExecutor = ScriptExecutor;
                 Callbacks = new Dictionary<string, Callback>();
                 ProcessIngredientsFromExcel((Worksheet)ExcelWindow.ActiveSheet);
-                return;
             }
-            ApplicationEntity application = GetApplication((Worksheet)ExcelWindow.SelectedSheets.Item[1]);
-            if (application == null)
+            else
             {
-                log.Debug("Application creation aborted because of missing fields");
-                return;
+                ApplicationEntity application = GetApplication((Worksheet)ExcelWindow.SelectedSheets.Item[1]);
+                if (application == null)
+                {
+                    log.Debug("Application creation aborted because of missing fields");
+                    return;
+                }
+                _application = application;
             }
-            _application = application;
-
         }
 
         public bool OkToWrite(int numberOfColumns)
@@ -415,7 +418,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-       
+
         public void ProcessIngredientsFromExcel(Worksheet ingredientSheet)
         {
             List<ApplicationField> ingredientFields = ApplicationMetadata.GetFields(ApplicationField.Level.AddIngredient).ToList();
@@ -460,9 +463,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 string appType = ingredientFields.First(f => f.FieldName.Equals("Application Type", StringComparison.CurrentCultureIgnoreCase)).GetValue();
                 string appNumber = ingredientFields.First(f => f.FieldName.Equals("Application Number", StringComparison.CurrentCultureIgnoreCase)).GetValue();
                 string center = ingredientFields.First(f => f.FieldName.Equals("Center", StringComparison.CurrentCultureIgnoreCase)).GetValue();
-                string bdnum = ingredientFields.First(f => f.FieldName.Equals("Ingredient BDNUM", StringComparison.CurrentCultureIgnoreCase)).GetValue();
-                log.DebugFormat("retrieved params for row {0}: appType={1}, appNumber={2}, center={3}, bdnum={4}. ",
-                    currentRow, appType, appNumber, center, bdnum);
+                log.DebugFormat("retrieved params for row {0}: appType={1}, appNumber={2}, center={3}. ",
+                    currentRow, appType, appNumber, center);
                 string fullUrl = GinasConfiguration.SelectedServer.ServerUrl + config.AppSettings.Settings["applicationLookupUrl"].Value;
                 string fullUrlWithParameters = string.Format(fullUrl, appType, appNumber, center, provenance);
                 log.DebugFormat("looking up application using URL {0}", fullUrlWithParameters);
@@ -475,22 +477,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             StartFirstUpdateCallback();
         }
 
-        public void AddIngredient(Application application, int productItem, List<ApplicationIngredient> newIngredients)
-        {
-            List<ApplicationIngredient> applicationIngredients = new List<ApplicationIngredient>();
-            applicationIngredients.AddRange(application.applicationProductList[productItem].applicationIngredientList);
-            foreach (ApplicationIngredient ingredient in newIngredients)
-            {
-                applicationIngredients.Add(ingredient);
-            }
-            application.applicationProductList[productItem].applicationIngredientList = applicationIngredients.ToArray();
-        }
-
         private void StartVocabularyRetrievals()
         {
             log.Debug("Look-ups complete; now vocabularies");
             List<string> vocabularyNames = ApplicationMetadata.Metadata.Where(f =>
-                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList().ToHashSet().ToList();
+                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList().ToList();
             vocabularyNames.ForEach(vn => log.Debug(vn));
             scriptUtils.ScriptExecutor = ScriptExecutor;
             scriptUtils.StartVocabularyRetrievals(vocabularyNames);

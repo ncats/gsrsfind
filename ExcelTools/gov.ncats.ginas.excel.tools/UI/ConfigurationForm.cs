@@ -159,5 +159,40 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             return null;
         }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxBatchSize_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxExpirationOffset_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBoxDebugInfo_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBoxSortVocabs_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

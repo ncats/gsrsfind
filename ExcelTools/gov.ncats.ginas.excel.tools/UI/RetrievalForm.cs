@@ -23,12 +23,12 @@ namespace gov.ncats.ginas.excel.tools.UI
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         List<string> _expectedTitles = new List<string>();
         string _baseUrl;
-        const string COMPLETED_DOCUMENT_TITLE = "ginas Tools";
+        const string COMPLETED_DOCUMENT_TITLE = "GSRS Tools";
         const string NAVIGATION_CANCELED = "Navigation Canceled";
         GinasToolsConfiguration _configuration = null;
         string _scriptToRunUponCompletion;
         bool _savedDebugInfo;
-        string _initLoadingErrorMessage = "Error loading initial ginas page";
+        string _initLoadingErrorMessage = "Error loading initial GSRS page";
         string _secondMessage = "Close dialog and try again or notify your administrator";
         bool firstNavigate = true;
         private int callCount = 0;
@@ -123,13 +123,18 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("Complete()");
             buttonCancel.Enabled = true;//just in case...
             buttonCancel.Text = "Close";
-            if (CurrentOperationType != OperationType.Resolution)
+            if (CurrentOperationType != OperationType.Resolution && CurrentOperationType != OperationType.ShowScripts)
             {
                 HandleDebugInfoSave();
             }
             if( CurrentOperationType == OperationType.ProcessSdFile || CurrentOperationType == OperationType.ProcessApplication
                 || CurrentOperationType== OperationType.AddIngredient)
             {
+                this.Close();
+            }
+            else if( CurrentOperationType== OperationType.ShowScripts)
+            {
+                UIUtils.ShowMessageToUser("Your sheet has been created!");
                 this.Close();
             }
         }
@@ -241,6 +246,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 if (message.StartsWith("gsrs_"))
                 {
                     string followupCommand = "cresults.popItem('" + message + "')";
+                    
                     object result = ExecuteScript(followupCommand);
                     Controller.HandleResults(message, (string)result);
                     if (CurrentOperationType == OperationType.GetStructures)
@@ -284,14 +290,14 @@ namespace gov.ncats.ginas.excel.tools.UI
             buttonCancel.Enabled = false;
             if (!Controller.StartResolution(checkBoxNewSheet.Checked))
             {
-                MessageBox.Show("Error resolving your data.  Please try again or talk to your ginas administrator");
+                MessageBox.Show("Error resolving your data.  Please try again or talk to your GSRS administrator");
             }
-            if (CurrentOperationType == OperationType.ShowScripts)
+            /*if (CurrentOperationType == OperationType.ShowScripts)
             {
                 DialogResult = DialogResult.Yes;
                 Close();
                 Dispose();
-            }
+            }*/
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -338,11 +344,6 @@ namespace gov.ncats.ginas.excel.tools.UI
                 }
                 _savedDebugInfo = true;
             }
-            else if(CurrentOperationType == OperationType.ShowScripts && DialogResult != DialogResult.Cancel)
-            {
-                UIUtils.ShowMessageToUser("Your sheet has been created!");
-            }
-
             return true;
         }
 
@@ -358,15 +359,21 @@ namespace gov.ncats.ginas.excel.tools.UI
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
-                _configuration.DebugMode );
-            webBrowser1.Document.Title = "ginas Tools";
-            
+                _configuration.DebugMode);
+            webBrowser1.Document.Title = "GSRS Tools";
+
             var scriptResult = ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
             log.DebugFormat("Result of setBaseURL: {0}", scriptResult);
-            if ( scriptResult == null || scriptResult.ToString().Length==0)
+            if ( scriptResult == null || scriptResult.ToString().Length==0 ||
+                scriptResult.ToString().StartsWith("error running script"))
             {
                 callCount++;
-                if( callCount< maxCallCount) BuildGinasToolsDocument();
+                if (callCount < maxCallCount)
+                {
+                    log.DebugFormat("After attempt {0}, page is not valid", callCount);
+                    LoadStartup();
+                    //BuildGinasToolsDocument();
+                }
             }
             checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             if (CurrentOperationType == OperationType.Loading || CurrentOperationType== OperationType.ProcessApplication)
@@ -392,6 +399,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             }
             else if (CurrentOperationType == OperationType.ShowScripts)
             {
+                log.Debug("OperationType.ShowScripts");
                 ExecuteScript("setMode('showScripts');");
                 buttonResolve.Text = "Add Sheet";
                 buttonAddStructure.Enabled = false;
@@ -471,6 +479,11 @@ namespace gov.ncats.ginas.excel.tools.UI
                 //webBrowser1.Url = new Uri(dialog.FileName);
                 webBrowser1.Navigate(dialog.FileName);
             }
+        }
+
+        public bool HasUserCancelled()
+        {
+            return false;
         }
     }
 }

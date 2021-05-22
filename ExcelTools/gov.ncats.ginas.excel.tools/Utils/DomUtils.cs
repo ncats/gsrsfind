@@ -134,7 +134,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             brElement = document.CreateElement("br");
             bodyElement.AppendChild(brElement);
             HtmlElement mainFormElement = document.CreateElement("form");
-            mainFormElement.SetAttribute("name", "ginas");
+            mainFormElement.SetAttribute("name", "gsrs");//was 'ginas' 6 May 2021
             HtmlElement h3Element = document.CreateElement("h3");
             h3Element.SetAttribute("className", "consolehead");
             h3Element.SetAttribute("id", "consoleHeadWebOutput");
@@ -191,15 +191,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 string inner = headElement.InnerText;
 
                 HTMLHeadElement head = (HTMLHeadElement) headElement.DomElement;
-
                 HtmlElement metaCompat = document.CreateElement("meta");
                 metaCompat.SetAttribute("http-equiv", "X-UA-Compatible");
-                metaCompat.SetAttribute("content", "IE=Edge ");
+                metaCompat.SetAttribute("content", "IE=10");
                 headElement.AppendChild(metaCompat);
 
                 HtmlElement metaCharset = document.CreateElement("meta");
-                metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
                 metaCharset.SetAttribute("http-equiv", "content-type");
+                metaCharset.SetAttribute("content", "text/html; charset=UTF-8");
                 headElement.AppendChild(metaCharset);
 
                 AddScripts(headElement);
@@ -237,35 +236,44 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             log.Debug("Starting in AddScripts");
             HtmlDocument document = headElement.Document;
-            HtmlElement brElement = document.CreateElement("BR");
+
+            /*HtmlElement lodashScript = document.CreateElement("script");
+            lodashScript.SetAttribute("type", "text/javascript");
+            lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js");// "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.js");
+            //lodashScript.SetAttribute("src", "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js");
+            lodashScript.SetAttribute("crossorigin", "anonymous");
+            headElement.AppendChild(lodashScript);*/
+
             HtmlElement json2Script = document.CreateElement("script");
             json2Script.SetAttribute("type", "text/javascript");
-            json2Script.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.min.js");
+            json2Script.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js");
             headElement.AppendChild(json2Script);
+
+            //loading lodash from a local file rather than via CDN resolves an issue observed in
+            // Excel v. 2104 4 May 2021
+            HtmlElement lodashScriptlocal = document.CreateElement("script");
+            lodashScriptlocal.SetAttribute("type", "text/javascript");
+            IHTMLScriptElement elementLocal = (IHTMLScriptElement)lodashScriptlocal.DomElement;
+            elementLocal.text = Environment.NewLine + FileUtils.GetLodashJavaScript() + Environment.NewLine;
+            headElement.AppendChild(lodashScriptlocal);
 
             HtmlElement jQueryScript = document.CreateElement("script");
             jQueryScript.SetAttribute("type", "text/javascript");
-            jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
+            //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
+            jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.11.1.js");
+            jQueryScript.SetAttribute("integrity", "sha256-MCmDSoIMecFUw3f1LicZ/D/yonYAoHrgiep/3pCH9rw=");
+            jQueryScript.SetAttribute("crossorigin", "anonymous");
             headElement.AppendChild(jQueryScript);
-            headElement.AppendChild(brElement);
-
-            HtmlElement lodashScript = document.CreateElement("script");
-            lodashScript.SetAttribute("type", "text/javascript");
-            lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.min.js");
-            headElement.AppendChild(lodashScript);
-            headElement.AppendChild(brElement);
 
             HtmlElement jsonPatchScript = document.CreateElement("script");
             jsonPatchScript.SetAttribute("type", "text/javascript");
             jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
             headElement.AppendChild(jsonPatchScript);
-            headElement.AppendChild(brElement);
 
             HtmlElement bootstrapScript = document.CreateElement("script");
             bootstrapScript.SetAttribute("type", "text/javascript");
             bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
             headElement.AppendChild(bootstrapScript);
-            headElement.AppendChild(brElement);
 
             HtmlElement mainGinasScript = document.CreateElement("script");
             mainGinasScript.SetAttribute("type", "text/javascript");
@@ -273,6 +281,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             //mainGinasScript.InnerHtml = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
             IHTMLScriptElement element = (IHTMLScriptElement)mainGinasScript.DomElement;
             element.text = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
+            //string scriptText= FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
+            //mainGinasScript.InnerHtml = scriptText;
             headElement.AppendChild(mainGinasScript);
 
             HtmlElement shimScript = document.CreateElement("script");
@@ -286,5 +296,6 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
 
         }
+
     }
 }

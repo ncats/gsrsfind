@@ -276,5 +276,9 @@ namespace ginasExcelUnitTests
             Controller = controller;
         }
 
+        public bool HasUserCancelled()
+        {
+            return false;
+        }
     }
 }

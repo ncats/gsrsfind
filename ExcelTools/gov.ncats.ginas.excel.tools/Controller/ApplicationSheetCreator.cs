@@ -34,6 +34,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
         private SheetType _sheetType = SheetType.Unknown;
 
         static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
+
+        private const string MESSAGE_MULTIPLE_RESULTS = "matched multiple records";
+
         static ApplicationSheetCreator()
         {
             if (config.AppSettings.Settings["handleProductApplications"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
@@ -161,7 +164,13 @@ namespace gov.ncats.ginas.excel.tools.Controller
             log.DebugFormat("looking for cell {0}", cellAddress);
             Range cell = _worksheet.Range[cellAddress];
             string[] results = returnedValue.Values.First()[0].Split('\t');
-            if (results.Length > 1 && results.Any(r => r.Equals(cell.Value2.ToString(), StringComparison.CurrentCultureIgnoreCase)))
+            if( results.Length >1 && results.Any(r=>r.Equals(MESSAGE_MULTIPLE_RESULTS, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                log.Debug("detected multiple match");
+                cell.Interior.Color = UpdateCallback.COLOR_ERROR;
+                cell.AddComment(MESSAGE_MULTIPLE_RESULTS);
+            }    
+            else if (results.Length > 1 && results.Any(r => r.Equals(cell.Value2.ToString(), StringComparison.CurrentCultureIgnoreCase)))
             {
                 //UIUtils.ShowMessageToUser("The value you entered is confirmed as a valid database name");
                 cell.Interior.Color = UpdateCallback.COLOR_STARTING;
@@ -259,6 +268,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 scriptBuilder.Append("'); }).resolve();");
                 string script = scriptBuilder.ToString();
 
+                if(ScriptExecutor == null)
+                {
+                    log.ErrorFormat("Error in {0} ScriptExecutor", MethodBase.GetCurrentMethod().Name);
+                }
                 ScriptExecutor.SetController(this);
                 ScriptExecutor.ExecuteScript(script);
 
@@ -312,6 +325,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 ClearAmountCells(cell);
             }
             StatusUpdater.Complete();
+        }
+
+        public bool OperationCompleted()
+        {
+            return false;
         }
 
     }

@@ -31,7 +31,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             for (int j = 0; j < length; j++)
             {
                 i = rnd.Next(alpha.Length);
-                ident = ident + alpha.Substring(i, 1);
+                ident += alpha.Substring(i, 1);
             }
             return id_prefix + ident;
         }
@@ -42,7 +42,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             StringBuilder outputBuilder = new StringBuilder();
             outputBuilder.Append("[");
             List<string> cleanedValues = new List<string>();
-            foreach (string value in inputValues)
+            foreach (string value in inputValues.Where(s=>!string.IsNullOrEmpty(s)))
             {
                 cleanedValues.Add("'" + value.Replace("'", "\\'") + "'");
             }

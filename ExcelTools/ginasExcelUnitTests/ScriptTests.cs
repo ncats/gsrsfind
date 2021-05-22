@@ -14,6 +14,7 @@ using gov.ncats.ginas.excel.tools.Model.Callbacks;
 
 using ginasExcelUnitTests.Model;
 using ginasExcelUnitTests.Utils;
+using System.IO;
 
 namespace ginasExcelUnitTests
 {
@@ -24,8 +25,7 @@ namespace ginasExcelUnitTests
 
         static TestRetrievalForm retrievalForm = null;
         static readonly DBQueryUtils dBQueryUtils = new DBQueryUtils();
-        static private readonly int SCRIPT_INTERVAL = 9000;
-        //private SheetUtils sheetUtils = new SheetUtils();
+        static private int SCRIPT_INTERVAL = 9000;
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -77,6 +77,7 @@ namespace ginasExcelUnitTests
 
             //"BATCH:Add Name", "UUID", "PT", "BDNUM", "NAME", "NAME TYPE", "LANGUAGE", "PD", "REFERENCE TYPE", "REFERENCE CITATION", "REFERENCE URL", "CHANGE REASON", "FORCED", "IMPORT STATUS
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -88,37 +89,33 @@ namespace ginasExcelUnitTests
             scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
             scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
             scripts.Enqueue("tmpRunner.setValue('change reason', 'New name added via script')");
-            scripts.Enqueue("tmpRunner.execute().get(function(b){cresults['gsrs_celfgqocjz']=b;window.external.Notify('gsrs_celfgqocjz');})");
+            string identifier = JSTools.RandomIdentifier();
+            string script = "tmpRunner.execute().get(function(b){cresults['" + identifier
+                + "']=b;window.external.Notify('" + identifier + "');})";
+            Console.WriteLine("identifier: {0}; script: {1}", identifier, script);
+            scripts.Enqueue(script);
 
             while (scripts.Count > 0)
             {
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
-            int currentCheck = 1;
-            int maxCheck = 12;
-            int expectedNameCount = namesBefore.Count + 1;
-            int totalNames = namesBefore.Count;
-            List<string> namesAfter = new List<string>();
-            while ( currentCheck < maxCheck &&  totalNames < expectedNameCount)
-            {
-                Thread.Sleep(1000);
-                namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
-                totalNames = namesAfter.Count;
-                currentCheck++;
-            }
-
+            Thread.Sleep(SCRIPT_INTERVAL);
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            
+            List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
             Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
             Assert.IsTrue(namesAfter.Contains(newName));
-        }
+            }
+
 
         [TestMethod]
         public void AddNamesAndRemoveNamesTest()
         {
+            /*
+             * Runs slowly, perhaps because of the large number of references in the substance
+            */
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
@@ -137,6 +134,7 @@ namespace ginasExcelUnitTests
                 string callbackId = JSTools.RandomIdentifier();
 
                 scriptUtils.ScriptExecutor = retrievalForm;
+                SheetUtils sheetUtils = new SheetUtils();
                 Queue<string> scripts = new Queue<string>();
                 scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
                 scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -168,6 +166,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
                 scriptUtils.ScriptExecutor = retrievalForm;
+                SheetUtils sheetUtils = new SheetUtils();
                 Queue<string> scripts = new Queue<string>();
                 scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
                 scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -214,6 +213,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -266,6 +266,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -319,6 +320,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -385,6 +387,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -421,8 +424,7 @@ namespace ginasExcelUnitTests
             string ptForTest = "ANDROSTERONE SULFATE";
             List<CodeProxy> codesBefore = dBQueryUtils.GetCodesForName(ptForTest);
             Console.WriteLine("Codes before modification: ");
-            string newCodeSystem = "UNIPROT";
-            foreach (CodeProxy code in codesBefore.Where(c=>c.CodeSystem.Equals(newCodeSystem)))
+            foreach (CodeProxy code in codesBefore)
             {
                 Console.WriteLine("Looking at code {0} {1}", code.CodeSystem, code.Code);
             }
@@ -431,7 +433,7 @@ namespace ginasExcelUnitTests
             string newRef = "Ref " + Guid.NewGuid();
             scriptUtils.ScriptName = "Replace Code";
             string newCode = ("Q8C" + Guid.NewGuid()).Substring(0, 6).ToUpper();
-            
+            string newCodeSystem = "UNIPROT";
             string oldCode = codesBefore.First(c => c.CodeSystem.Equals(newCodeSystem)).Code;
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
             string commentGuid = Guid.NewGuid().ToString();
@@ -439,6 +441,7 @@ namespace ginasExcelUnitTests
             string textValue = "made-up value to test software " + commentGuid.Split('-')[1];
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -522,9 +525,11 @@ namespace ginasExcelUnitTests
                 string textValue = "made-up value to test software " + commentGuid.Split('-')[1];
 
                 scriptUtils.ScriptExecutor = retrievalForm;
+                SheetUtils sheetUtils = new SheetUtils();
                 Queue<string> scripts = new Queue<string>();
                 scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
                 scripts.Enqueue("tmpRunner=tmpScript.runner();");
+                scripts.Enqueue("tmpRunner.clearValues();");
                 scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
                 scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidCrossRef));
                 scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", newCode));
@@ -548,7 +553,7 @@ namespace ginasExcelUnitTests
                     retrievalForm.ExecuteScript(scripts.Dequeue());
                 }
                 //allow the scripts to complete execution:
-                Thread.Sleep(SCRIPT_INTERVAL);
+                Thread.Sleep(2*SCRIPT_INTERVAL);
                 string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
                 Console.WriteLine(debugInfo);
                 List<CodeProxy> codesAfter = dBQueryUtils.GetCodesForName(ptForTest);
@@ -582,6 +587,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -637,6 +643,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -697,6 +704,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -762,6 +770,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -821,6 +830,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -876,6 +886,7 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
@@ -918,10 +929,11 @@ namespace ginasExcelUnitTests
         {
             CheckForm();
             ScriptUtils scriptUtils = new ScriptUtils();
-            string ptForTest = "ANDROSTERONE SULFATE";
+            //string ptForTest = "ANDROSTERONE SULFATE";
             string uuid = "88813ffe-ff1f-4a47-870b-26635fa101ef";
             string bdnum = "0005779AB";
-            List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForName(ptForTest);
+            List<CodeProxy> codesBefore = dBQueryUtils.GetCodesEtcForUuid(uuid);
+                //dBQueryUtils.GetCodesEtcForName(ptForTest);
 
             scriptUtils.ScriptName = "Replace Code Type";
             string codeSystem = "UNIPROT";
@@ -935,11 +947,12 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
             scripts.Enqueue("tmpRunner.clearValues();");
-            scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
+            //scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuid));
             scripts.Enqueue(string.Format("tmpRunner.setValue('bdnum', '{0}')", bdnum));
             scripts.Enqueue(string.Format("tmpRunner.setValue('code', '{0}')", oldCode));
@@ -957,25 +970,16 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
+            Thread.Sleep(SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
-            int maxTests = 20;
-            List<CodeProxy> codesAfter = new List<CodeProxy>();
-            bool testPasses = false;
-            
-            for (int test = 0; test < maxTests && !testPasses; test++)
-            {
-                Thread.Sleep(500);
-                codesAfter = dBQueryUtils.GetCodesEtcForName(ptForTest);
-                testPasses = codesAfter.Any(c => c.CodeSystem.Equals(codeSystem) && c.Code.Equals(oldCode)
-                 && c.Type.Equals(newType));
-            }
-            
+            List<CodeProxy> codesAfter = dBQueryUtils.GetCodesEtcForUuid(uuid);
             Assert.AreEqual(codesBefore.Count, codesAfter.Count);
             string msg = string.Format("looking for code with system {0}, code {1}, url {2}, comment {3}",
                 codeSystem, oldCode, url, newComment);
             Console.WriteLine(msg);
-            Assert.IsTrue(testPasses);
+            Assert.IsTrue(codesAfter.Any(c => c.CodeSystem.Equals(codeSystem) && c.Code.Equals(oldCode)
+                && c.Type.Equals(newType)));
         }
 
         [TestMethod]
@@ -994,9 +998,11 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt language', '{0}')", ptLanguage));
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt name type', '{0}')", ptNameType));
@@ -1014,18 +1020,10 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            int currentTest = 1;
-            int maxTests = 50;
-            string uuid = string.Empty;
-            while (currentTest<=maxTests && uuid.Length==0 )
-            {
-                Thread.Sleep(1000);
-                uuid = dBQueryUtils.GetUuidForPt(ptForTest);
-                currentTest++;
-                Console.WriteLine("currentTest: {0}; uuid: {1}; now: {2}", currentTest, uuid, DateTime.Now);
-            }
+            Thread.Sleep(SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
+            string uuid = dBQueryUtils.GetUuidForPt(ptForTest);
             Assert.IsTrue(uuid.Length > 10);
         }
 
@@ -1046,9 +1044,11 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", ptForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt language', '{0}')", ptLanguage));
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt name type', '{0}')", ptNameType));
@@ -1087,9 +1087,11 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
             scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
             scripts.Enqueue(string.Format("tmpRunner.setValue('change reason', '{0}')", versionComment));
             string callbackKey = JSTools.RandomIdentifier();
@@ -1128,9 +1130,11 @@ namespace ginasExcelUnitTests
             retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
 
             scriptUtils.ScriptExecutor = retrievalForm;
+            SheetUtils sheetUtils = new SheetUtils();
             Queue<string> scripts = new Queue<string>();
             scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
             scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt', '{0}')", pt1));
             scripts.Enqueue(string.Format("tmpRunner.setValue('pt2', '{0}')", pt2));
             scripts.Enqueue(string.Format("tmpRunner.setValue('relationship type', '{0}')", relationshipType));

@@ -153,7 +153,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             if (!vocabularies.ContainsKey(vocabName)) return vocabItems;
             Vocab vocab = vocabularies[vocabName];
-            if(vocab == null || vocab.Content ==null || vocab.Content[0] ==null)
+            if(vocab == null || vocab.Content ==null || vocab.Content.Length==0 || vocab.Content[0] ==null)
             {
                 log.Warn("No vocab content found!");
                 return vocabItems;
@@ -341,8 +341,14 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 ScriptParameter scriptParameter = ScriptParameters[key];
                 if (vocabularies.ContainsKey(scriptParameter.cvType))
                 {
+                    if(vocabularies[scriptParameter.cvType].Content != null && vocabularies[scriptParameter.cvType].Content.Length > 0)
+                    {
+                        log.DebugFormat("About to handle vocabulary {0}", scriptParameter.cvType);
                     Dictionary<string, string> translation = GetTranslationDictionary(vocabularies[scriptParameter.cvType]);
                     scriptParameter.Vocabulary = translation;
+
+                    }
+                    log.WarnFormat("vocabulary {0} is empty!", scriptParameter.cvType);
                 }
             }
             TimeSpan elapsed = DateTime.Now.Subtract(start);
