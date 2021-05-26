@@ -180,7 +180,7 @@
             // 
             this.button5.Label = "Get PubChem CIDs";
             this.button5.Name = "button5";
-            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click);
+            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click_1);
             // 
             // configurationGroup
             // 

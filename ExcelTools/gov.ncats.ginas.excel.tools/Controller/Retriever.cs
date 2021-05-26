@@ -86,7 +86,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Dictionary<string, string> results = new Dictionary<string, string>();
 
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
-
+            
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.Configuration = GinasConfiguration;
             foreach (string key in returnedValue.Keys)
@@ -100,7 +100,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 try
                 {
                     string[] messageParts = returnedValue[key][0].Split('\t');
-
+                    
                     int currentColumn = ExcelSelection.Column;
                     int dataRow = keysToRowLists[key][0];
                     if( dataRow == 0)
@@ -123,7 +123,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         keysToRowLists[key].ForEach(row =>
                         {
                             sheetUtils.TransferDataToRow(messageParts, currentColumn, row, 
-                        ExcelSelection.Worksheet);
+                                ExcelSelection.Worksheet);
                         });
                     }
                     results.Add(key, keyResult);
@@ -232,6 +232,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     currItemWithinBatch++;
                     currItem++;
                     string cellText = (string)cell.Text;
+                    if( cellText.Contains(Environment.NewLine))
+                    {
+                        cellText = cellText.Split(Environment.NewLine.ToCharArray())[0];
+                        log.DebugFormat("took first part of multiline text: {0} ", cellText);
+                    }
+                    else if (cellText.Contains((char)10))
+                    {
+                        cellText = cellText.Split((char)10)[0];
+                        log.DebugFormat("took first part of (LF) multiline text: {0} ", cellText);
+                    }
                     log.DebugFormat("   processing input cell text {0}", cellText);
                     preSubmit.Add(cellText.Replace("'", "\'"));
                     Callback rcb;
