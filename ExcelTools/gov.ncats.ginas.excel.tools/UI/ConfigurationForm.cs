@@ -63,7 +63,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("DisplayCurrentConfiguration");
             comboBoxURLs.Items.Clear();
             CurrentConfiguration.Servers.ForEach(s => comboBoxURLs.Items.Add(s.ServerUrl));
-            if (CurrentConfiguration.SelectedServer != null)
+            if(CurrentConfiguration.SelectedServer != null)
             {
                 comboBoxURLs.SelectedItem = CurrentConfiguration.SelectedServer.ServerUrl;
                 log.Debug(" set URL to " + CurrentConfiguration.SelectedServer.ServerUrl);
@@ -77,8 +77,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             textBoxExpirationOffset.Text = CurrentConfiguration.ExpirationOffset.ToString("0.00");
             if (CurrentConfiguration.SelectedServer != null)
             {
-                textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
-                textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
+            textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
+            textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
             }
             checkBoxDebugInfo.Checked = CurrentConfiguration.DebugMode;
             checkBoxSortVocabs.Checked = CurrentConfiguration.SortVocabsAlphabetically;
@@ -86,6 +86,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             comboBoxURLs.TextChanged += ComboBoxURLs_TextChanged;
 
             textBoxImageSize.Text = CurrentConfiguration.StructureImageSize.ToString();
+            checkBoxDetectNameMarkup.Checked = CurrentConfiguration.MarkupNameFields;
         }
 
         private void ComboBoxURLs_TextChanged(object sender, EventArgs e)
@@ -136,6 +137,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 int structureImageSize = Convert.ToInt32(Math.Round(tempFloat));
                 CurrentConfiguration.StructureImageSize = structureImageSize;
             }
+            CurrentConfiguration.MarkupNameFields = checkBoxDetectNameMarkup.Checked;
             Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
 
             DialogResult = DialogResult.OK;
@@ -160,37 +162,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             return null;
         }
 
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBoxBatchSize_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBoxExpirationOffset_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBoxDebugInfo_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBoxSortVocabs_CheckedChanged(object sender, EventArgs e)
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
 
         }

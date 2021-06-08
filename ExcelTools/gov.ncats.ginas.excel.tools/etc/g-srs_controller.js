@@ -3340,16 +3340,6 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
             .setPublic(dataPublic)
             .setLanguages(langs);
 
-        var lookupCriterion = uuid;
-        if (!uuid || uuid.length === 0) {
-            if (pt && pt.length > 0) {
-                lookupCriterion = pt;
-            }
-            else {
-                console.log('using bdnum ' + bdnum);
-                lookupCriterion = bdnum;
-            }
-        }
         return GGlob.SubstanceFinder.comprehensiveSubstanceSearchByArgs(args)
             .andThen(function (s) {
                 console.log('in add name script, search returned s: ' + JSON.stringify(s));
@@ -3465,6 +3455,26 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
     .addArgument({
         "key": "reference url", name: "REFERENCE URL",
         description: "URL for the reference", required: false
+    })
+    .addArgument({
+        "key": "reference 2 type", name: "REFERENCE 2 TYPE",
+        description: "Type of the second reference (must match a vocabulary)",
+        defaultValue: "SYSTEM", required: false,
+        type: "cv",
+        opPromise: CVHelper.getTermList("DOCUMENT_TYPE"),
+        cvType: "DOCUMENT_TYPE"
+    })
+    .addArgument({
+        "key": "reference 2 citation", name: "REFERENCE 2 CITATION",
+        description: "Citation text for second reference", required: false
+    })
+    .addArgument({
+        "key": "reference 2 file path", name: "REFERENCE 2 FILE PATH",
+        description: "A file to attach to the second reference", required: false
+    })
+    .addArgument({
+        "key": "reference 2 url", name: "REFERENCE 2 URL",
+        description: "URL for the second reference", required: false
     })
     .addArgument({
         "key": "replace existing", name: "REPLACE EXISTING",
@@ -4583,6 +4593,9 @@ Script.builder().mix({
                 var rec = s.content[0]; /*can be undefined... */
 
                 s0 = GGlob.SubstanceBuilder.fromSimple(rec);
+                if ((typeof s0) === 'string') {
+                    return { valid: false, message: s0};
+                }
                 if (s0)
                     return s0.full();
                 else
@@ -5059,7 +5072,7 @@ Script.builder().mix({
         var langs = [];
         langs.push(nameLang);
         console.log('pushed ' + nameLang + ' onto langs');
-        var name = Name.builder().setName(pt)
+        var nameObject = Name.builder().setName(pt)
             .setType(nameType)
             .setPublic(dataPublic)
             .setPreferred(false)
@@ -5081,11 +5094,11 @@ Script.builder().mix({
                 .setCodeSystem("CAS")
                 .setPublic(dataPublic);
         }
-        simpleSub.names.push(name);
+        simpleSub.names.push(nameObject);
         simpleSub.references.push(reference);
 
         for (var arg in args) {
-            console.log('arg name ' + arg + ' = ' + args[arg].getValue());
+            console.log('arg name ' + arg);
             if (arg.toUpperCase().indexOf("PROPERTY:") > -1 && args[arg].getValue()) {
                 var tokens = arg.split(":");
 

@@ -95,6 +95,14 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         }
+
+        public bool MarkupNameFields
+        {
+            get;
+            set;
+
+        }
+
     }
 
     public class GinasServer

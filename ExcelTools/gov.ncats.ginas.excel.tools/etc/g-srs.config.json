@@ -24,5 +24,6 @@
   ],
   "DebugMode": false,
   "BatchSize": 0,
-  "ExpirationOffset" :  20
+  "ExpirationOffset": 20,
+  "MarkupNameFields" : true
 }

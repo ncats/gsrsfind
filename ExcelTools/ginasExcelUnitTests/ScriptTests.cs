@@ -113,9 +113,6 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void AddNamesAndRemoveNamesTest()
         {
-            /*
-             * Runs slowly, perhaps because of the large number of references in the substance
-            */
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();

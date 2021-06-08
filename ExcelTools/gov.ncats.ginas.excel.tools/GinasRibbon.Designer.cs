@@ -157,6 +157,7 @@
             this.Sequences.Items.Add(this.buttonDnaToRetrovirusRna);
             this.Sequences.Label = "Sequences";
             this.Sequences.Name = "Sequences";
+            this.Sequences.Visible = false;
             // 
             // buttonDnaToProtein
             // 

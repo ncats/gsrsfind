@@ -468,7 +468,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 int col = ColumnKeys.FirstOrDefault(k => k.Value.Equals(key)).Key;
                 Excel.Range dataRow = row.Worksheet.Range[SheetUtils.GetColumnName(col) + row.Row];
                 if (dataRow.Value2 == null) return def;
-                String propertyValue= dataRow.Value2.ToString();
+                string propertyValue = dataRow.Value2.ToString();
+                if ((key.Equals("name", StringComparison.CurrentCultureIgnoreCase)
+                    || key.Equals("new name", StringComparison.CurrentCultureIgnoreCase))
+                    && GinasConfiguration.MarkupNameFields)
+                {
+                    propertyValue = SheetFormatUtils.ExtractAndApplyFormatting(dataRow);
+                    propertyValue = SheetFormatUtils.ConvertChars(propertyValue);
+                    log.DebugFormat("applied format to info from cell {0} and got {1}",
+                        dataRow.Address, propertyValue);
+                }
                 if (!key.ToUpper().Contains("MOLFILE") && config.AppSettings.Settings["trimTextInputForUpdate"].Value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
                 {
                     propertyValue = propertyValue.Trim();
@@ -551,7 +560,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
             string vocabName = rawVocab.Substring(delim1 + 1, (delim2 - delim1 - 1));
             rawVocab = rawVocab.Substring(delim2 + 1);
             Vocab vocab = JSTools.GetVocabFromString(rawVocab);
-
+            if(scriptUtils.Vocabularies.ContainsKey(vocabName))
+            {
+                scriptUtils.Vocabularies.Remove(vocabName);
+            }
             scriptUtils.Vocabularies.Add(vocabName, vocab);
             scriptUtils.MarkVocabArrived(vocabName);
             log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",

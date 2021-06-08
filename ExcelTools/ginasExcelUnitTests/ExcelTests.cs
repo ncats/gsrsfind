@@ -60,6 +60,10 @@ namespace ginasExcelUnitTests
             rawVocab = rawVocab.Substring(delim2 + 1);
             Vocab vocab = JSTools.GetVocabFromString(rawVocab);
 
+            if(scriptUtils.Vocabularies.ContainsKey(vocabName))
+            {
+                scriptUtils.Vocabularies.Remove(vocabName);
+            }
             scriptUtils.Vocabularies.Add(vocabName, vocab);
             scriptUtils.MarkVocabArrived(vocabName);
             log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
@@ -1213,11 +1217,6 @@ namespace ginasExcelUnitTests
         }
 
 
-        internal  Workbook ReadExcelWorkbook(string filePath)
-        {
-            return excel.Workbooks.Open(filePath);
-        }
-
         private byte[] getBinaryData(string file)
         {
             return File.ReadAllBytes(file);
@@ -1446,6 +1445,12 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expected, result);
         }
 
+
+
+        internal Workbook ReadExcelWorkbook(string filePath)
+        {
+            return excel.Workbooks.Open(filePath);
+        }
         [TestMethod]
         public void testGetValueForRowAndColumnPos()
         {
@@ -1491,6 +1496,34 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expectedValue, actualValue);
         }
 
+
+
+        [TestMethod]
+        public void TestCharacterConversion()
+        {
+            string input = "";
+            string expected = "α";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestCharacterConversion2()
+        {
+            string input = ", , 1-2 acid";
+            string expected = "α, β, 1-→2 acid";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestCharacterConversion3()
+        {
+            string input    = "' ' ' ' ' ' ' ' ' ' ' ' ' ''";
+            string expected = "'α 'β 'χ 'δ 'ε 'φ 'γ 'η 'ι 'ϕ 'κ 'λ 'μ '→'";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
+        }
 
     }
 }
