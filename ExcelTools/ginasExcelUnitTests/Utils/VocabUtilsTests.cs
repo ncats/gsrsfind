@@ -12,10 +12,12 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
     [TestClass()]
     public class VocabUtilsTests
     {
+        private static string gsrsUrl = "http://localhost:8081/ginas/app/";
+
         [TestMethod()]
         public void GetVocabularyItemsTest()
         {
-            string url = "http://localhost:9000/ginas/app";
+            string url = gsrsUrl;
             string requiredVocab = "NAME_TYPE";
             List<Model.VocabItem> items = VocabUtils.GetVocabularyItems(url, requiredVocab);
             Assert.IsTrue(items.Any(i => i.Term.Equals("cn") && i.Display.Equals("Common Name")));
@@ -24,7 +26,7 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void GetVocabularyItemsTest2()
         {
-            string url = "http://localhost:9000/ginas/app/";
+            string url = gsrsUrl;
             string requiredVocab = "RELATIONSHIP_TYPE";
             List<Model.VocabItem> items = VocabUtils.GetVocabularyItems(url, requiredVocab);
             Assert.IsTrue(items.Any(i => i.Term.Equals("ACTIVATOR->TARGET") 
@@ -34,7 +36,7 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         [TestMethod]
         public void GetVocabularyDictionaryTest2()
         {
-            string url = "http://localhost:9000/ginas/app/";
+            string url = gsrsUrl;
             string requiredVocab = "DOCUMENT_TYPE";
             Dictionary<string, string> dictionary = VocabUtils.BuildVocabularyDictionary(url, requiredVocab);
             Assert.IsTrue(dictionary.Any(i => i.Key.Equals("CHEMID")

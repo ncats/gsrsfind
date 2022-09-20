@@ -16,8 +16,8 @@ using Microsoft.Office.Interop.Excel;
 using gov.ncats.ginas.excel.tools.Model;
 using System.Text;
 using System.IO;
-using gov.ncats.ginas.excel.tools.Model.FDAApplication;
 using gov.ncats.ginas.excel.tools.Model.Callbacks;
+using System.Web.Script.Serialization;
 
 namespace gov.ncats.ginas.excel.tools.Utils
 {
@@ -37,6 +37,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             PubChemClient.DefaultRequestHeaders.Accept.Clear();
             PubChemClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             PubChemClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+
+            ChemSpiderClient = new HttpClient();
+            ChemSpiderClient.DefaultRequestHeaders.Accept.Count();
+            ChemSpiderClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            ChemSpiderClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
@@ -47,7 +52,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             if (molfile.Contains("\r")) log.Debug("molfile contains CR");
 
             if (RestClient.BaseAddress == null) RestClient.BaseAddress = new Uri(serverUrl);
-            string fullUrl = serverUrl + "structure";
+            string fullUrl = serverUrl + "api/v1/substances/interpretStructure";
             log.DebugFormat("{0} using URL {1}", MethodBase.GetCurrentMethod().Name, fullUrl);
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, fullUrl);
             message.Content = new StringContent(molfile, Encoding.UTF8);
@@ -135,6 +140,13 @@ namespace gov.ncats.ginas.excel.tools.Utils
             get;
             set;
         }
+
+        public static HttpClient ChemSpiderClient
+        {
+            get;
+            set;
+        }
+
         public static bool IsValidHttpUrl(string urlText)
         {
             Uri uriResult;
@@ -477,7 +489,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return request;
         }
 
-        public static async Task<BatchLookup> RunPubChemQuery(IEnumerable<LookupDataCallback> callbacks, string serverUrl)
+        public static async Task<BatchLookup> RunPubChemQuery(IEnumerable<LookupDataCallback> callbacks, 
+            string serverUrl)
         {
             string inchiKeyData= "inchikey=" + string.Join(",", callbacks.Select(c=>c.QueryData));
             log.DebugFormat("starting in RunPubChemQuery; query: {0}", inchiKeyData);
@@ -544,6 +557,123 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 });
             
             return new BatchLookup(results);
+        }
+ 
+        public static async Task<BatchLookup> RunChemSpiderQuery(IEnumerable<LookupDataCallback> callbacks,
+                    string serverUrl)
+        {
+            //expect serverUrl to contain https://api.rsc.org
+            string chemSpiderInChIKeyUrl = serverUrl+ "/compounds/v1/filter/inchikey";
+            string chemSpiderResultUrlBase = serverUrl + "/compounds/v1/filter/{0}/results";
+            string chemSpiderDataRetrievalUrl = serverUrl +  "/compounds/v1/records/batch";
+            GinasToolsConfiguration configuration = FileUtils.GetGinasConfiguration();
+            List<string> inchikeys = callbacks.Select(c => c.QueryData).ToList();
+            List<LookupDataCallback> data = new List<LookupDataCallback>();
+            foreach (string inchikey in inchikeys)
+            {
+                string query = "{"+ string.Format(" \"inchikey\": \"{0}\" ", inchikey) + "}";
+                ChemSpiderClient.BaseAddress = new Uri(chemSpiderInChIKeyUrl);
+                HttpRequestMessage messageLookup = new HttpRequestMessage(HttpMethod.Post, chemSpiderInChIKeyUrl)
+                {
+                    Content = new StringContent(query, Encoding.UTF8, "application/json")
+                };
+                messageLookup.Headers.Add("apikey", configuration.ChemSpiderApiKey);
+                log.DebugFormat("starting query");
+
+                string queryId = string.Empty;
+                using (HttpResponseMessage response = await PubChemClient.SendAsync(messageLookup))
+                {
+                    log.DebugFormat("completed query");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        try
+                        {
+                            ChemSpiderQueryReturn chemSpiderQueryReturn = await response.Content.ReadAsAsync<ChemSpiderQueryReturn>();
+                            queryId = chemSpiderQueryReturn.queryId;
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error("Error running ChemSpider InChIKey lookup", ex);
+                        }
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(queryId))
+                {
+                    string url = string.Format(chemSpiderResultUrlBase, queryId);
+                    HttpRequestMessage messageRetrieval = new HttpRequestMessage(HttpMethod.Get, url);
+                    messageRetrieval.Headers.Add("apikey", configuration.ChemSpiderApiKey);
+                    log.DebugFormat("starting query");
+
+                    List<long> recordIds = null;
+                    using (HttpResponseMessage response = await PubChemClient.SendAsync(messageRetrieval))
+                    {
+                        log.DebugFormat("completed retrieval");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            try
+                            {
+                                ChemSpiderRecordIDRetrieval chemSpiderQueryReturn = await response.Content.ReadAsAsync<ChemSpiderRecordIDRetrieval>();
+                                recordIds = chemSpiderQueryReturn.results;
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error("Error running ChemSpider InChIKey lookup", ex);
+                            }
+                        }
+                    }
+
+                    if (recordIds!= null && recordIds.Count > 0)
+                    {
+                        ChemSpiderDataRetrievalRequest retrievalRequest = new ChemSpiderDataRetrievalRequest();
+                        retrievalRequest.recordIds = recordIds;
+                        retrievalRequest.fields = new List<string>  { "Mol2D", "InChIKey"};
+
+                        JavaScriptSerializer serializer = new JavaScriptSerializer();
+                        string retrievalJson= serializer.Serialize(retrievalRequest);
+
+                        HttpRequestMessage messageDataRetrieval = new HttpRequestMessage(HttpMethod.Post, 
+                            chemSpiderDataRetrievalUrl)
+                        {
+                            Content = new StringContent(retrievalJson, Encoding.UTF8, "application/json")
+                        };
+                        messageDataRetrieval.Headers.Add("apikey", configuration.ChemSpiderApiKey);
+                        log.DebugFormat("starting data retrieval");
+                        
+                        using (HttpResponseMessage response = await PubChemClient.SendAsync(messageDataRetrieval))
+                        {
+                            log.DebugFormat("completed retrieval");
+                            if (response.IsSuccessStatusCode)
+                            {
+                                try
+                                {
+                                    ChemSpiderDataRetrieval retrievedData= await response.Content.ReadAsAsync<ChemSpiderDataRetrieval>();
+                                    List<LookupDataCallback> lookupResults = new List<LookupDataCallback>();
+                                    retrievedData.Records.ForEach(r => {
+                                        LookupDataCallback queryCallback = callbacks.FirstOrDefault(c => c.QueryData.Equals(r.InChIKey));
+                                        if(queryCallback == null)
+                                        {
+                                            queryCallback = callbacks.FirstOrDefault(c => c.QueryData.Split('-')[0].Equals(r.InChIKey.Split('-')[0]));
+                                        }
+                                        Range queryRange = null;
+                                        if( queryCallback!=null)
+                                        {
+                                            queryRange = queryCallback.DataRange;
+                                        }
+                                        LookupDataCallback dataItem = new LookupDataCallback(queryRange, r.InChIKey, r.Mol2D);
+                                        data.Add(dataItem);
+                                    });
+                                    
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.Error("Error running ChemSpider InChIKey lookup", ex);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return new BatchLookup(data);
         }
 
     }

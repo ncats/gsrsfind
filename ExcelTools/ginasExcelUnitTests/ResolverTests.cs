@@ -16,6 +16,7 @@ using gov.ncats.ginas.excel.tools.Controller;
 
 using ginasExcelUnitTests.Utils;
 using Microsoft.Office.Interop.Excel;
+using gov.ncats.ginas.excel.tools.UI;
 
 namespace ginasExcelUnitTests
 {
@@ -59,7 +60,7 @@ namespace ginasExcelUnitTests
                 return resolverResults;
             }
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
-
+            
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.Configuration = CurrentConfiguration;
             foreach (string key in returnedValue.Keys)
@@ -422,7 +423,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(MILLISECONDS_DELAY);
             List<StructureProxy> expected = dBQueryUtils.GetStructureForName(nameForTest);
             
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
@@ -467,7 +468,7 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expectedInChIKey, results[results.Length-1]);
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void LyChIKeyFetcherTest()
         {
             CheckForm();
@@ -499,9 +500,9 @@ namespace ginasExcelUnitTests
             string[] results = resolverResults[nameForTest];
             results.ToList().ForEach(r => Console.WriteLine(r));
             Assert.AreEqual(expectedLyChI, results[results.Length - 1]);
-        }
+        }*/
 
-        [TestMethod]
+        /*[TestMethod]
         public void LyChIPart1FetcherTest()
         {
             CheckForm();
@@ -534,7 +535,7 @@ namespace ginasExcelUnitTests
             string[] results = resolverResults[nameForTest];
             results.ToList().ForEach(r => Console.WriteLine(r));
             Assert.AreEqual(expectedLyChI, results[results.Length - 1]);
-        }
+        }*/
 
         [TestMethod]
         public void SmilesEtcFetcherTest()
@@ -563,7 +564,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(3000);
+            Thread.Sleep(MILLISECONDS_DELAY);
             List<StructureProxy> expected = dBQueryUtils.GetStructureForName(nameForTest);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
@@ -801,7 +802,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(4000);
             List<CodeProxy> expected = dBQueryUtils.GetCodesOfSystemForName(nameForTest, "WHO-ATC");
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
@@ -891,7 +892,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(5000);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -930,7 +931,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(2000);
+            Thread.Sleep(MILLISECONDS_DELAY);
             
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -948,9 +949,9 @@ namespace ginasExcelUnitTests
         {
             string javaScriptDateFormat = "ddd MMM dd yyyy HH:mm:ss zzz";
             CheckForm();
-            string nameForTest = "TERLIPRESSIN";//protein
+            //string nameForTest = "TERLIPRESSIN";//protein
             List<string> chemNames = new List<string>();
-            chemNames.Add(nameForTest);
+            //chemNames.Add(nameForTest);
             chemNames.Add("BUCLIZINE HYDROCHLORIDE");
             //chemNames.Add("2,6-DI-TERT-BUTYL-4-(DIMETHYLAMINO)METHYLPHENOL");
             chemNames.Add("CETRIMIDE"); //mixture
@@ -959,6 +960,7 @@ namespace ginasExcelUnitTests
             chemNames.Add("BIXALOMER");//polymer
             chemNames.Add("DIMETHICONOL/TRIMETHYLSILOXYSILICATE CROSSPOLYMER (35/65 W/W; 10000000 PA.S)"); //concept
             chemNames.Add("1007601-96-8"); //a chemical identified by CAS number
+            //chemNames.Add("VGDATRQLXLLOSX-MFOKLRKYSA-N");//adding an InChiKey 6 September 201
             List<string> resolvers = new List<string>();
             resolvers.Add("Substance Class");
             resolvers.Add("Created By");
@@ -975,7 +977,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(MILLISECONDS_DELAY);
+            Thread.Sleep(2*MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1050,7 +1052,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(2000);
+            Thread.Sleep(MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1093,9 +1095,9 @@ namespace ginasExcelUnitTests
             while(resolverResults.Count < chemNames.Count && ++it<maxIteration)
             {
                 Console.WriteLine("iteration {0} resolverResults.Count: {1}", it, resolverResults.Count);
-            Thread.Sleep(1000);
+                Thread.Sleep(1000);
             }
-
+ 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             foreach (string name in chemNames)
@@ -1159,7 +1161,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(1000);
+            Thread.Sleep(MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1225,7 +1227,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(2000);
+            Thread.Sleep(MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1266,7 +1268,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(2000);
+            Thread.Sleep(2*MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1323,6 +1325,7 @@ namespace ginasExcelUnitTests
             string callbackKey = JSTools.RandomIdentifier();
 
             string primaryScript = MakeSearch(callbackKey, chemNames, resolvers);
+            Console.WriteLine("script used for search: " + primaryScript);
             scripts.Enqueue(primaryScript);
 
             while (scripts.Count > 0)
@@ -1330,7 +1333,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(3000);
+            Thread.Sleep(2*MILLISECONDS_DELAY);
 
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
@@ -1388,6 +1391,23 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(results.Contains(expectedResult));
         }
 
+        [TestMethod]
+        public void testCreateApiUrl()
+        {
+            string baseUrl = "http://compound-reg.ncats.io:8080/ginas/app/";
+            string apiUrl = "app/api";
+            string expected = "http://compound-reg.ncats.io:8080/ginas/app/api";
+
+            String methodName = "CreateApiUrl";
+            RetrievalForm form = new RetrievalForm();
+            MethodInfo methodToTest = form.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+            object[] callParms = new object[2];
+            callParms[0] = baseUrl;
+            callParms[1] = apiUrl;
+            string actualUrl = (string) methodToTest.Invoke(form, callParms);
+            Assert.AreEqual(expected, actualUrl);
+        }
+
         private string MakeSearch(string key, List<string> names, List<string> fetcherNames)
         {
             StringBuilder scriptBuilder = new StringBuilder();
@@ -1438,7 +1458,10 @@ namespace ginasExcelUnitTests
         {
             string dateToClean = inputDate.Replace("GMT", "");
             int pos = dateToClean.LastIndexOf("(");
-            dateToClean = dateToClean.Substring(0, pos - 1);
+            if(pos> 0)
+            {
+                dateToClean = dateToClean.Substring(0, pos - 1);
+            }
             return dateToClean;
         }
         public void StartOperation()

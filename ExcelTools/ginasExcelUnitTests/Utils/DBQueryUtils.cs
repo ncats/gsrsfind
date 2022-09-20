@@ -393,7 +393,7 @@ namespace ginasExcelUnitTests.Utils
             }
             reader.Close();
 
-            return string.Join(";", sequences);
+            return string.Join(",", sequences);
         }
 
         internal SubstanceProxy GetSubstance(string nameOrCode)

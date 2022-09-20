@@ -11,7 +11,7 @@ using System.Security;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("gov.ncats.ginas.excel.tools")]
-[assembly: AssemblyCopyright("Copyright © National Center for Advancing Translational Science 2021")]
+[assembly: AssemblyCopyright("Copyright © National Center for Advancing Translational Science 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("ginasExcelUnitTests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100f1963d676fb9adb6485548a50c148055eae2b9987e501911af867acc44a998f52fb960eb50cd6eda6dfeea7303040f23e36167d64b279762f7162aa2b0ee669b2dc8a1204c10b557b979e75c7c637e5d11cdd0fc0c1f344d9507215c6ed7a1838edd5a7a40837d286e7c06d6995795893813040e2583c09267f7fa955820f7ce")]
@@ -35,6 +35,6 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.0.*")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.4.0.*")]
+[assembly: AssemblyFileVersion("1.4.0.0")]
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config")]

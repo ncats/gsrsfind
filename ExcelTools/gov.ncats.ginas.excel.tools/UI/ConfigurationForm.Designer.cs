@@ -32,34 +32,42 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigurationForm));
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBoxBatchSize = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.checkBoxDebugInfo = new System.Windows.Forms.CheckBox();
-            this.comboBoxURLs = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.textBoxUsername = new System.Windows.Forms.TextBox();
-            this.textBoxKey = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.textBoxExpirationOffset = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
             this.toolTipUrl = new System.Windows.Forms.ToolTip(this.components);
+            this.checkBoxDebugInfo = new System.Windows.Forms.CheckBox();
+            this.textBoxExpirationOffset = new System.Windows.Forms.TextBox();
+            this.textBoxBatchSize = new System.Windows.Forms.TextBox();
             this.checkBoxSortVocabs = new System.Windows.Forms.CheckBox();
             this.textBoxImageSize = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBoxUsername = new System.Windows.Forms.TextBox();
+            this.comboBoxURLs = new System.Windows.Forms.ComboBox();
+            this.textBoxKey = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
-            this.checkBoxDetectNameMarkup = new System.Windows.Forms.CheckBox();
-            this.groupBox1.SuspendLayout();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.comboBoxStructureContext = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.textBoxChemSpiderApiKey = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonOK
             // 
-            this.buttonOK.Location = new System.Drawing.Point(201, 287);
+            this.buttonOK.Location = new System.Drawing.Point(201, 412);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(75, 23);
             this.buttonOK.TabIndex = 5;
@@ -71,7 +79,7 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(377, 287);
+            this.buttonCancel.Location = new System.Drawing.Point(377, 412);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 6;
@@ -80,14 +88,24 @@
             this.buttonCancel.UseVisualStyleBackColor = true;
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
-            // label1
+            // checkBoxDebugInfo
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 31);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(32, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "URL:";
+            this.checkBoxDebugInfo.AutoSize = true;
+            this.checkBoxDebugInfo.Location = new System.Drawing.Point(78, 64);
+            this.checkBoxDebugInfo.Name = "checkBoxDebugInfo";
+            this.checkBoxDebugInfo.Size = new System.Drawing.Size(122, 17);
+            this.checkBoxDebugInfo.TabIndex = 4;
+            this.checkBoxDebugInfo.Text = "Display Debug Info?";
+            this.toolTipUrl.SetToolTip(this.checkBoxDebugInfo, "Gives you the option to capture information that may be useful to developers");
+            this.checkBoxDebugInfo.UseVisualStyleBackColor = true;
+            // 
+            // textBoxExpirationOffset
+            // 
+            this.textBoxExpirationOffset.Location = new System.Drawing.Point(308, 26);
+            this.textBoxExpirationOffset.Name = "textBoxExpirationOffset";
+            this.textBoxExpirationOffset.Size = new System.Drawing.Size(64, 20);
+            this.textBoxExpirationOffset.TabIndex = 4;
+            this.toolTipUrl.SetToolTip(this.textBoxExpirationOffset, "How long (seconds) to allow each set to run before considering it expired");
             // 
             // textBoxBatchSize
             // 
@@ -96,6 +114,67 @@
             this.textBoxBatchSize.Size = new System.Drawing.Size(64, 20);
             this.textBoxBatchSize.TabIndex = 3;
             this.toolTipUrl.SetToolTip(this.textBoxBatchSize, "Number of records to process in each set");
+            // 
+            // checkBoxSortVocabs
+            // 
+            this.checkBoxSortVocabs.AutoSize = true;
+            this.checkBoxSortVocabs.Location = new System.Drawing.Point(223, 63);
+            this.checkBoxSortVocabs.Name = "checkBoxSortVocabs";
+            this.checkBoxSortVocabs.Size = new System.Drawing.Size(140, 17);
+            this.checkBoxSortVocabs.TabIndex = 14;
+            this.checkBoxSortVocabs.Text = "Sort New Vocabularies?";
+            this.toolTipUrl.SetToolTip(this.checkBoxSortVocabs, "Sort newly created lists of terms alphabetically? ");
+            this.checkBoxSortVocabs.UseVisualStyleBackColor = true;
+            // 
+            // textBoxImageSize
+            // 
+            this.textBoxImageSize.Location = new System.Drawing.Point(82, 25);
+            this.textBoxImageSize.Name = "textBoxImageSize";
+            this.textBoxImageSize.Size = new System.Drawing.Size(64, 20);
+            this.textBoxImageSize.TabIndex = 5;
+            this.toolTipUrl.SetToolTip(this.textBoxImageSize, "Number of records to process in each set");
+            // 
+            // textBoxUsername
+            // 
+            this.textBoxUsername.Location = new System.Drawing.Point(149, 54);
+            this.textBoxUsername.Name = "textBoxUsername";
+            this.textBoxUsername.Size = new System.Drawing.Size(113, 20);
+            this.textBoxUsername.TabIndex = 1;
+            this.toolTipUrl.SetToolTip(this.textBoxUsername, "user name when signing into the abover application (not necessary with single-sig" +
+        "non)");
+            // 
+            // comboBoxURLs
+            // 
+            this.comboBoxURLs.FormattingEnabled = true;
+            this.comboBoxURLs.Location = new System.Drawing.Point(82, 27);
+            this.comboBoxURLs.Name = "comboBoxURLs";
+            this.comboBoxURLs.Size = new System.Drawing.Size(365, 21);
+            this.comboBoxURLs.TabIndex = 5;
+            this.toolTipUrl.SetToolTip(this.comboBoxURLs, "Web address of g-srs server for information retrieval and submission");
+            // 
+            // textBoxKey
+            // 
+            this.textBoxKey.Location = new System.Drawing.Point(332, 55);
+            this.textBoxKey.Name = "textBoxKey";
+            this.textBoxKey.Size = new System.Drawing.Size(113, 20);
+            this.textBoxKey.TabIndex = 2;
+            this.toolTipUrl.SetToolTip(this.textBoxKey, "(not necessary with single-signon)");
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.checkBoxSortVocabs);
+            this.groupBox2.Controls.Add(this.label2);
+            this.groupBox2.Controls.Add(this.textBoxBatchSize);
+            this.groupBox2.Controls.Add(this.textBoxExpirationOffset);
+            this.groupBox2.Controls.Add(this.label3);
+            this.groupBox2.Controls.Add(this.label6);
+            this.groupBox2.Controls.Add(this.checkBoxDebugInfo);
+            this.groupBox2.Location = new System.Drawing.Point(12, 129);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(458, 100);
+            this.groupBox2.TabIndex = 16;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "General";
             // 
             // label2
             // 
@@ -115,52 +194,36 @@
             this.label3.TabIndex = 6;
             this.label3.Text = "Debug?";
             // 
-            // checkBoxDebugInfo
+            // label6
             // 
-            this.checkBoxDebugInfo.AutoSize = true;
-            this.checkBoxDebugInfo.Location = new System.Drawing.Point(70, 64);
-            this.checkBoxDebugInfo.Name = "checkBoxDebugInfo";
-            this.checkBoxDebugInfo.Size = new System.Drawing.Size(122, 17);
-            this.checkBoxDebugInfo.TabIndex = 4;
-            this.checkBoxDebugInfo.Text = "Display Debug Info?";
-            this.toolTipUrl.SetToolTip(this.checkBoxDebugInfo, "Gives you the option to capture information that may be useful to developers");
-            this.checkBoxDebugInfo.UseVisualStyleBackColor = true;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(208, 30);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(86, 13);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "Expiration Delay:";
             // 
-            // comboBoxURLs
+            // label7
             // 
-            this.comboBoxURLs.FormattingEnabled = true;
-            this.comboBoxURLs.Location = new System.Drawing.Point(82, 27);
-            this.comboBoxURLs.Name = "comboBoxURLs";
-            this.comboBoxURLs.Size = new System.Drawing.Size(365, 21);
-            this.comboBoxURLs.TabIndex = 5;
-            this.toolTipUrl.SetToolTip(this.comboBoxURLs, "Web address of g-srs server for information retrieval and submission");
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(8, 29);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(62, 13);
+            this.label7.TabIndex = 6;
+            this.label7.Text = "Image Size:";
             // 
-            // label4
+            // groupBox3
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(86, 56);
-            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(58, 13);
-            this.label4.TabIndex = 9;
-            this.label4.Text = "Username:";
-            // 
-            // textBoxUsername
-            // 
-            this.textBoxUsername.Location = new System.Drawing.Point(149, 54);
-            this.textBoxUsername.Name = "textBoxUsername";
-            this.textBoxUsername.Size = new System.Drawing.Size(113, 20);
-            this.textBoxUsername.TabIndex = 1;
-            this.toolTipUrl.SetToolTip(this.textBoxUsername, "user name when signing into the abover application (not necessary with single-sig" +
-        "non)");
-            // 
-            // textBoxKey
-            // 
-            this.textBoxKey.Location = new System.Drawing.Point(332, 55);
-            this.textBoxKey.Name = "textBoxKey";
-            this.textBoxKey.Size = new System.Drawing.Size(113, 20);
-            this.textBoxKey.TabIndex = 2;
-            this.toolTipUrl.SetToolTip(this.textBoxKey, "(not necessary with single-signon)");
+            this.groupBox3.Controls.Add(this.label7);
+            this.groupBox3.Controls.Add(this.textBoxImageSize);
+            this.groupBox3.Location = new System.Drawing.Point(12, 236);
+            this.groupBox3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox3.Size = new System.Drawing.Size(458, 46);
+            this.groupBox3.TabIndex = 17;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Structures";
             // 
             // label5
             // 
@@ -172,44 +235,29 @@
             this.label5.TabIndex = 11;
             this.label5.Text = "Key:";
             // 
-            // textBoxExpirationOffset
+            // label4
             // 
-            this.textBoxExpirationOffset.Location = new System.Drawing.Point(291, 26);
-            this.textBoxExpirationOffset.Name = "textBoxExpirationOffset";
-            this.textBoxExpirationOffset.Size = new System.Drawing.Size(64, 20);
-            this.textBoxExpirationOffset.TabIndex = 4;
-            this.toolTipUrl.SetToolTip(this.textBoxExpirationOffset, "How long (seconds) to allow each set to run before considering it expired");
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(86, 56);
+            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(58, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Username:";
             // 
-            // label6
+            // label1
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(200, 30);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(86, 13);
-            this.label6.TabIndex = 13;
-            this.label6.Text = "Expiration Delay:";
-            // 
-            // checkBoxSortVocabs
-            // 
-            this.checkBoxSortVocabs.AutoSize = true;
-            this.checkBoxSortVocabs.Location = new System.Drawing.Point(207, 63);
-            this.checkBoxSortVocabs.Name = "checkBoxSortVocabs";
-            this.checkBoxSortVocabs.Size = new System.Drawing.Size(140, 17);
-            this.checkBoxSortVocabs.TabIndex = 14;
-            this.checkBoxSortVocabs.Text = "Sort New Vocabularies?";
-            this.toolTipUrl.SetToolTip(this.checkBoxSortVocabs, "Sort newly created lists of terms alphabetically? ");
-            this.checkBoxSortVocabs.UseVisualStyleBackColor = true;
-            // 
-            // textBoxImageSize
-            // 
-            this.textBoxImageSize.Location = new System.Drawing.Point(82, 25);
-            this.textBoxImageSize.Name = "textBoxImageSize";
-            this.textBoxImageSize.Size = new System.Drawing.Size(64, 20);
-            this.textBoxImageSize.TabIndex = 5;
-            this.toolTipUrl.SetToolTip(this.textBoxImageSize, "Number of records to process in each set");
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(8, 31);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(32, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "URL:";
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.comboBoxStructureContext);
+            this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.textBoxKey);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.comboBoxURLs);
@@ -218,61 +266,78 @@
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Location = new System.Drawing.Point(12, 8);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(529, 111);
+            this.groupBox1.Size = new System.Drawing.Size(458, 111);
             this.groupBox1.TabIndex = 15;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Server";
             // 
-            // groupBox2
+            // comboBoxStructureContext
             // 
-            this.groupBox2.Controls.Add(this.checkBoxDetectNameMarkup);
-            this.groupBox2.Controls.Add(this.checkBoxSortVocabs);
-            this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Controls.Add(this.textBoxBatchSize);
-            this.groupBox2.Controls.Add(this.textBoxExpirationOffset);
-            this.groupBox2.Controls.Add(this.label3);
-            this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Controls.Add(this.checkBoxDebugInfo);
-            this.groupBox2.Location = new System.Drawing.Point(12, 129);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(529, 100);
-            this.groupBox2.TabIndex = 16;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "General";
+            this.comboBoxStructureContext.FormattingEnabled = true;
+            this.comboBoxStructureContext.Location = new System.Drawing.Point(95, 80);
+            this.comboBoxStructureContext.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.comboBoxStructureContext.Name = "comboBoxStructureContext";
+            this.comboBoxStructureContext.Size = new System.Drawing.Size(231, 21);
+            this.comboBoxStructureContext.TabIndex = 14;
             // 
-            // groupBox3
+            // label8
             // 
-            this.groupBox3.Controls.Add(this.label7);
-            this.groupBox3.Controls.Add(this.textBoxImageSize);
-            this.groupBox3.Location = new System.Drawing.Point(12, 236);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.groupBox3.Size = new System.Drawing.Size(529, 46);
-            this.groupBox3.TabIndex = 17;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Structures";
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(8, 84);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(91, 13);
+            this.label8.TabIndex = 13;
+            this.label8.Text = "Structure context:";
             // 
-            // label7
+            // textBoxChemSpiderApiKey
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(8, 29);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(62, 13);
-            this.label7.TabIndex = 6;
-            this.label7.Text = "Image Size:";
+            this.textBoxChemSpiderApiKey.Location = new System.Drawing.Point(152, 32);
+            this.textBoxChemSpiderApiKey.Name = "textBoxChemSpiderApiKey";
+            this.textBoxChemSpiderApiKey.Size = new System.Drawing.Size(267, 20);
+            this.textBoxChemSpiderApiKey.TabIndex = 16;
             // 
-            // checkBoxDetectNameMarkup
+            // label9
             // 
-            this.checkBoxDetectNameMarkup.AutoSize = true;
-            this.checkBoxDetectNameMarkup.Location = new System.Drawing.Point(406, 60);
-            this.checkBoxDetectNameMarkup.Name = "checkBoxDetectNameMarkup";
-            this.checkBoxDetectNameMarkup.Size = new System.Drawing.Size(97, 17);
-            this.checkBoxDetectNameMarkup.TabIndex = 15;
-            this.checkBoxDetectNameMarkup.Text = "Detect Markup";
-            this.toolTipUrl.SetToolTip(this.checkBoxDetectNameMarkup, "Detect Markup in the formatted text of Chemical Names");
-            this.checkBoxDetectNameMarkup.UseVisualStyleBackColor = true;
-            this.checkBoxDetectNameMarkup.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(11, 32);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(108, 13);
+            this.label9.TabIndex = 15;
+            this.label9.Text = "ChemSpider API Key:";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.textBoxChemSpiderApiKey);
+            this.groupBox4.Controls.Add(this.label9);
+            this.groupBox4.Controls.Add(this.button1);
+            this.groupBox4.Controls.Add(this.button2);
+            this.groupBox4.Location = new System.Drawing.Point(12, 296);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(460, 80);
+            this.groupBox4.TabIndex = 19;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "External Data Sources";
+            // 
+            // button1
+            // 
+            this.button1.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.button1.Location = new System.Drawing.Point(368, 102);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 6;
+            this.button1.Text = "Cancel";
+            this.toolTipUrl.SetToolTip(this.button1, "Close this dialog with no further processing");
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(192, 102);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "OK";
+            this.toolTipUrl.SetToolTip(this.button2, "Proceed with operation");
+            this.button2.UseVisualStyleBackColor = true;
             // 
             // ConfigurationForm
             // 
@@ -280,7 +345,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(576, 319);
+            this.ClientSize = new System.Drawing.Size(503, 466);
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -290,12 +356,14 @@
             this.Name = "ConfigurationForm";
             this.Text = "g-srs Excel Tools Configuration";
             this.Load += new System.EventHandler(this.ConfigurationForm_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -304,25 +372,32 @@
 
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBoxBatchSize;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.CheckBox checkBoxDebugInfo;
-        private System.Windows.Forms.ComboBox comboBoxURLs;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBoxUsername;
-        private System.Windows.Forms.TextBox textBoxKey;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox textBoxExpirationOffset;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ToolTip toolTipUrl;
-        private System.Windows.Forms.CheckBox checkBoxSortVocabs;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox checkBoxSortVocabs;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox textBoxBatchSize;
+        private System.Windows.Forms.TextBox textBoxExpirationOffset;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.CheckBox checkBoxDebugInfo;
         private System.Windows.Forms.TextBox textBoxImageSize;
-        private System.Windows.Forms.CheckBox checkBoxDetectNameMarkup;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox textBoxUsername;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ComboBox comboBoxURLs;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox textBoxKey;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox comboBoxStructureContext;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.TextBox textBoxChemSpiderApiKey;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
     }
 }

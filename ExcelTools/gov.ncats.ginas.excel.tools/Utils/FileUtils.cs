@@ -28,6 +28,18 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(javascriptFilePath);
         }
 
+        public static string GetJQueryJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\jquery-1.11.1.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
+        public static string GetJSON2JavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\json2.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
         public static string GetLastJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\LastScript.js";
@@ -37,6 +49,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static string GetJsonPatchJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\json-patch.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
+        public static string GetBootstrapJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\bootstrap.min.js";
             return File.ReadAllText(javascriptFilePath);
         }
 

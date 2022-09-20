@@ -1,7 +1,4 @@
-﻿using gov.ncats.ginas.excel.tools.Model;
-using gov.ncats.ginas.excel.tools.Model.Callbacks;
-using gov.ncats.ginas.excel.tools.Providers;
-using gov.ncats.ginas.excel.tools.UI;
+﻿using gov.ncats.ginas.excel.tools.Model.Callbacks;
 using gov.ncats.ginas.excel.tools.Utils;
 using Microsoft.Office.Interop.Excel;
 using System;
@@ -13,23 +10,20 @@ using System.Threading.Tasks;
 
 namespace gov.ncats.ginas.excel.tools.Controller
 {
-    public class PubChemRetriever : ControllerBase
+    class ChemSpiderRetriever : ControllerBase
     {
-
-        private static object LOCK_OBJECT = new object();
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
-
-        public void HandleLookup(Application excel)
-        {
-            Range selectedRange = excel.Selection as Range;
-
-        }
+        private static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public async Task<bool> StartResolution()
         {
-
+            if(string.IsNullOrWhiteSpace(FileUtils.GetGinasConfiguration().ChemSpiderApiKey))
+            {
+                UIUtils.ShowMessageToUser("To retrieve data from ChemSpider, please obtain an API key and add it to your configuration");
+                return false;
+            }
             ItemsPerBatch = FileUtils.GetGinasConfiguration().BatchSize;
+            int currentBatch = 0;
             ScriptQueue = new Queue<string>();
             Range r = null;
             try
@@ -51,9 +45,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             int currItemWithinBatch = 0;
             List<LookupDataCallback> dataToProcess = new List<LookupDataCallback>();
             int totalItems = 0;
-            int currentBatch = 0;
+            // int currentBatch = 0;
             //count the items
-            log.Debug("about to count data " );
+            log.Debug("about to count data ");
             foreach (Range cell in r.Cells)
             {
                 string cellData = (string)cell.Text;
@@ -63,11 +57,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     totalItems++;
                 }
             }
-            int totalBatches = Convert.ToInt32( Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(ItemsPerBatch)));
+            int totalBatches = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(totalItems) / Convert.ToDouble(ItemsPerBatch)));
             log.DebugFormat("totalItems: {0}; totalBatches: {1}", totalItems, totalBatches);
             foreach (Range cell in r.Cells)
             {
-                if (StatusUpdater!= null && StatusUpdater.HasUserCancelled())
+                if (StatusUpdater != null && StatusUpdater.HasUserCancelled())
                 {
                     log.Debug("user has cancelled process");
                     return false;
@@ -79,16 +73,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     currItemWithinBatch++;
                     currItem++;
                     string cellText = (string)cell.Text;
-                    
+
                     dataToProcess.Add(new LookupDataCallback(cell, cellText, string.Empty));
                     if ((currItemWithinBatch % ItemsPerBatch) == 0)
                     {
                         string statusMessage = string.Format("Processing batch # {0} of {1}",
                             (++currentBatch), totalBatches);
                         log.Debug(statusMessage);
-                        if(StatusUpdater != null ) StatusUpdater.UpdateStatus(statusMessage);
+                        if (StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
                         await ProcessOneBatch(dataToProcess);
-                        
+
                         currItemWithinBatch = 0;
                         log.Debug("Prepared batch containing " + ItemsPerBatch + " items");
                         dataToProcess.Clear();
@@ -104,7 +98,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (currItemWithinBatch > 0)// process any leftovers
             {
                 string statusMessage = "Processing last batch";
-                if(StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
+                if (StatusUpdater != null) StatusUpdater.UpdateStatus(statusMessage);
 
                 await ProcessOneBatch(dataToProcess);
             }
@@ -116,25 +110,34 @@ namespace gov.ncats.ginas.excel.tools.Controller
             return true;
         }
 
-        internal static bool IsPossibleInChiKey(string data1)
-        {
-            throw new NotImplementedException();
-        }
-
         private async Task ProcessOneBatch(List<LookupDataCallback> submittable)
         {
-            log.DebugFormat("Starting in ProcessOneBatch with data  {0}", submittable.Select(s => s.QueryData));
-            string pubChemBaseUrl = config.AppSettings.Settings["pubChemBaseUrl"].Value;
-            BatchLookup pubChemData = await RestUtils.RunPubChemQuery(submittable, pubChemBaseUrl);
+            log.DebugFormat("Starting in ProcessOneBatch with data {0}", submittable.Select(s => s.QueryData));
+            string baseUrl = config.AppSettings.Settings["chemSpiderBaseUrl"].Value;
+            BatchLookup chemSpiderData = await RestUtils.RunChemSpiderQuery(submittable, baseUrl);
 
-            pubChemData.LookupData.ForEach(l =>
+            chemSpiderData.LookupData.ForEach(l =>
             {
                 log.DebugFormat("ProcessOneBatch processing data for InChIKey {0}", l.QueryData);
                 try
                 {
-
-                    Range returnRange = l.DataRange.Offset[0, 1];
-                    returnRange.FormulaR1C1 = l.Result;
+                    Range returnRange;
+                    if ( l.DataRange== null)
+                    {
+                        returnRange= SheetUtils.FindFirstCellWithText(ExcelWindow.RangeSelection, l.QueryData);
+                    }
+                    else
+                    {
+                        returnRange = l.DataRange.Offset[0, 1];
+                    }
+                    if(returnRange==null)
+                    {
+                        log.WarnFormat("Unable to locate data {0}", l.QueryData);
+                    }
+                    else
+                    {
+                        returnRange.FormulaR1C1 = l.Result;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -144,25 +147,53 @@ namespace gov.ncats.ginas.excel.tools.Controller
             });
         }
 
-
-        public void StartOperation()
+        /*
+         * Open a ChemSpider search URL like this: http://www.chemspider.com/Search.aspx?q=PAYRUJLWNCNPSJ-UHFFFAOYSA-N
+         */
+        public async Task<bool> StartGeneralResolution()
         {
-            throw new NotImplementedException();
+            ItemsPerBatch = FileUtils.GetGinasConfiguration().BatchSize;
+            ScriptQueue = new Queue<string>();
+            Range r = null;
+            try
+            {
+                r = ExcelWindow.RangeSelection;
+            }
+            catch (Exception ex)
+            {
+                log.Debug("Error: " + ex.Message);
+
+            }
+            if (r == null)
+            {
+                return false;
+            }
+            ExcelSelection = r;
+
+            log.Debug("about to retrieve data ");
+            if( r.Cells.Count != 1)
+            {
+                UIUtils.ShowMessageToUser("please select a single cell with an InChIKey");
+                return false;
+            }
+
+            
+            string cellData = (string)r.Text;
+            if (r.Text != null && (!string.IsNullOrWhiteSpace(cellData)
+                && DataUtils.IsPossibleInChiKey(cellData)))
+            {
+                string baseUrl = config.AppSettings.Settings["chemSpiderBaseUiUrl"].Value;
+                string url = baseUrl + "?q=" + cellData;
+                log.DebugFormat("using URL for ChemSpider: {0}", url);
+                System.Diagnostics.Process.Start(url);
+                return true;
+            }
+            else 
+            {
+                UIUtils.ShowMessageToUser("please select a single cell with an InChIKey");
+                return false;
+            }
         }
 
-        public object HandleResults(string resultsKey, string message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ContinueSetup()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool OkToWrite(int numberOfColumns)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -120,6 +120,7 @@
   <ItemGroup>
     <Compile Include="Controller\DataLoaderTests.cs" />
     <Compile Include="Controller\SequenceProcessorTests.cs" />
+    <Compile Include="FormatProcessingTests.cs" />
     <Compile Include="Model\CodeProxy.cs" />
     <Compile Include="Model\PlantPart.cs" />
     <Compile Include="Model\RelatedSubstanceProxy.cs" />

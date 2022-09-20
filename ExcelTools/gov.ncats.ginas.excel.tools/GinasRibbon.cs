@@ -250,19 +250,19 @@ namespace gov.ncats.ginas.excel.tools
             HandleApplicationProcessing(window, OperationType.AddIngredient);
         }
 
-        //private void CheckBoxMonitorSheets_Click(object sender, RibbonControlEventArgs e)
-        //{
-        //    if( this.checkBoxMonitorSheets.Checked)
-        //    {
-        //        Globals.ThisAddIn.TurnOnMonitoring();
-        //        log.Debug("turned monitoring on");
-        //    }
-        //    else
-        //    {
-        //        Globals.ThisAddIn.TurnOffMonitoring();
-        //        log.Debug("turned monitoring off");
-        //    }
-        //}
+        private void CheckBoxMonitorSheets_Click(object sender, RibbonControlEventArgs e)
+        {
+            if( this.checkBoxMonitorSheets.Checked)
+            {
+                Globals.ThisAddIn.TurnOnMonitoring();
+                log.Debug("turned monitoring on");
+            }
+            else
+            {
+                Globals.ThisAddIn.TurnOffMonitoring();
+                log.Debug("turned monitoring off");
+            }
+        }
 
         private void ButtonGetInfo_Click(object sender, RibbonControlEventArgs e)
         {
@@ -311,6 +311,30 @@ namespace gov.ncats.ginas.excel.tools
             retriever.SetExcelWindow(window);
             retriever.SetStatusUpdater(externalSourceStatus);
             await retriever.StartResolution();
+        }
+
+        private async void buttonGetMolfileFromChemSpider_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ChemSpiderRetriever retriever = new ChemSpiderRetriever();
+            ExternalSourceRetrievalProgress externalSourceStatus = new ExternalSourceRetrievalProgress();
+            externalSourceStatus.SetSourceText("ChemSpider");
+            externalSourceStatus.Show();
+            retriever.SetExcelWindow(window);
+            retriever.SetStatusUpdater(externalSourceStatus);
+            await retriever.StartResolution();
+        }
+
+        private async void buttonLookupChemSpider_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ChemSpiderRetriever retriever = new ChemSpiderRetriever();
+            /*ExternalSourceRetrievalProgress externalSourceStatus = new ExternalSourceRetrievalProgress();
+            externalSourceStatus.SetSourceText("ChemSpider");
+            externalSourceStatus.Show();*/
+            retriever.SetExcelWindow(window);
+            //retriever.SetStatusUpdater(externalSourceStatus);
+            await retriever.StartGeneralResolution();
         }
     }
 }

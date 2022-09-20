@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
 {
     /// <summary>
-    /// Manages the metadat for Application creation
+    /// Manages the metadata for Application creation
     /// </summary>
     public class ApplicationMetadata
     {
@@ -18,9 +18,10 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
             BuildMetadata();
         }
 
-        public static IEnumerable<string> GetFieldNames(ApplicationField.Level level)
+        public static IEnumerable<string> GetFieldNames(ApplicationField.Level level, 
+            bool includeNonSheetFields =false)
         {
-            return GetFields(level).Select(s => s.FieldName);
+            return GetFields(level).Where(f=> includeNonSheetFields || f.IncludeInSheet).Select(s => s.FieldName);
         }
 
         public static IEnumerable<ApplicationField> GetFields()

@@ -38,37 +38,48 @@
             this.retrievalgroup = this.Factory.CreateRibbonGroup();
             this.button1 = this.Factory.CreateRibbonButton();
             this.button2 = this.Factory.CreateRibbonButton();
-            this.updateGroup = this.Factory.CreateRibbonGroup();
-            this.button3 = this.Factory.CreateRibbonButton();
-            this.button4 = this.Factory.CreateRibbonButton();
             this.groupSDFile = this.Factory.CreateRibbonGroup();
             this.buttonSdFileImport = this.Factory.CreateRibbonButton();
             this.buttonSelectPT = this.Factory.CreateRibbonButton();
             this.buttonAssureColumns = this.Factory.CreateRibbonButton();
-            this.Sequences = this.Factory.CreateRibbonGroup();
+            this.updateGroup = this.Factory.CreateRibbonGroup();
+            this.button3 = this.Factory.CreateRibbonButton();
+            this.button4 = this.Factory.CreateRibbonButton();
+            this.group1 = this.Factory.CreateRibbonGroup();
             this.buttonDnaToProtein = this.Factory.CreateRibbonButton();
             this.buttonDnaToRetrovirusRna = this.Factory.CreateRibbonButton();
-            this.group1 = this.Factory.CreateRibbonGroup();
-            this.button5 = this.Factory.CreateRibbonButton();
+            this.groupFDA = this.Factory.CreateRibbonGroup();
+            this.buttonCreateAppSheet = this.Factory.CreateRibbonButton();
+            this.buttonApplication = this.Factory.CreateRibbonButton();
+            this.buttonAddProduct = this.Factory.CreateRibbonButton();
+            this.buttonCreateIngredientSheet = this.Factory.CreateRibbonButton();
+            this.buttonAddIngredient = this.Factory.CreateRibbonButton();
+            this.checkBoxMonitorSheets = this.Factory.CreateRibbonCheckBox();
+            this.group2 = this.Factory.CreateRibbonGroup();
+            this.buttonGetPubChemIDs = this.Factory.CreateRibbonButton();
+            this.buttonGetMolfileFromChemSpider = this.Factory.CreateRibbonButton();
+            this.buttonLookupChemSpider = this.Factory.CreateRibbonButton();
             this.configurationGroup = this.Factory.CreateRibbonGroup();
             this.buttonConfigure = this.Factory.CreateRibbonButton();
             this.buttonAbout = this.Factory.CreateRibbonButton();
             this.ginasTab.SuspendLayout();
             this.retrievalgroup.SuspendLayout();
-            this.updateGroup.SuspendLayout();
             this.groupSDFile.SuspendLayout();
-            this.Sequences.SuspendLayout();
+            this.updateGroup.SuspendLayout();
             this.group1.SuspendLayout();
+            this.groupFDA.SuspendLayout();
+            this.group2.SuspendLayout();
             this.configurationGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // ginasTab
             // 
             this.ginasTab.Groups.Add(this.retrievalgroup);
-            this.ginasTab.Groups.Add(this.updateGroup);
             this.ginasTab.Groups.Add(this.groupSDFile);
-            this.ginasTab.Groups.Add(this.Sequences);
+            this.ginasTab.Groups.Add(this.updateGroup);
             this.ginasTab.Groups.Add(this.group1);
+            this.ginasTab.Groups.Add(this.groupFDA);
+            this.ginasTab.Groups.Add(this.group2);
             this.ginasTab.Groups.Add(this.configurationGroup);
             this.ginasTab.Label = "GSRS";
             this.ginasTab.Name = "ginasTab";
@@ -95,29 +106,6 @@
             this.button2.Name = "button2";
             this.button2.ShowImage = true;
             this.button2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button2_Click);
-            // 
-            // updateGroup
-            // 
-            this.updateGroup.Items.Add(this.button3);
-            this.updateGroup.Items.Add(this.button4);
-            this.updateGroup.Label = "Update";
-            this.updateGroup.Name = "updateGroup";
-            // 
-            // button3
-            // 
-            this.button3.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.DataLoadingIcon;
-            this.button3.Label = " Load/Edit Data";
-            this.button3.Name = "button3";
-            this.button3.ShowImage = true;
-            this.button3.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button3_Click_1);
-            // 
-            // button4
-            // 
-            this.button4.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.CreateSheetIcon;
-            this.button4.Label = " Create Editing Sheet";
-            this.button4.Name = "button4";
-            this.button4.ShowImage = true;
-            this.button4.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button4_Click);
             // 
             // groupSDFile
             // 
@@ -151,13 +139,37 @@
             this.buttonAssureColumns.Visible = false;
             this.buttonAssureColumns.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAssureColumns_Click);
             // 
-            // Sequences
+            // updateGroup
             // 
-            this.Sequences.Items.Add(this.buttonDnaToProtein);
-            this.Sequences.Items.Add(this.buttonDnaToRetrovirusRna);
-            this.Sequences.Label = "Sequences";
-            this.Sequences.Name = "Sequences";
-            this.Sequences.Visible = false;
+            this.updateGroup.Items.Add(this.button3);
+            this.updateGroup.Items.Add(this.button4);
+            this.updateGroup.Label = "Update";
+            this.updateGroup.Name = "updateGroup";
+            // 
+            // button3
+            // 
+            this.button3.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.DataLoadingIcon;
+            this.button3.Label = " Load/Edit Data";
+            this.button3.Name = "button3";
+            this.button3.ScreenTip = "Set up a new sheet for data entry";
+            this.button3.ShowImage = true;
+            this.button3.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button3_Click_1);
+            // 
+            // button4
+            // 
+            this.button4.Image = global::gov.ncats.ginas.excel.tools.Properties.Resources.CreateSheetIcon;
+            this.button4.Label = " Create Editing Sheet";
+            this.button4.Name = "button4";
+            this.button4.ShowImage = true;
+            this.button4.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button4_Click);
+            // 
+            // group1
+            // 
+            this.group1.Items.Add(this.buttonDnaToProtein);
+            this.group1.Items.Add(this.buttonDnaToRetrovirusRna);
+            this.group1.Label = "Sequences";
+            this.group1.Name = "group1";
+            this.group1.Visible = false;
             // 
             // buttonDnaToProtein
             // 
@@ -171,17 +183,83 @@
             this.buttonDnaToRetrovirusRna.Name = "buttonDnaToRetrovirusRna";
             this.buttonDnaToRetrovirusRna.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonDnaToRetrovirusRna_Click);
             // 
-            // group1
+            // groupFDA
             // 
-            this.group1.Items.Add(this.button5);
-            this.group1.Label = "External Sources";
-            this.group1.Name = "group1";
+            this.groupFDA.Items.Add(this.buttonCreateAppSheet);
+            this.groupFDA.Items.Add(this.buttonApplication);
+            this.groupFDA.Items.Add(this.buttonAddProduct);
+            this.groupFDA.Items.Add(this.buttonCreateIngredientSheet);
+            this.groupFDA.Items.Add(this.buttonAddIngredient);
+            this.groupFDA.Items.Add(this.checkBoxMonitorSheets);
+            this.groupFDA.Label = "FDA";
+            this.groupFDA.Name = "groupFDA";
+            this.groupFDA.Visible = false;
             // 
-            // button5
+            // buttonCreateAppSheet
             // 
-            this.button5.Label = "Get PubChem CIDs";
-            this.button5.Name = "button5";
-            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click_1);
+            this.buttonCreateAppSheet.Label = "Create App Sheet";
+            this.buttonCreateAppSheet.Name = "buttonCreateAppSheet";
+            this.buttonCreateAppSheet.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click);
+            // 
+            // buttonApplication
+            // 
+            this.buttonApplication.Label = "Load Application";
+            this.buttonApplication.Name = "buttonApplication";
+            this.buttonApplication.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonApplication_Click);
+            // 
+            // buttonAddProduct
+            // 
+            this.buttonAddProduct.Enabled = false;
+            this.buttonAddProduct.Label = "Add Product";
+            this.buttonAddProduct.Name = "buttonAddProduct";
+            this.buttonAddProduct.Visible = false;
+            this.buttonAddProduct.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAddProduct_Click);
+            // 
+            // buttonCreateIngredientSheet
+            // 
+            this.buttonCreateIngredientSheet.Label = "Create Ingr. Sheet";
+            this.buttonCreateIngredientSheet.Name = "buttonCreateIngredientSheet";
+            this.buttonCreateIngredientSheet.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonCreateIngredientSheet_Click);
+            // 
+            // buttonAddIngredient
+            // 
+            this.buttonAddIngredient.Label = "Add Ingredient";
+            this.buttonAddIngredient.Name = "buttonAddIngredient";
+            this.buttonAddIngredient.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAddIngredient_Click);
+            // 
+            // checkBoxMonitorSheets
+            // 
+            this.checkBoxMonitorSheets.Checked = true;
+            this.checkBoxMonitorSheets.Label = "Monitor Sheets?";
+            this.checkBoxMonitorSheets.Name = "checkBoxMonitorSheets";
+            this.checkBoxMonitorSheets.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.CheckBoxMonitorSheets_Click);
+            // 
+            // group2
+            // 
+            this.group2.Items.Add(this.buttonGetPubChemIDs);
+            this.group2.Items.Add(this.buttonGetMolfileFromChemSpider);
+            this.group2.Items.Add(this.buttonLookupChemSpider);
+            this.group2.Label = "External Sources";
+            this.group2.Name = "group2";
+            // 
+            // buttonGetPubChemIDs
+            // 
+            this.buttonGetPubChemIDs.Label = "Get PubChem CIDs";
+            this.buttonGetPubChemIDs.Name = "buttonGetPubChemIDs";
+            this.buttonGetPubChemIDs.SuperTip = "This button will look up a set of InChIKeys and return the PubChem CID for each";
+            this.buttonGetPubChemIDs.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click_1);
+            // 
+            // buttonGetMolfileFromChemSpider
+            // 
+            this.buttonGetMolfileFromChemSpider.Label = "Get Mol from ChemSpider";
+            this.buttonGetMolfileFromChemSpider.Name = "buttonGetMolfileFromChemSpider";
+            this.buttonGetMolfileFromChemSpider.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonGetMolfileFromChemSpider_Click);
+            // 
+            // buttonLookupChemSpider
+            // 
+            this.buttonLookupChemSpider.Label = "Look up in ChemSpider";
+            this.buttonLookupChemSpider.Name = "buttonLookupChemSpider";
+            this.buttonLookupChemSpider.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonLookupChemSpider_Click);
             // 
             // configurationGroup
             // 
@@ -214,14 +292,16 @@
             this.ginasTab.PerformLayout();
             this.retrievalgroup.ResumeLayout(false);
             this.retrievalgroup.PerformLayout();
-            this.updateGroup.ResumeLayout(false);
-            this.updateGroup.PerformLayout();
             this.groupSDFile.ResumeLayout(false);
             this.groupSDFile.PerformLayout();
-            this.Sequences.ResumeLayout(false);
-            this.Sequences.PerformLayout();
+            this.updateGroup.ResumeLayout(false);
+            this.updateGroup.PerformLayout();
             this.group1.ResumeLayout(false);
             this.group1.PerformLayout();
+            this.groupFDA.ResumeLayout(false);
+            this.groupFDA.PerformLayout();
+            this.group2.ResumeLayout(false);
+            this.group2.PerformLayout();
             this.configurationGroup.ResumeLayout(false);
             this.configurationGroup.PerformLayout();
             this.ResumeLayout(false);
@@ -244,11 +324,20 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonSelectPT;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup groupSDFile;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAssureColumns;
-        internal Microsoft.Office.Tools.Ribbon.RibbonGroup Sequences;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup groupFDA;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonApplication;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonCreateAppSheet;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddProduct;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddIngredient;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBoxMonitorSheets;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToProtein;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonDnaToRetrovirusRna;
-        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonCreateIngredientSheet;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group2;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonGetPubChemIDs;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonGetMolfileFromChemSpider;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonLookupChemSpider;
     }
 
     partial class ThisRibbonCollection

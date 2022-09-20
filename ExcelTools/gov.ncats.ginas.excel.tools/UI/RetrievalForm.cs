@@ -23,7 +23,7 @@ namespace gov.ncats.ginas.excel.tools.UI
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         List<string> _expectedTitles = new List<string>();
         string _baseUrl;
-        const string COMPLETED_DOCUMENT_TITLE = "GSRS Tools";
+        const string COMPLETED_DOCUMENT_TITLE = "GSRS Landing Page";
         const string NAVIGATION_CANCELED = "Navigation Canceled";
         GinasToolsConfiguration _configuration = null;
         string _scriptToRunUponCompletion;
@@ -33,6 +33,9 @@ namespace gov.ncats.ginas.excel.tools.UI
         bool firstNavigate = true;
         private int callCount = 0;
         private int maxCallCount = 10;
+
+        private string tempInitUrl = "http://localhost:8080/api";//"http://localhost:8081/ginas/app/beta/";
+        //"http://localhost:8081/api/v1/substances(6ac7d6f5-cc45-4e32-9d89-af09c5e6e331)/codes"
 
         public RetrievalForm(string noConnectionMessage, string secondMessage)
         {
@@ -61,6 +64,9 @@ namespace gov.ncats.ginas.excel.tools.UI
             _expectedTitles.Add("InXight API");
             _expectedTitles.Add("g-srs");
             _expectedTitles.Add("Sequence Search");
+            _expectedTitles.Add("GSRS");
+            _expectedTitles.Add("GSRS landing page");
+            _expectedTitles.Add("GSRS Tools");
             log.Debug("Starting in RetrievalForm");
             
             Visible = false;
@@ -145,7 +151,8 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("Loaded configuration ");
             log.Debug(" selected url: " + _configuration.SelectedServer.ServerUrl);
             labelServerURL.Text = string.Empty;
-            string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
+            string initURL = CreateApiUrl( _configuration.SelectedServer.ServerUrl, _configuration.InitPath);
+            log.DebugFormat("initURL: {0}", initURL);
             _baseUrl = _configuration.SelectedServer.ServerUrl;
             webBrowser1.Visible = false;
             webBrowser1.ObjectForScripting = this;
@@ -153,6 +160,9 @@ namespace gov.ncats.ginas.excel.tools.UI
             webBrowser1.ScriptErrorsSuppressed = true;
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
 
+
+            //temp:
+            //initURL = tempInitUrl;
             log.Debug(" about to navigate to " + initURL);
             webBrowser1.Url = new Uri(initURL);
             _savedDebugInfo = false;
@@ -165,7 +175,9 @@ namespace gov.ncats.ginas.excel.tools.UI
                 log.DebugFormat("webBrowser1.DocumentTitle: '{0}'; busy? {1}",
                     webBrowser1.DocumentTitle, webBrowser1.IsBusy);
             }
-            if (_expectedTitles.Contains( webBrowser1.DocumentTitle) || string.IsNullOrWhiteSpace(webBrowser1.DocumentTitle))
+            if (_expectedTitles.Contains( webBrowser1.DocumentTitle) 
+                || string.IsNullOrWhiteSpace(webBrowser1.DocumentTitle)
+                || /*temp*/ webBrowser1.DocumentTitle.Contains("localhost"))
             {
                 log.Debug("normal document completed");
                 webBrowser1.DocumentCompleted -= WebBrowser1_DocumentCompleted;
@@ -183,6 +195,8 @@ namespace gov.ncats.ginas.excel.tools.UI
                     log.Warn("first attempt to load intial page failed; will run again");
                     firstNavigate = false;
                     string initURL = _configuration.SelectedServer.ServerUrl + _configuration.InitPath;
+                    //temp:
+                    initURL = tempInitUrl;
                     webBrowser1.Url = new Uri(initURL);
                 }
                 else
@@ -362,7 +376,13 @@ namespace gov.ncats.ginas.excel.tools.UI
                 _configuration.DebugMode);
             webBrowser1.Document.Title = "GSRS Tools";
 
-            var scriptResult = ExecuteScript("GlobalSettings.setBaseURL('" + _baseUrl + _configuration.ApiPath + "');");
+            if (_configuration.DebugMode && FileUtils.FolderExists(@"c:\temp"))
+            {
+                FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
+            }
+            string baseUrl = CreateApiUrl(_baseUrl, _configuration.ApiPath);
+            log.DebugFormat("baseUrl: {0}", baseUrl);
+            var scriptResult = ExecuteScript("GlobalSettings.setBaseURL('" + baseUrl+ "');");
             log.DebugFormat("Result of setBaseURL: {0}", scriptResult);
             if ( scriptResult == null || scriptResult.ToString().Length==0 ||
                 scriptResult.ToString().StartsWith("error running script"))
@@ -370,11 +390,14 @@ namespace gov.ncats.ginas.excel.tools.UI
                 callCount++;
                 if (callCount < maxCallCount)
                 {
-                    log.DebugFormat("After attempt {0}, page is not valid", callCount);
-                    LoadStartup();
+                    log.WarnFormat("After attempt {0}, page is not valid", callCount);
+                    //LoadStartup();
                     //BuildGinasToolsDocument();
                 }
             }
+            scriptResult = ExecuteScript("GlobalSettings.setStructureUrl('" 
+                + _configuration.SelectedServer.StructureUrl+ "');");
+            log.DebugFormat("Result of setStructureUrl: {0}", scriptResult);
             checkBoxSaveDiagnostic.Checked = _configuration.DebugMode;
             if (CurrentOperationType == OperationType.Loading || CurrentOperationType== OperationType.ProcessApplication)
             {
@@ -433,10 +456,6 @@ namespace gov.ncats.ginas.excel.tools.UI
             buttonDebugDOM.Visible = false;
             checkBoxSaveDiagnostic.Enabled = _configuration.DebugMode;
 
-            if( _configuration.DebugMode && FileUtils.FolderExists(@"c:\temp"))
-            {
-                FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
-            }            
             webBrowser1.Visible = true;
             IsReady = true;
             webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;
@@ -484,6 +503,31 @@ namespace gov.ncats.ginas.excel.tools.UI
         public bool HasUserCancelled()
         {
             return false;
+        }
+
+        private string CreateApiUrl(string baseUrl, string apiPortion)
+        {
+            string workingUrl = baseUrl;
+            if(workingUrl.EndsWith("/"))
+            {
+                workingUrl = workingUrl.Substring(0, workingUrl.Length - 1);
+            }
+            if (workingUrl.EndsWith("app"))
+            {
+                workingUrl = workingUrl.Substring(0, workingUrl.Length - 4);
+            }
+            if ( !apiPortion.StartsWith("app", StringComparison.CurrentCultureIgnoreCase) && workingUrl.Contains("ginas"))
+            {
+                log.Debug("appending 'app'");
+                workingUrl+="/app/";
+            } else if( !apiPortion.StartsWith("/"))
+            {
+                workingUrl += "/";
+            }
+            workingUrl += apiPortion;
+            log.DebugFormat(" {0} about to return {1}", System.Reflection.MethodBase.GetCurrentMethod().Name,
+                workingUrl);
+            return workingUrl;
         }
     }
 }

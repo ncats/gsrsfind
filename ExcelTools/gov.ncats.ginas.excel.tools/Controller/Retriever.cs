@@ -45,6 +45,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         /// </summary>
         public void StartOperation()
         {
+            log.Debug("starting in StartOperation");
             ScriptQueue = new Queue<string>();
             keysToRowLists.Clear();
 
@@ -57,10 +58,19 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 return;
             }
             List<SearchValue> searchValues = GetSearchValues(ExcelSelection);
+            log.Debug("searchValues size: " + searchValues.Count);
+
             string callbackKey = JSTools.RandomIdentifier();
 
             if (searchValues.Any(v => !string.IsNullOrWhiteSpace(v.Value)))
             {
+                searchValues.Where(v=>!string.IsNullOrWhiteSpace(v.Value)).ToList().ForEach(sv => {
+                    if(!keysToRowLists.ContainsKey(sv.Value))
+                    {
+                        keysToRowLists[sv.Value] = new List<int>();
+                    }
+                    keysToRowLists[sv.Value].Add(sv.RowNumber);
+                });
                 string searchScript = MakeImageSearch(callbackKey, searchValues.Select(sv => sv.Value).ToList());
                 ScriptExecutor.SetScript(searchScript);
             }
@@ -211,6 +221,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 return false;
             }
+            log.Debug("in StartResolution about to call Authenticate");
+            Authenticate();
+
             ExcelSelection = r;
             BatchCallback cb = CallbackFactory.CreateBatchCallback();
             RangeWrapper wrapped = null;

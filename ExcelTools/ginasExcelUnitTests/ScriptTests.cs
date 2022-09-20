@@ -25,7 +25,7 @@ namespace ginasExcelUnitTests
 
         static TestRetrievalForm retrievalForm = null;
         static readonly DBQueryUtils dBQueryUtils = new DBQueryUtils();
-        static private int SCRIPT_INTERVAL = 9000;
+        static private int SCRIPT_INTERVAL = 12000;
 
         public static GinasToolsConfiguration CurrentConfiguration
         {
@@ -99,7 +99,7 @@ namespace ginasExcelUnitTests
             {
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
-            Thread.Sleep(SCRIPT_INTERVAL);
+            Thread.Sleep(3*SCRIPT_INTERVAL);
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
@@ -107,8 +107,57 @@ namespace ginasExcelUnitTests
             List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
             Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
             Assert.IsTrue(namesAfter.Contains(newName));
-            }
+        }
 
+        [TestMethod]
+        public void AddNameStandardizeTest()
+        {
+            CheckForm();
+
+            ScriptUtils scriptUtils = new ScriptUtils();
+            string uuidForTest = "70df30e7-00a3-4e38-842e-7574d04674e4";// "5a85db6c-2736-42cc-8c25-5efcae0a7e62";
+            List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
+
+            string epsilon = "ε";
+            string guidValue = Guid.NewGuid().ToString();
+            string newName = epsilon + "Name " + guidValue;
+            string expectedName = ".EPSILON." + ("Name " + guidValue).ToUpper();
+            string newRef = "Ref " + Guid.NewGuid();
+            scriptUtils.ScriptName = "Add Name";
+            retrievalForm.CurrentOperationType = gov.ncats.ginas.excel.tools.OperationType.Loading;
+
+            scriptUtils.ScriptExecutor = retrievalForm;
+            Queue<string> scripts = new Queue<string>();
+            scripts.Enqueue(string.Format("tmpScript=Scripts.get('{0}');", scriptUtils.ScriptName));
+            scripts.Enqueue("tmpRunner=tmpScript.runner();");
+            scripts.Enqueue("tmpRunner.clearValues();");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('uuid', '{0}')", uuidForTest));
+            scripts.Enqueue(string.Format("tmpRunner.setValue('name', '{0}')", newName));
+            scripts.Enqueue("tmpRunner.setValue('name type', 'cn')");
+            scripts.Enqueue("tmpRunner.setValue('language', 'en')");
+            scripts.Enqueue("tmpRunner.setValue('standardize', 'true')");
+            scripts.Enqueue("tmpRunner.setValue('reference type', 'OTHER')");
+            scripts.Enqueue(string.Format("tmpRunner.setValue('reference citation', '{0}')", newRef));
+            scripts.Enqueue("tmpRunner.setValue('change reason', 'New name added via script')");
+            string identifier = JSTools.RandomIdentifier();
+            string script = "tmpRunner.execute().get(function(b){ cresults['" + identifier+ "'] = b; window.external.Notify('"
+                + identifier +"'); })";
+            Console.WriteLine("identifier: {0}; script: {1}", identifier, script);
+            scripts.Enqueue(script);
+
+            while (scripts.Count > 0)
+            {
+                retrievalForm.ExecuteScript(scripts.Dequeue());
+            }
+            Thread.Sleep(SCRIPT_INTERVAL*2);
+            string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
+            Console.WriteLine("hostname: " + hostName);
+            string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
+            Console.WriteLine(debugInfo);
+            List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
+            Assert.AreEqual(namesBefore.Count + 1, namesAfter.Count);
+            Assert.IsTrue(namesAfter.Contains(expectedName));
+        }
 
         [TestMethod]
         public void AddNamesAndRemoveNamesTest()
@@ -116,11 +165,13 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string uuidForTest = "a9e8ef46-2028-4ce5-8bc0-0afb2e0a58ec";
-            string bdnumForTest = "0105111AB";
+            string uuidForTest = "ceb31296-7066-408a-a8d3-aee021ba1399";
+            //uuidForTest = "897802eb-5573-40c6-a201-c348970256ea";
+            string bdnumForTest = "0000001MM";
+            string ptForTest = "PT 47A343A0-C29C-497A-A51E-16D0FE23B828";
             List<string> namesBefore = dBQueryUtils.GetNamesForUuid(uuidForTest);
             List<string> namesAdded = new List<string>();
-            int maxName = 10;
+            int maxName = 5;
             for (int iName = 0; iName < maxName; iName++)
             {
                 string newName = "Name " + Guid.NewGuid();
@@ -152,7 +203,7 @@ namespace ginasExcelUnitTests
                 {
                     retrievalForm.ExecuteScript(scripts.Dequeue());
                 }
-                Thread.Sleep(SCRIPT_INTERVAL);
+                Thread.Sleep(SCRIPT_INTERVAL*3);
             }
             List<string> namesAfter = dBQueryUtils.GetNamesForUuid(uuidForTest);
             Assert.IsTrue(namesAdded.All(n=> namesAfter.Contains(n)));
@@ -253,7 +304,7 @@ namespace ginasExcelUnitTests
             CheckForm();
 
             ScriptUtils scriptUtils = new ScriptUtils();
-            string bdNumForTest = "0002186AB";
+            string bdNumForTest = "0105025AB";
             List<Tuple<string, string>> codesBefore = dBQueryUtils.GetCodesForBdNum(bdNumForTest);
 
             string newRef = "Ref " + Guid.NewGuid();
@@ -1017,11 +1068,12 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(SCRIPT_INTERVAL);
+            Thread.Sleep(2*SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             string uuid = dBQueryUtils.GetUuidForPt(ptForTest);
             Assert.IsTrue(uuid.Length > 10);
+            Console.WriteLine("Created substance with uuid: " + uuid + " and name: " + ptForTest);
         }
 
         [TestMethod]
@@ -1064,7 +1116,7 @@ namespace ginasExcelUnitTests
                 retrievalForm.ExecuteScript(scripts.Dequeue());
             }
             //allow the scripts to complete execution:
-            Thread.Sleep(SCRIPT_INTERVAL);
+            Thread.Sleep(2*SCRIPT_INTERVAL);
             string debugInfo = (string)retrievalForm.ExecuteScript("GSRSAPI_consoleStack.join('|')");
             Console.WriteLine(debugInfo);
             string uuid = dBQueryUtils.GetUuidForPt(ptForTest);

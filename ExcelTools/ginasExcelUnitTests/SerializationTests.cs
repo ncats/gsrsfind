@@ -22,7 +22,7 @@ namespace ginasExcelUnitTests
 
             GinasServer serverLocal = new GinasServer();
             serverLocal.ServerName = "localhost 9000 test";
-            serverLocal.ServerUrl = "http://localhost:9000/ginas/app/";
+            serverLocal.ServerUrl = "http://localhost:8081/ginas/app/";
             serverLocal.Username = "mitch";
             serverLocal.PrivateKey = "Em6XgmzddkHPL027ltMh";
             config.Servers.Add(serverLocal);

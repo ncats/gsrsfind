@@ -71,7 +71,7 @@ function getParmsFromString(resolverId, parmString, idSet) {
             var select = document.createElement("SELECT");
             select.name = parmName;
             var selectId = resolverId + '_param_' + parmName.replace(/[\s\(\)]+/g, '_');
-            console.log('creating select with ID ' + selectId);
+            /*console.log('creating select with ID ' + selectId);*/
             select.setAttribute('id', selectId);
             idSet.push(selectId);
             var label = document.createElement("LABEL");
@@ -238,9 +238,9 @@ function runCommandForCSharp(stuffToRun) {
         return null;
     }
     var debugOutput = true;
-    /*if (stuffToRun.indexOf("auth") >= 0) {
+    if (stuffToRun.indexOf("auth") >= 0) {
         debugOutput = false;
-    }*/
+    }
     if (debugOutput) {
         console.log('runCommandForCSharp about to eval ' + stuffToRun);
     }

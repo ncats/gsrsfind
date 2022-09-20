@@ -244,9 +244,25 @@ namespace gov.ncats.ginas.excel.tools.Utils
             lodashScript.SetAttribute("crossorigin", "anonymous");
             headElement.AppendChild(lodashScript);*/
 
+            //HtmlElement jQueryScript = document.CreateElement("script");
+            //jQueryScript.SetAttribute("type", "text/javascript");
+            //   //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
+            //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.11.1.js");
+            //jQueryScript.SetAttribute("integrity", "sha256-MCmDSoIMecFUw3f1LicZ/D/yonYAoHrgiep/3pCH9rw=");
+            //jQueryScript.SetAttribute("crossorigin", "anonymous");
+            //headElement.AppendChild(jQueryScript);
+            HtmlElement jqueryScriptlocal = document.CreateElement("script");
+            jqueryScriptlocal.SetAttribute("type", "text/javascript");
+            IHTMLScriptElement elementLocalJ = (IHTMLScriptElement)jqueryScriptlocal.DomElement;
+            elementLocalJ.text = Environment.NewLine + FileUtils.GetJQueryJavaScript() + Environment.NewLine;
+            headElement.AppendChild(jqueryScriptlocal);
+
+
             HtmlElement json2Script = document.CreateElement("script");
             json2Script.SetAttribute("type", "text/javascript");
-            json2Script.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js");
+            //json2Script.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.js");
+            IHTMLScriptElement elementLocalJ2 = (IHTMLScriptElement)json2Script.DomElement;
+            elementLocalJ2.text = Environment.NewLine + FileUtils.GetJSON2JavaScript() + Environment.NewLine;
             headElement.AppendChild(json2Script);
 
             //loading lodash from a local file rather than via CDN resolves an issue observed in
@@ -257,22 +273,18 @@ namespace gov.ncats.ginas.excel.tools.Utils
             elementLocal.text = Environment.NewLine + FileUtils.GetLodashJavaScript() + Environment.NewLine;
             headElement.AppendChild(lodashScriptlocal);
 
-            HtmlElement jQueryScript = document.CreateElement("script");
-            jQueryScript.SetAttribute("type", "text/javascript");
-            //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
-            jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.11.1.js");
-            jQueryScript.SetAttribute("integrity", "sha256-MCmDSoIMecFUw3f1LicZ/D/yonYAoHrgiep/3pCH9rw=");
-            jQueryScript.SetAttribute("crossorigin", "anonymous");
-            headElement.AppendChild(jQueryScript);
-
             HtmlElement jsonPatchScript = document.CreateElement("script");
             jsonPatchScript.SetAttribute("type", "text/javascript");
-            jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
+            //jsonPatchScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/fast-json-patch/1.0.1/json-patch.min.js");
+            IHTMLScriptElement elementLocalJPatch = (IHTMLScriptElement)jsonPatchScript.DomElement;
+            elementLocalJPatch.text = Environment.NewLine + FileUtils.GetJsonPatchJavaScript() + Environment.NewLine;
             headElement.AppendChild(jsonPatchScript);
 
             HtmlElement bootstrapScript = document.CreateElement("script");
             bootstrapScript.SetAttribute("type", "text/javascript");
-            bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
+            //bootstrapScript.SetAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js");
+            IHTMLScriptElement elementLocalBootstrap = (IHTMLScriptElement)bootstrapScript.DomElement;
+            elementLocalBootstrap.text = Environment.NewLine + FileUtils.GetBootstrapJavaScript() + Environment.NewLine;
             headElement.AppendChild(bootstrapScript);
 
             HtmlElement mainGinasScript = document.CreateElement("script");

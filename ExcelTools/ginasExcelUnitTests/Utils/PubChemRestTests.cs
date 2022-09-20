@@ -66,35 +66,35 @@ namespace gov.ncats.ginas.excel.tools.Utils.Tests
         public void IsPossibleInChiKeyTestBlank()
         {
             string data1 = "";
-            Assert.IsFalse(PubChemRetriever.IsPossibleInChiKey(data1));
+            Assert.IsFalse(DataUtils.IsPossibleInChiKey(data1));
         }
 
         [TestMethod]
         public void IsPossibleInChiKeyTestSpace()
         {
             string data1 = " ";
-            Assert.IsFalse(PubChemRetriever.IsPossibleInChiKey(data1));
+            Assert.IsFalse(DataUtils.IsPossibleInChiKey(data1));
         }
 
         [TestMethod]
         public void IsPossibleInChiKeyTestShort()
         {
             string data1 = "WRWBCPJQPDHXTJ";
-            Assert.IsFalse(PubChemRetriever.IsPossibleInChiKey(data1));
+            Assert.IsFalse(DataUtils.IsPossibleInChiKey(data1));
         }
 
         [TestMethod]
         public void IsPossibleInChiKeyTestLong()
         {
             string data1 = "WRWBCPJQPDHXTJWRWBCPJQPDHXTJWRWBCPJQPDHXTJWRWBCPJQPDHXTJWRWBCPJQPDHXTJ";
-            Assert.IsFalse(PubChemRetriever.IsPossibleInChiKey(data1));
+            Assert.IsFalse(DataUtils.IsPossibleInChiKey(data1));
         }
 
         [TestMethod]
         public void IsPossibleInChiKeyTestTrue()
         {
             string data1 = "IRPSJVWFSWAZSZ-OIUSMDOTSA-L";
-            Assert.IsTrue(PubChemRetriever.IsPossibleInChiKey(data1));
+            Assert.IsTrue(DataUtils.IsPossibleInChiKey(data1));
         }
     }
 }

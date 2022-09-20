@@ -15,9 +15,16 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
         public SubRelationship[] subRelationshipList
         { get; set; }
 
-        public string bdnum
+        public string substanceKey // bdnum
         { get; set; }
 
+        public string substanceKeyType
+        {
+            get 
+            {
+                return "bdnum";
+            }
+        }
         public string substanceId
         { get; set; }
 
@@ -27,8 +34,19 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
         public string basisOfStrengthName
         { get; set; }
 
-        public string basisOfStrengthBdnum
+        /*public string basisOfStrengthBdnum
+        { get; set; }*/
+
+        public string basisOfStrengthSubstanceKey
         { get; set; }
+
+        public string basisOfStrengthSubstanceKeyType
+        {
+            get
+            {
+                return "bdnum";
+            }
+        }
 
         public string ingBasisMessage
         { get; set; }

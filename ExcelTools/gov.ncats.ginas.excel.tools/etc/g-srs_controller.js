@@ -11,11 +11,14 @@ var console = {
         GSRSAPI_consoleStack.push(msg);
     }
 }
+if (!$.support) $.support = {};
 $.support.cors = true;
 var CALLBACK_NUMBER = 0;
 var GSRSAPI = {
     PrimaryCodes : ['CAS', 'PUBCHEM', 'BDNUM'],
     MultipleMatchMessage : "matched multiple records",
+    StartQueryChar: "^",
+    EscapedQuote: '"',
 
     builder: function () {
         var g_api = {};
@@ -23,6 +26,7 @@ var GSRSAPI = {
             _url: "https://ginas.ncats.nih.gov/ginas/app/api/v1/",
             _status: "OK", /*set to ERROR when there's a problem*/
             _errorMessage: "",
+            _structureUrl: "structure",
             getBaseURL: function () {
                 return g_api.GlobalSettings._url;
             },
@@ -69,6 +73,13 @@ var GSRSAPI = {
             },
             getErrorMessage: function () {
                 return GlobalSettings._errorMessage;
+            },
+            setStructureUrl: function (newStructureUrl) {
+                this._structureUrl = newStructureUrl;
+                return this;
+            },
+            getStructureUrl: function () {
+                return this._structureUrl;
             }
         },
             g_api.isJson = function (str) {
@@ -85,6 +96,7 @@ var GSRSAPI = {
 
             /*TODO: should be its own service*/
             g_api.httpProcess = function (req) {
+            console.log('httpProcess req: ' + JSON.stringify(req));
                 return g_api.JPromise.of(function (cb) {
                     var b = req._b;
                     var contentType = 'application/json';
@@ -445,9 +457,11 @@ var GSRSAPI = {
                             return { "content": [s] };
                         });
                     }
-                    return sfinder.search("root_names_name:\"^" + q + "$\" OR " +
-                        "root_approvalID:\"^" + q + "$\" OR " +
-                        "root_codes_code:\"^" + q + "$\"");
+                    return sfinder.search("root_names_name:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                        + q + "$" + GSRSAPI.EscapedQuote + "OR " +
+                        "root_approvalID:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q + "$"
+                        + GSRSAPI.EscapedQuote + "OR " + "root_codes_code:" + GSRSAPI.EscapedQuote
+                        + GSRSAPI.StartQueryChar + q + "$" + GSRSAPI.EscapedQuote);
                 };
 
                 sfinder.searchByExactNameAndCode = function (name, code, codeSystem) {
@@ -461,11 +475,14 @@ var GSRSAPI = {
                         return sfinder.searchByExactName(name);
                     }
                     var queryBuilder = [];
-                    queryBuilder.push("root_names_name:\"^" + name + "$\" ");
+                    queryBuilder.push("root_names_name:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + name + "$" 
+                        + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + " ");
                     if ((typeof codeSystem) !== 'undefined' && codeSystem.length > 0) {
-                        queryBuilder.push('root_codes_' + codeSystem + ':\"^' + code + '$\"');
+                        queryBuilder.push('root_codes_' + codeSystem + ':' + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + code + '$' + GSRSAPI.EscapedQuote);
                     } else {
-                        queryBuilder.push('root_codes_code' + ':\"^' + code + '$\"');
+                        queryBuilder.push('root_codes_code' + ':' + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + code + '$' + GSRSAPI.EscapedQuote);
                     }
                     var queryString = queryBuilder.join(" AND ");
                     console.log('searchByExactNameAndCode using ' +queryString)
@@ -480,18 +497,28 @@ var GSRSAPI = {
                  * @param {any} q
                  */
                 sfinder.comprehensiveSubstanceSearch = function (q) {
+                    var query = "";
                     if (UUID.isUUID(q)) {
                         return sfinder.get(q).andThen(function (s) {
                             return { "content": [s] };
                         });
+                    } else if (g_api.StructureFinder.isPossibleInChiKey(q)) {
+                        query = "root_structure_inchikey:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + q + "$" + GSRSAPI.EscapedQuote;
+                        console.log('isPossibleInChiKey returned true')
                     }
                     var codesToSearch = [];
                     _.forEach(GSRSAPI.PrimaryCodes, function (systemName) {
-                        codesToSearch.push('root_codes_' + systemName + ':\"^' + q + '$\"');
+                        codesToSearch.push('root_codes_' + systemName + ':' + GSRSAPI.EscapedQuote
+                            + GSRSAPI.StartQueryChar + q + '$' + GSRSAPI.EscapedQuote);
                     })
-                    var query = "root_names_name:\"^" + q + "$\" OR " +
-                        "root_approvalID:\"^" + q + "$\" OR " +
+                    if (query.length === 0) {
+                        query = "root_names_name:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q + "$"
+                            + GSRSAPI.EscapedQuote + " OR " +
+                            "root_approvalID:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q + "$"
+                            + GSRSAPI.EscapedQuote + " OR " +
                         codesToSearch.join(' OR ');
+                    }
                     return sfinder.search(query)
                         .andThen(function (results) {
                             if (results.content && results.content.length > 1) {
@@ -552,12 +579,14 @@ var GSRSAPI = {
                     var searchClauses = []; 
                     if ((typeof args['bdnum']) !== 'undefined' && (typeof args['bdnum'].getValue()) !== 'undefined'
                             && args['bdnum'].getValue().length > 0) {
-                        searchClauses.push('root_codes_BDNUM:\"^' + args['bdnum'].getValue() + '$\"');
+                        searchClauses.push('root_codes_BDNUM:' + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + args['bdnum'].getValue() + '$' + GSRSAPI.EscapedQuote);
                     }
 
                     if ((typeof args['pt']) !== 'undefined' && (typeof args['pt'].getValue()) !== 'undefined'
                         && args['pt'].getValue().length > 0) {
-                        searchClauses.push('root_names_name:\"^' + args['pt'].getValue() + '$\"');
+                        searchClauses.push('root_names_name:' + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + args['pt'].getValue() + '$' + GSRSAPI.EscapedQuote);
                     }
                     var uniiValue = '';
                     if ((typeof args['approvalID']) !== 'undefined' && (typeof args['approvalID'].getValue()) !== 'undefined'
@@ -568,7 +597,8 @@ var GSRSAPI = {
                         uniiValue = args['unii'].getValue();
                     }
                     if (uniiValue.length > 0) {
-                        searchClauses.push('root_approvalID:\"^' + uniiValue + '$\"');
+                        searchClauses.push('root_approvalID:' + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar
+                            + uniiValue + '$' + GSRSAPI.EscapedQuote);
                     }
                         
                     var query = searchClauses.join(' AND ');
@@ -591,6 +621,7 @@ var GSRSAPI = {
                 };
                 sfinder.getExactStructureMatches = function (smi) {
                     /*substances/structureSearch?q=CCOC(N)=O&type=exact*/
+                    console.log('in getExactStructureMatches')
                     var req = g_api.Request.builder()
                         .url(g_api.GlobalSettings.getBaseURL() + "substances/structureSearch")
                         .queryStringData({
@@ -605,6 +636,9 @@ var GSRSAPI = {
                             if (firstResult.count == 0 && !_.isUndefined(firstResult.uri)
                                 && firstResult.uri.length > 0) {
                                 var pos = firstResult.path.indexOf('status');
+                                console.log('pos for status ' + pos);
+                                if (pos > 0) {
+
                                 var newUrl = g_api.GlobalSettings.getBaseURL() + firstResult.path.substring(pos);
                                 console.log('URL for search results: ' + newUrl);
                                 var req2 = g_api.Request.builder()
@@ -617,12 +651,22 @@ var GSRSAPI = {
                             else {
                                 return firstResult;
                             }
+                            }
+                            else {
+                                return firstResult;
+                            }
                     });
                 };
                 sfinder.saveTemporaryStructure = function (smi) {
                     var url = g_api.GlobalSettings.getBaseURL();
                     var pos = url.indexOf("api");
-                    url = url.substring(0, pos) + "structure";
+                    var apiUrl = url;
+                    if (g_api.GlobalSettings.getStructureUrl().toUpperCase().indexOf("INTERPRET") === -1) {
+                        apiUrl = url.substring(0, pos);
+                    }
+
+                    url = apiUrl + g_api.GlobalSettings.getStructureUrl();/* "structure";*/
+                    console.log('url for structure save: ' + url);
                     var req = g_api.Request.builder()
                         .url(url)
                         .method("POST")
@@ -637,14 +681,16 @@ var GSRSAPI = {
                 };
 
                 sfinder.searchByExactName = function (q) {
-                    return sfinder.search("root_names_name:\"^" + q + "$\"");
+                    return sfinder.search("root_names_name:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q
+                        + "$" + GSRSAPI.EscapedQuote);
                 };
             });
         g_api.ReferenceFinder = g_api.ResourceFinder.builder()
             .resource("references")
             .extend(function (rfinder) {
                 rfinder.searchByLastEdited = function (q) {
-                    return rfinder.search("root_lastEditedBy:\"^" + q + "$\"");
+                    return rfinder.search("root_lastEditedBy:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q
+                        + "$" + GSRSAPI.EscapedQuote);
                 };
             });
 
@@ -652,8 +698,10 @@ var GSRSAPI = {
             .resource("vocabularies")
             .extend(function (cvfinder) {
                 cvfinder.searchByDomain = function (q) {
-                    console.log("going to run cvfinder: " + "root_domain:\"^" + q + "$\"");
-                    return cvfinder.search("root_domain:\"^" + q + "$\"");
+                    console.log("going to run cvfinder: " + "root_domain:" + GSRSAPI.EscapedQuote
+                        + GSRSAPI.StartQueryChar + q + "$" + GSRSAPI.EscapedQuote);
+                    return cvfinder.search("root_domain:" + GSRSAPI.EscapedQuote + GSRSAPI.StartQueryChar + q + "$"
+                        + GSRSAPI.EscapedQuote);
                 };
             });
         g_api.SearchRequest = {
@@ -1454,7 +1502,7 @@ var GSRSAPI = {
                 sfinder.postSmiles = function (smi) {
                     var url = g_api.GlobalSettings.getBaseURL();
                     var pos = url.lastIndexOf("app/");
-                    url = url.substring(0, pos + 4) + "structure";
+                    url = url.substring(0, pos + 4) + g_api.GlobalSettings.getStructureUrl();/*  "structure";*/
                     console.log("postSmiles using URL " + url);
                     var req = g_api.Request.builder()
                         .url(url)
@@ -1472,6 +1520,12 @@ var GSRSAPI = {
                         return tmp;
                     });
                 };
+                sfinder.isPossibleInChiKey = function (candidate) {
+                    console.log('isPossibleInChiKey starting with candidate: "' + candidate +
+                        '" length: ' + candidate.length);
+                    return (27 === candidate.length && '-' === candidate.charAt(14) && '-' === candidate.charAt(25)
+                        && (candidate.match(/^([0-9A-Z\-]+)$/)));
+                };
 
             });
 
@@ -1479,6 +1533,7 @@ var GSRSAPI = {
             .resource("simple")
             .extend(function (lookup) {
                 lookup.getData = function (url) {
+                    console.log('starting in getData with url ' + url);
                     var req = g_api.Request.builder()
                         .url(url)
                         .method("GET")
@@ -1585,6 +1640,11 @@ var GSRSAPI = {
         };
 
         var Name = {
+            bad: /[^ -~\t\n\r]/g,
+            rep: '\u2019;\';\u03B1;.ALPHA.;\u03B2;.BETA.;\u03B3;.GAMMA.;\u03B4;.DELTA.;\u03B5;.EPSILON.;\u03B6;.ZETA.;\u03B7;.ETA.;\u03B8;.THETA.;\u03B9;.IOTA.;\u03BA;.KAPPA.;\u03BB;.LAMBDA.;\u03BC;.MU.;\u03BD;.NU.;\u03BE;.XI.;\u03BF;.OMICRON.;\u03C0;.PI.;\u03C1;.RHO.;\u03C2;.SIGMA.;\u03C3;.SIGMA.;\u03C4;.TAU.;\u03C5;.UPSILON.;\u03C6;.PHI.;\u03C7;.CHI.;\u03C8;.PSI.;\u03C9;.OMEGA.;\u0391;.ALPHA.;\u0392;.BETA.;\u0393;.GAMMA.;\u0394;.DELTA.;\u0395;.EPSILON.;\u0396;.ZETA.;\u0397;.ETA.;\u0398;.THETA.;\u0399;.IOTA.;\u039A;.KAPPA.;\u039B;.LAMBDA.;\u039C;.MU.;\u039D;.NU.;\u039E;.XI.;\u039F;.OMICRON.;\u03A0;.PI.;\u03A1;.RHO.;\u03A3;.SIGMA.;\u03A4;.TAU.;\u03A5;.UPSILON.;\u03A6;.PHI.;\u03A7;.CHI.;\u03A8;.PSI.;\u03A9;.OMEGA.;\u2192;->;\\xB1;+/-;±;+/-;\u2190;<-;\\xB2;2;\\xB3;3;\\xB9;1;\u2070;0;\u2071;1;\u2072;2;\u2073;3;\u2074;4;\u2075;5;\u2076;6;\u2077;7;\u2078;8;\u2079;9;\u207A;+;\u207B;-;\u2080;0;\u2081;1;\u2082;2;\u2083;3;\u2084;4;\u2085;5;\u2086;6;\u2087;7;\u2088;8;\u2089;9;\u208A;+;\u208B;-;ʟ;L;ᴅ;D'.split(';'),
+                /*'\u2032;\';\u201b;\';\u2018;\';\u2019;\';\u03B1;.ALPHA.;\u03B2;.BETA.;\u03B3;.GAMMA.;\u03B4;.DELTA.;\u03B5;.EPSILON.;\u03B6;.ZETA.;\u03B7;.ETA.;\u03B8;.THETA.;\u03B9;.IOTA.;\u03BA;.KAPPA.;\u03BB;.LAMBDA.;\u03BC;.MU.;\u03BD;.NU.;\u03BE;.XI.;\u03BF;.OMICRON.;\u03C0;.PI.;\u03C1;.RHO.;\u03C2;.SIGMA.;\u03C3;.SIGMA.;\u03C4;.TAU.;\u03C5;.UPSILON.;\u03C6;.PHI.;\u03C7;.CHI.;\u03C8;.PSI.;\u03C9;.OMEGA.;\u0391;.ALPHA.;\u0392;.BETA.;\u0393;.GAMMA.;\u0394;.DELTA.;\u0395;.EPSILON.;\u0396;.ZETA.;\u0397;.ETA.;\u0398;.THETA.;\u0399;.IOTA.;\u039A;.KAPPA.;\u039B;.LAMBDA.;\u039C;.MU.;\u039D;.NU.;\u039E;.XI.;\u039F;.OMICRON.;\u03A0;.PI.;\u03A1;.RHO.;\u03A3;.SIGMA.;\u03A4;.TAU.;\u03A5;.UPSILON.;\u03A6;.PHI.;\u03A7;.CHI.;\u03A8;.PSI.;\u03A9;.OMEGA.;\u2192;->;\xB1;+/-;\u2190;<-;\xB2;2;\xB3;3;\xB9;1;\u2070;0;\u2071;1;\u2072;2;\u2073;3;\u2074;4;\u2075;5;\u2076;6;\u2077;7;\u2078;8;\u2079;9;\u207A;+;\u207B;-;\u2080;0;\u2081;1;\u2082;2;\u2083;3;\u2084;4;\u2085;5;\u2086;6;\u2087;7;\u2088;8;\u2089;9;\u208A;+;\u208B;-'.split(';'),*/
+            map: {},
+            haveSetup: false,
             builder: function () {
                 var name = CommonData.builder();
                 name._type = "name";
@@ -1614,7 +1674,55 @@ var GSRSAPI = {
 				name.setDisplay = function (displayBool) {
                     name.displayName = displayBool;
                     return name;
-                };
+                    },
+                    name.setup = function () {
+                        console.log("in name setup");
+                        for (var s = 0; s < Name.rep.length; s++) {
+                            if (s % 2 === 0) {
+                                var id = Name.rep[s].charCodeAt(0);
+                                Name.map[id] = Name.rep[s + 1];
+                            }
+                        }
+                        Name.haveSetup = true;
+                    },
+                    name.replacer = function (match, got) {
+                        return Name.map[got.charCodeAt(0)];
+                    },
+
+                    name.standardize = function (inputName) {
+                        if (!Name.haveSetup) name.setup();
+                        console.log('starting in standardize with input ' + inputName);
+                        var nameValue = inputName;
+                        if (inputName) {
+                            nameValue = nameValue.replace(/([\u0390-\u03C9||\u029F||\u1D05||\u2192|\u00B1-\u00B9|\u2070-\u208F|\u2190|\n|\t|\r])/g, name.replacer).trim();
+                            /*nameValue = nameValue.replace(/([\u0390-\u03C9||\u2192|\u00B1-\u00B9|\u2070-\u208F|\u2190|])/g, name.replacer).trim();*/
+                            nameValue = nameValue.replace(/[[]([A-Z -.]*)\]$/g, ' !!@!$1_!@!');
+                            nameValue = nameValue.replace(/[ \t]+/g, ' ');
+                            nameValue = nameValue.replace(/[[]/g, '(');
+                            nameValue = nameValue.replace(/[{]/g, '(');
+                            nameValue = nameValue.replace(/\]/g, ')');
+                            nameValue = nameValue.replace(/\"/g, '\'\'');
+                            nameValue = nameValue.replace(/[}]/g, ')');
+                            nameValue = nameValue.replace(/\(([0-9]*CI,)*([0-9]*CI)\)$/gm, '');
+                            nameValue = nameValue.replace(/[ ]*-[ ]*/g, '-');
+                            nameValue = nameValue.trim();
+                            nameValue = nameValue.replace(/’/g, "'");
+                            nameValue = nameValue.replace(/ʹ/g, "'");
+                            nameValue = nameValue.replace(/‘/g, "'");
+                            nameValue = nameValue.replace(/′/g, "'");
+                            nameValue = nameValue.replace(/ʼ/g, "'");
+                            nameValue = nameValue.replace(/ʽ/g, "'");
+                            nameValue = nameValue.replace(/‛/g, "'");
+                            nameValue = nameValue.replace(Name.bad, '');
+                            nameValue = nameValue.replace('!!@!', '[');
+                            nameValue = nameValue.replace('_!@!', ']');
+                            nameValue = nameValue.toUpperCase();
+                        }
+                        console.log('standardize about return ' + nameValue);
+                        /*this.substanceNamesEmitter.next(this.substance.names);*/
+                        name.name = nameValue;
+                        return name;
+                    }
                 return name;
             }
         };
@@ -2447,9 +2555,10 @@ FetcherRegistry.addFetcher(
 FetcherRegistry.addFetcher(FetcherMaker.makeCodeFetcher("BDNUM", "BDNUM Code").addTag("Identifiers"))
     .addFetcher(FetcherMaker.makeCodeFetcher("WHO-ATC", "ATC Code").addTag("Substance"))
     .addFetcher(FetcherMaker.makeCodeFetcher("CAS", "CAS Numbers").addTag("Identifiers"))
-    .addFetcher(FetcherMaker.makeCodeFetcher("EVMPD", "EVMPD Code").addTag("Identifiers"));
+    .addFetcher(FetcherMaker.makeCodeFetcher("EVMPD", "EVMPD Code").addTag("Identifiers"))
+    .addFetcher(FetcherMaker.makeCodeFetcher("USAN", "USAN Code").addTag("Identifiers"));
 
-FetcherRegistry.addFetcher(FetcherMaker.makeOptionedCodeFetcher("General Code Resolver", "genericCodes").addTag("Identifiers").addTag('parameters:codeSystem=Administrative Controlled Substances Code Number (ASCN),AIDS,ALANWOOD,ARBITRARY,AUSTRALIAN PLANT NAME INDEX,BDNUM,BIOLOGIC SUBSTANCE CLASSIFICATION CODE,CAS,CERES,CFR,CFSAN PSEUDO CAS,CHEBI,CLINICAL_TRIALS.GOV,CODEX ALIMENTARIUS (GSFA),COSMETIC INGREDIENT REVIEW (CIR),DALTON,DEA NO.,DRUG BANK,EC,EC (ENZYME CLASS),EC SCIENTIFIC COMMITTEE ON CONSUMER SAFETY OPINION,ECHA (EC/EINECS),EDQM (KNOWLEDGE BASE),EINECS,EMA ASSESSMENT REPORTS,EPA PESTICIDE CODE,EU FOOD ADDITIVES,EVMPD,FARM SUBSTANCE ID,FDA UNII,Food Contact Substance Notif, (FCN No.),GENE,GRIN,HEALTH -CANADA NHP INGREDIENT MONOGRAPH,HEALTH-CANADA NHP INGREDIENT RECORD,HSDB,INCB IDS CODE,INN,INS,ITIS,IUPHAR,JECFA EVALUATION,JECFA MONOGRAPH,JMPR-PESTICIDE RESIDUE,KEGG,LIVERTOX,MANUFACTURER PRODUCT INFORMATION,MERCK INDEX,MESH,NCBI TAXONOMY,NCI_THESAURUS,NDF-RT,NDFRT-PE,NSC,PUBCHEM,RXCUI,SWISS_MEDIC-OLD,UCSF-FDA TRANSPORTAL,UNIPROT,USDA PLANTS,USP-MC MONOGRAPH,USP-MC VALIDATION RPT,WEB RESOURCE,WHO INTERNATIONAL PHARMACPOEIA,WHO-ATC,WHO-ESSENTIAL MEDICINES LIST,WHO-VATC,WIKIPEDIA,ZINC'));
+FetcherRegistry.addFetcher(FetcherMaker.makeOptionedCodeFetcher("General Code Resolver", "genericCodes").addTag("Identifiers").addTag('parameters:codeSystem=Administrative Controlled Substances Code Number (ASCN),AIDS,ALANWOOD,ARBITRARY,AUSTRALIAN PLANT NAME INDEX,BDNUM,BIOLOGIC SUBSTANCE CLASSIFICATION CODE,CAS,CERES,CFR,CFSAN PSEUDO CAS,CHEBI,CLINICAL_TRIALS.GOV,CODEX ALIMENTARIUS (GSFA),COSMETIC INGREDIENT REVIEW (CIR),DALTON,DEA NO.,DRUG BANK,EC,EC (ENZYME CLASS),EC SCIENTIFIC COMMITTEE ON CONSUMER SAFETY OPINION,ECHA (EC/EINECS),EDQM (KNOWLEDGE BASE),EINECS,EMA ASSESSMENT REPORTS,EPA PESTICIDE CODE,EU FOOD ADDITIVES,EVMPD,FARM SUBSTANCE ID,FDA UNII,Food Contact Substance Notif, (FCN No.),GENE,GRIN,HEALTH -CANADA NHP INGREDIENT MONOGRAPH,HEALTH-CANADA NHP INGREDIENT RECORD,HSDB,INCB IDS CODE,INN,INS,ITIS,IUPHAR,JECFA EVALUATION,JECFA MONOGRAPH,JMPR-PESTICIDE RESIDUE,KEGG,LIVERTOX,MANUFACTURER PRODUCT INFORMATION,MERCK INDEX,MESH,NCBI TAXONOMY,NCI_THESAURUS,NDF-RT,NDFRT-PE,NSC,PUBCHEM,RXCUI,SWISS_MEDIC-OLD,UCSF-FDA TRANSPORTAL,UNIPROT,USDA PLANTS,USP-MC MONOGRAPH,USP-MC VALIDATION RPT,WEB RESOURCE,WHO INTERNATIONAL PHARMACPOEIA,WHO-ATC,WHO-ESSENTIAL MEDICINES LIST,USAN,WHO-VATC,WIKIPEDIA,ZINC'));
 /*Administrative Controlled Substances Code Number (ASCN),*/
     /*.addTag('parameters:codeSystem=INN,CAS,WIKIPEDIA,UNIPROT,ALANWOOD,EC,CFR,EU FOOD ADDITIVES'));*/
 
@@ -2818,6 +2927,8 @@ function validate4Params(args, params) {
                     var rec = resp.content[0];
                     var uuid = rec.uuid;
                     if (uuid !== args.uuid.getValue()) {
+                        console.log("error in validate4Params. uuid from record: '" + uuid + "' uuid supplied: '"
+                            + args.uuid.getValue() + "'");
                         /*is this even possible?*/
                         return {
                             valid: false,
@@ -4380,6 +4491,10 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
         }
     })
     .addArgument({
+        "key": "case-sensitive", name: "CASE SENSITIVE", defaultValue: false,
+        description: "Compare names considering text case?", required: false
+    })
+    .addArgument({
         "key": "change reason", name: "CHANGE REASON", defaultValue: "Delete Name",
         description: "Text for the record change log", required: false
     })
@@ -4400,6 +4515,9 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
                 lookupCriterion = bdnum;
             }
         }
+
+        var caseSensitive = args['case-sensitive'].getValue();
+
         console.log('lookupCriterion = ' + lookupCriterion);
         return GGlob.SubstanceFinder.comprehensiveSubstanceSearchByArgs(args)
             .andThen(function (resp) {
@@ -4417,8 +4535,16 @@ Script.builder().mix({ name: "Remove Name", description: "Removes a name from a 
             })
             .andThen(function (s) {
                 var nameIndex = -1;
+                var nameToMatch = nameToRemove;
+                if (!caseSensitive) {
+                    nameToMatch = nameToMatch.toUpperCase();
+                }
                 for (var i = 0; i < s.names.length; i++) {
-                    if (s.names[i].name === nameToRemove) {
+                    var nameToCheck = s.names[i].name;
+                    if (!caseSensitive) {
+                        nameToCheck = nameToCheck.toUpperCase();
+                    }
+                    if (nameToCheck=== nameToMatch) {
                         nameIndex = i;
                         break;
                     }
@@ -4907,6 +5033,7 @@ Script.builder().mix({ name: "Create Substance", description: "Creates a brand n
         langs.push(nameLang);
         console.log('pushed ' + nameLang + ' onto langs');
         var name = Name.builder().setName(pt)
+            .standardize(pt)
             .setType(nameType)
             .setPublic(dataPublic)
             .setPreferred(false)
@@ -5034,6 +5161,14 @@ Script.builder().mix({
         "key": "cas", name: "CAS",
         description: "CAS number",
         defaultValue: false, required: false
+    })
+    .addArgument({
+        "key": "standardize",
+        name: "STANDARDIZE",
+        description: "Apply a cleaning procedure to the text of the name",
+        defaultValue: "true",
+        required: false,
+        type: "boolean"
     })
     .addArgument({
         "key": "change reason", name: "CHANGE REASON",
@@ -5717,8 +5852,8 @@ Script.builder().mix({
             else {
                 resultObj = r;
             }
-            if (resultObj.applicationId) {
-                return { valid: true, message: "Created Application with ID " + resultObj.applicationId, modification: false };
+            if (resultObj.id) {
+                return { valid: true, message: "Created Application with ID " + resultObj.id, modification: false };
             }
             console.log(JSON.stringify(resultObj));
             return {
@@ -5883,10 +6018,16 @@ Script.builder().mix({
         "key": "postUrl", name: "POST URL", description: "web resource to which we return the updated Application", required: true
     })
     .addArgument({
-        "key": "ingredientBdnum", name: "Ingredient BDNUM", description: "BDNUM of new ingredient to add to existing Application", required: true
+        "key": "ingredientBdnum", name: "Ingredient BDNUM", description: "BDNUM of new ingredient to add to existing Application", required: false
+    })
+    .addArgument({
+        "key": "substanceKey", name: "Substance Key", description: "Name of new ingredient to add to existing Application", required: true
     })
     .addArgument({
         "key": "basisOfStrengthBdnum", name: "Basis of Strength BDNUM", description: "BDNUM of substance that is the basis of strength of the ingredient", required: false
+    })
+    .addArgument({
+        "key": "basisOfStrengthSubstanceKey", name: "Basis of Strength Name", description: "Name of substance that is the basis of strength of the ingredient", required: false
     })
     .addArgument({
         "key": "ingredientType", name: "Ingredient Type", description: "Type/category of the ingredient", required: false
@@ -5909,39 +6050,35 @@ Script.builder().mix({
 
     .setExecutor(function (args) {
         console.log('starting in executor');
-        var url = args.getUrl.getValue();
+        var url = encodeURI(args.getUrl.getValue());//.replace(/ /g, '%20');
+        console.log('using URL ' + url);
+
         var postUrl = args.postUrl.getValue();
-        var bdNumValue = args.ingredientBdnum.getValue();
-        var basisOfStrengthBdnum = args.basisOfStrengthBdnum.getValue();
+        var bdNumValue = null;
+        var basisOfStrengthBdNumValue = null;
+        var substanceName = args.substanceKey.getValue();
+        var basisOfStrengthSubName = args.basisOfStrengthSubstanceKey.getValue();
+        //var basisOfStrengthBdnum = args.basisOfStrengthBdnum.getValue();
 
         var argsToProcess = ['average', 'low', 'high', 'unit', 'applicantIngredName'];
 
-        return GGlob.SimpleLookup.getData(url)
-            .andThen(function (a) {
-                console.log("SimpleLookup received: ");
-                if (typeof a === 'string' && a.indexOf('<html>') > -1) {
-                    return "Error: not authenticated";
+        completeIngredientAddition = function (application, bdNumValue, basisOfStrengthBdnum) {
+            console.log('starting in completeIngredientAddition');
+            var newIngredient = {};
+            newIngredient.substanceKey = bdNumValue;
+            newIngredient.substanceKeyType = "BDNUM";
+            if (UUID.isUUID(bdNumValue)) {
+                newIngredient.substanceKeyType = "UUID";
+            }
+            newIngredient.basisOfStrengthSubstanceKey = basisOfStrengthBdnum;
+            newIngredient.basisOfStrengthSubstanceKeyType = "BDNUM";
+            if (UUID.isUUID(basisOfStrengthBdnum)) {
+                newIngredient.basisOfStrengthSubstanceKeyType = "UUID";
                 }
-                var application;
-                if (typeof a == 'string') {
-                    application = JSON.parse(a);
-                }
-                else {
-                    application = a;
-                }
-                console.log(JSON.stringify(application));
-                if (!application.hasOwnProperty("createdBy")) {
-                    return {
-                        valid: false, message: "Error retrieving application. "
-                    };
-                }
-                var newIngredient = {};
-                newIngredient.bdnum = bdNumValue;
-                newIngredient.basisOfStrengthBdnum = basisOfStrengthBdnum;
                 newIngredient.ingredientType = args.ingredientType.getValue();
                 for (var a in argsToProcess) {
                     var argName = argsToProcess[a];
-                    console.log('looking for argName ' + argName);
+                /*console.log('looking for argName ' + argName);*/
                     if (typeof argName === 'function') continue;
                     var val = args[argName].getValue();
                     console.log('value of ' + argName + ' = ' + val);
@@ -5971,12 +6108,7 @@ Script.builder().mix({
                 var applicationId = application.id;
                 console.log("applicationId: " + applicationId);
                 /*now prep for saving the object*/
-                var fullPostUrl = postUrl + '?applicationId=' + applicationId;
-                console.log("fullPostUrl: " + fullPostUrl);
-                var req = Request.builder().url(fullPostUrl).body(application).method("PUT");
-                /*.queryStringData({
-                applicationId: applicationId
-                })*/
+            var req = Request.builder().url(postUrl).body(application).method("PUT");
                 req.setContentType("application/json");
 
                 console.log('constructed req');
@@ -6004,6 +6136,102 @@ Script.builder().mix({
                         };
                     }
                 });
+        }
+        return GGlob.SimpleLookup.getData(url)
+            .andThen(function (a) {
+                console.log("SimpleLookup received: ");
+                if (typeof a === 'string' && a.indexOf('<html>') > -1) {
+                    return "Error: not authenticated";
+                }
+                var application;
+                if (typeof a == 'string') {
+                    application = JSON.parse(a);
+                } else {
+                    application = a;
+                }
+                console.log(JSON.stringify(application));
+                if (application.content && application.content.length === 1) {
+                    application = application.content[0];
+                }
+                if (!application.hasOwnProperty("createdBy") && !application.hasOwnProperty("created")) {
+                    return {
+                        valid: false, message: "Error retrieving application. "
+                    }
+                }
+                return GGlob.SubstanceFinder.searchByExactNameOrCode(substanceName)
+                    .andThen(function (resp) {
+                        if (resp.content && resp.content.length >= 1) {
+                            console.log('looked up substance by name ' + substanceName);
+                            var rec = resp.content[0];
+                            var substance = GGlob.SubstanceBuilder.fromSimple(rec);
+                            return substance.fetch("codes(codeSystem:BDNUM)")
+                                .andThen(function (bdnum) {
+                                    if ((typeof bdnum) === 'object') {
+                                        if (bdnum[0]) {
+                                            bdNumValue = bdnum[0].code;
+                                        } else {
+                                            /*as of 19 November 2021, this works*/
+                                            bdNumValue = substance.uuid;
+                                        }
+                                    } else {
+                                        bdNumValue = bdnum;
+                                    }
+                                    console.log('got bdnum: ' + bdNumValue);
+                                    /*range limits are a guess as to what may be useful*/
+                                    if (bdNumValue != null && (bdNumValue.length >= 9 && bdNumValue.length <= 12)
+                                        || UUID.isUUID(bdNumValue) ) {
+                                        if (basisOfStrengthSubName && basisOfStrengthSubName !== null
+                                            && basisOfStrengthSubName.length > 0) {
+                                            return GGlob.SubstanceFinder.searchByExactNameOrCode(basisOfStrengthSubName)
+                                                .andThen(function (resp2) {
+                                                    if (resp2.content && resp2.content.length >= 1) {
+                                                        if (resp2.content && resp2.content.length >= 1) {
+                                                            console.log('looked up substance by name ' + basisOfStrengthSubName);
+                                                            var rec = resp.content[0];
+                                                            var basisOfStrength = GGlob.SubstanceBuilder.fromSimple(rec);
+                                                            return basisOfStrength.fetch("codes(codeSystem:BDNUM)")
+                                                                .andThen(function (basisOfStrengthBdnum) {
+                                                                    console.log('raw basisOfStrengthBdnum: ' + basisOfStrengthBdnum);
+                                                                    if ((typeof basisOfStrengthBdnum) === 'object') {
+                                                                        if (basisOfStrengthBdnum[0]) {
+                                                                            basisOfStrengthBdNumValue = basisOfStrengthBdnum[0].code;
+                                                                        }
+                                                                        else {
+                                                                            basisOfStrengthBdNumValue = basisOfStrength.uuid;
+                                                                        }
+                                                                        
+                                                                    } else {
+                                                                        basisOfStrengthBdNumValue = basisOfStrengthBdnum;
+                                                                    }
+                                                                    if (basisOfStrengthBdNumValue === GSRSAPI.MultipleMatchMessage) {
+                                                                        basisOfStrengthBdNumValue = null;
+                                                                    }
+                                                                    console.log('got basisOfStrengthBdNumValue: ' + basisOfStrengthBdNumValue
+                                                                        + ' and will now call completeIngredientAddition');
+
+                                                                    return completeIngredientAddition(application, bdNumValue,
+                                                                        basisOfStrengthBdNumValue);
+
+                                                                });
+                                                        }
+                                                    }
+                                                });
+                                        }
+                                        else {
+                                            return completeIngredientAddition(application, bdNumValue,
+                                                null);
+                                        }
+
+                                    }
+
+
+                                });
+                        } else {
+                            return {
+                                valid: false, message: "Error retrieving ingredient: " + substanceName
+                            };
+                        }
+                    });
             });
 
     })

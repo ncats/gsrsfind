@@ -90,6 +90,13 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
             set;
         } = 0;
 
+
+        public bool IncludeInSheet
+        {
+            get;
+            set;
+        }
+
         public string GetValue()
         {
             if (!string.IsNullOrEmpty(ResolvedValue)) return ResolvedValue;
@@ -110,6 +117,7 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
         {
             return FieldName.EndsWith("Date");
         }
+
         public ApplicationField Clone()
         {
             ApplicationField clone = new ApplicationField();
@@ -122,6 +130,7 @@ namespace gov.ncats.ginas.excel.tools.Model.FDAApplication
             clone.ParentEntityName = ParentEntityName;
             clone.Lookup = Lookup;
             clone.HandleChange = HandleChange;
+            clone.IncludeInSheet = IncludeInSheet;
             return clone;
         }
     }
