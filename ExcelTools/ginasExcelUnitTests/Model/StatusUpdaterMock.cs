@@ -24,5 +24,10 @@ namespace ginasExcelUnitTests.Model
         {
             return true;
         }
+
+        public bool HasUserCancelled()
+        {
+            return false;
+        }
     }
 }

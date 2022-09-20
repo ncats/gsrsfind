@@ -78,6 +78,15 @@ body {
     display: inline-block;
 }
 
+.checkopwithopts {
+    WIDTH: 30%;
+    DISPLAY: inline-block;
+    border: 1px;
+    border-style: solid;
+}
+.checkopparam {
+    margin-left: 10px;
+}
 .data textarea {
     width: 100%;
     min-height: 300px;

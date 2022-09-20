@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +18,8 @@ namespace gov.ncats.ginas.excel.tools.UI
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(
             System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private string[] structureContextItems = { "GSRS 3.0 [substances/interpretStructure]",
+            "GSRS 2.x [structure]" };
         public GinasToolsConfiguration CurrentConfiguration
         {
             get;
@@ -39,6 +42,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 {
                     textBoxUsername.Text = newServer.Username;
                     textBoxKey.Text = newServer.PrivateKey;
+                    SetComboBoxSelected(comboBoxStructureContext, newServer.StructureUrl);
                 }
             }
         }
@@ -49,6 +53,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             log.Debug("loaded configuration: " + CurrentConfiguration.ToString());
             try
             {
+                comboBoxStructureContext.Items.AddRange(structureContextItems);
                 DisplayCurrentConfiguration();
             }
             catch (Exception ex)
@@ -79,6 +84,7 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 textBoxKey.Text = CurrentConfiguration.SelectedServer.PrivateKey;
                 textBoxUsername.Text = CurrentConfiguration.SelectedServer.Username;
+                SetComboBoxSelected(comboBoxStructureContext, CurrentConfiguration.SelectedServer.StructureUrl);
             }
             checkBoxDebugInfo.Checked = CurrentConfiguration.DebugMode;
             checkBoxSortVocabs.Checked = CurrentConfiguration.SortVocabsAlphabetically;
@@ -86,6 +92,25 @@ namespace gov.ncats.ginas.excel.tools.UI
             comboBoxURLs.TextChanged += ComboBoxURLs_TextChanged;
 
             textBoxImageSize.Text = CurrentConfiguration.StructureImageSize.ToString();
+            textBoxChemSpiderApiKey.Text = CurrentConfiguration.ChemSpiderApiKey;
+        }
+
+        private void SetComboBoxSelected(ComboBox box, string requiredValueish)
+        {
+            if(string.IsNullOrWhiteSpace(requiredValueish)) 
+            {
+                box.SelectedIndex = 0;
+                return;
+            } 
+                
+            for(int item = 0; item < box.Items.Count; item++)
+            {
+                string value = (string) box.Items[item];
+                if( value.Contains(requiredValueish))
+                {
+                    box.SelectedItem = value;
+                }
+            }
         }
 
         private void ComboBoxURLs_TextChanged(object sender, EventArgs e)
@@ -100,6 +125,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[comboBoxURLs.SelectedIndex];
                 CurrentConfiguration.SelectedServer.Username = textBoxUsername.Text;
                 CurrentConfiguration.SelectedServer.PrivateKey = textBoxKey.Text;
+                CurrentConfiguration.SelectedServer.StructureUrl = GetStructureContext();
             }
             else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
             {
@@ -114,6 +140,7 @@ namespace gov.ncats.ginas.excel.tools.UI
                 newServer.Username = textBoxUsername.Text;
                 newServer.PrivateKey = textBoxKey.Text;
                 newServer.ServerName = newServer.ServerUrl;
+                newServer.StructureUrl = GetStructureContext();
                 CurrentConfiguration.Servers.Add(newServer);
                 CurrentConfiguration.SelectedServer = newServer;
             }
@@ -136,12 +163,25 @@ namespace gov.ncats.ginas.excel.tools.UI
                 int structureImageSize = Convert.ToInt32(Math.Round(tempFloat));
                 CurrentConfiguration.StructureImageSize = structureImageSize;
             }
+
+            if( !string.IsNullOrWhiteSpace(textBoxChemSpiderApiKey.Text))
+            {
+                CurrentConfiguration.ChemSpiderApiKey = textBoxChemSpiderApiKey.Text;
+            }
             Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
 
             DialogResult = DialogResult.OK;
             Close();
         }
 
+        private string GetStructureContext()
+        {
+            string structureContext = comboBoxStructureContext.SelectedItem as string;
+            Regex regEx = new Regex(@"\[(.+)\]");
+            Match m = regEx.Match(structureContext);
+            structureContext = m.Groups[1].Value;
+            return structureContext;
+        }
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
@@ -158,6 +198,41 @@ namespace gov.ncats.ginas.excel.tools.UI
                 }
             }
             return null;
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxBatchSize_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxExpirationOffset_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBoxDebugInfo_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBoxSortVocabs_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

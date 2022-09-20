@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Timers;
 
@@ -36,13 +35,19 @@ namespace gov.ncats.ginas.excel.tools.Controller
             ExcelSelection = selection;
         }
 
+        //keep track of which rows in the input sheet contain each key that we are looking up.
+        // this dictionary will allow us to find those rows quickly during resolution.
+        // note: adding rows during resolution would break this!
+        private readonly Dictionary<string, List<int>> keysToRowLists = new Dictionary<string, List<int>>();
 
         /// <summary>
         /// Starts off structure fetching
         /// </summary>
         public void StartOperation()
         {
+            log.Debug("starting in StartOperation");
             ScriptQueue = new Queue<string>();
+            keysToRowLists.Clear();
 
             CallbackFactory factory = new CallbackFactory();
             Excel.Worksheet activeWorksheet = ((Excel.Worksheet)ExcelWindow.Application.ActiveSheet);
@@ -53,12 +58,20 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 return;
             }
             List<SearchValue> searchValues = GetSearchValues(ExcelSelection);
+            log.Debug("searchValues size: " + searchValues.Count);
+
             string callbackKey = JSTools.RandomIdentifier();
 
             if (searchValues.Any(v => !string.IsNullOrWhiteSpace(v.Value)))
             {
+                searchValues.Where(v=>!string.IsNullOrWhiteSpace(v.Value)).ToList().ForEach(sv => {
+                    if(!keysToRowLists.ContainsKey(sv.Value))
+                    {
+                        keysToRowLists[sv.Value] = new List<int>();
+                    }
+                    keysToRowLists[sv.Value].Add(sv.RowNumber);
+                });
                 string searchScript = MakeImageSearch(callbackKey, searchValues.Select(sv => sv.Value).ToList());
-                //ImgCallback imgCallback = new ImgCallback(ExcelSelection);
                 ScriptExecutor.SetScript(searchScript);
             }
             else
@@ -83,8 +96,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             Dictionary<string, string> results = new Dictionary<string, string>();
 
             Dictionary<string, string[]> returnedValue = JSTools.getDictionaryFromString(message);
-            ImageOps imageOps = new ImageOps();
-
+            
             SheetUtils sheetUtils = new SheetUtils();
             sheetUtils.Configuration = GinasConfiguration;
             foreach (string key in returnedValue.Keys)
@@ -98,11 +110,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 try
                 {
                     string[] messageParts = returnedValue[key][0].Split('\t');
-                    int currentRow = ExcelSelection.Row;
-
+                    
                     int currentColumn = ExcelSelection.Column;
-                    int dataRow =
-                        SheetUtils.FindRow(ExcelSelection, key, currentColumn);
+                    int dataRow = keysToRowLists[key][0];
                     if( dataRow == 0)
                     {
                         dataRow = SheetUtils.FindRow(ExcelSelection.Worksheet.UsedRange, key, currentColumn);
@@ -111,13 +121,21 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     }
                     if (_resolveToNewSheet)
                     {
-                        if (!ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
+                        dataRow= SheetUtils.FindRow(ExcelSelection, key, currentColumn);
+                        if (ResolveRowToNewSheet(currentColumn, key, ref dataRow, ref keyResult))
                         {
-                            continue;
+                            sheetUtils.TransferDataToRow(messageParts, currentColumn, dataRow, 
+                                ExcelSelection.Worksheet);
                         }
                     }
-                    sheetUtils.TransferDataToRow(messageParts, currentColumn, dataRow, imageOps,
-                        ExcelSelection.Worksheet);
+                    else
+                    {
+                        keysToRowLists[key].ForEach(row =>
+                        {
+                            sheetUtils.TransferDataToRow(messageParts, currentColumn, row, 
+                                ExcelSelection.Worksheet);
+                        });
+                    }
                     results.Add(key, keyResult);
                     System.Windows.Forms.Application.DoEvents();
                 }
@@ -140,7 +158,10 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (StatusUpdater != null)
             {
                 StatusUpdater.UpdateStatus(statusMessage);
-                if (ScriptQueue.Count == 0) StatusUpdater.Complete();//reenable the close button
+                if (ScriptQueue.Count == 0)
+                {
+                    StatusUpdater.Complete();//reenable the close button
+                }
             }
             return results;
         }
@@ -200,6 +221,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
             {
                 return false;
             }
+            log.Debug("in StartResolution about to call Authenticate");
+            Authenticate();
+
             ExcelSelection = r;
             BatchCallback cb = CallbackFactory.CreateBatchCallback();
             RangeWrapper wrapped = null;
@@ -221,6 +245,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     currItemWithinBatch++;
                     currItem++;
                     string cellText = (string)cell.Text;
+                    if( cellText.Contains(Environment.NewLine))
+                    {
+                        cellText = cellText.Split(Environment.NewLine.ToCharArray())[0];
+                        log.DebugFormat("took first part of multiline text: {0} ", cellText);
+                    }
+                    else if (cellText.Contains((char)10))
+                    {
+                        cellText = cellText.Split((char)10)[0];
+                        log.DebugFormat("took first part of (LF) multiline text: {0} ", cellText);
+                    }
                     log.DebugFormat("   processing input cell text {0}", cellText);
                     preSubmit.Add(cellText.Replace("'", "\'"));
                     Callback rcb;
@@ -235,6 +269,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     }
                     rcb.SetKey(cellText);
                     cb.AddCallback(rcb);
+                    if (!keysToRowLists.ContainsKey(cellText)) 
+                    {
+                        List<int> currentRows = new List<int>();
+                        currentRows.Add(cell.Row);
+                        keysToRowLists.Add(cellText, currentRows);
+                    } 
+                    else
+                    {
+                        keysToRowLists[cellText].Add(cell.Row);
+                    }
+                        
 
                     if ((currItemWithinBatch % ItemsPerBatch) == 0)
                     {
@@ -254,6 +299,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (ScriptQueue.Count > 0)
             {
                 KeepCheckingCallbacks = true;
+                Excel.Worksheet activeWorksheet = ((Excel.Worksheet)ExcelWindow.Application.ActiveSheet);
                 LaunchFirstScript();
                 LaunchCheckJob();
                 _totalBatches = ScriptQueue.Count;
@@ -332,7 +378,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             scriptBuilder.Append(".list(");
             scriptBuilder.Append(arrayedNames);
             scriptBuilder.Append(")");
-            scriptBuilder.Append(".fetchers(_.map($('div.checkop input:checked'), 'name'))");
+            scriptBuilder.Append(".fetchers(_.map($('div.checkop input:checked:not(\".parameterCheckbox\")'), 'name'))");
             scriptBuilder.Append(".consumer(function(row){cresults['");
             scriptBuilder.Append(key);
             scriptBuilder.Append("'].add(row.split('\t')[0],row);})");
@@ -355,6 +401,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             //dialog itself will handle saving of debug info.
             StatusUpdater.UpdateStatus("Completed");
+            keysToRowLists.Clear();
             //_notified = true;
         }
 
@@ -460,6 +507,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             base.Dispose();
             ExcelWindow = null;
             ExcelSelection = null;
+            keysToRowLists.Clear();
         }
 
         //for unit tests

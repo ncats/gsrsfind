@@ -22,6 +22,24 @@ namespace gov.ncats.ginas.excel.tools.Utils
             return File.ReadAllText(javascriptFilePath);//.Replace("  ", "").Replace("\r\n", "");
         }
 
+        public static string GetLodashJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\lodash.min.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
+        public static string GetJQueryJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\jquery-1.11.1.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
+        public static string GetJSON2JavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\json2.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
         public static string GetLastJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\LastScript.js";
@@ -31,6 +49,12 @@ namespace gov.ncats.ginas.excel.tools.Utils
         public static string GetJsonPatchJavaScript()
         {
             string javascriptFilePath = GetCurrentFolder() + @"\etc\json-patch.js";
+            return File.ReadAllText(javascriptFilePath);
+        }
+
+        public static string GetBootstrapJavaScript()
+        {
+            string javascriptFilePath = GetCurrentFolder() + @"\etc\bootstrap.min.js";
             return File.ReadAllText(javascriptFilePath);
         }
 
@@ -66,6 +90,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
         {
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string userConfigPath = GetUserFolder() + @"\g-srs.config.json";
+            log.Debug("userConfigPath: " + userConfigPath);
             string configFilePath = userConfigPath;
             if (!File.Exists(userConfigPath))
             {
@@ -93,6 +118,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.Debug("Starting in " + System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             string configFilePath = GetUserFolder() + @"\g-srs.config.json";
+            log.DebugFormat("config file path: {0}", configFilePath);
             string configString = JSTools.GetStringFromGinasToolsConfiguration(config);
             File.WriteAllText(configFilePath, configString);
         }

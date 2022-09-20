@@ -60,6 +60,10 @@ namespace ginasExcelUnitTests
             rawVocab = rawVocab.Substring(delim2 + 1);
             Vocab vocab = JSTools.GetVocabFromString(rawVocab);
 
+            if(scriptUtils.Vocabularies.ContainsKey(vocabName))
+            {
+                scriptUtils.Vocabularies.Remove(vocabName);
+            }
             scriptUtils.Vocabularies.Add(vocabName, vocab);
             scriptUtils.MarkVocabArrived(vocabName);
             log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
@@ -115,6 +119,7 @@ namespace ginasExcelUnitTests
 
             Assert.IsTrue( ImageOps.hascomment(cellWithComment));
             Assert.IsFalse(ImageOps.hascomment(cellWithoutComment));
+            book.Close(false);
         }
 
         //This test was too 'brittle'-- the server removed the data to be downloaded.
@@ -177,6 +182,7 @@ namespace ginasExcelUnitTests
             {
                 Assert.AreEqual(expectedValues[v], valuesForSearch[v].Value);
             }            
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -211,6 +217,7 @@ namespace ginasExcelUnitTests
             searchColumn = 6;
             expectedRow = 0;
             row = SheetUtils.FindRow(searchRange, searchTarget, searchColumn);
+            workbook.Close(false);
             Assert.AreEqual(expectedRow, row);
         }
 
@@ -219,13 +226,12 @@ namespace ginasExcelUnitTests
         {
             string sheetFilePath = @"..\..\..\Test_Files\search test file";
             sheetFilePath = Path.GetFullPath(sheetFilePath);
-            string searchTarget = "Value to find";
 
             Workbook workbook = excel.Workbooks.Open(sheetFilePath);
             Worksheet sheet = (Worksheet)workbook.Worksheets[1];
             Range searchRange = sheet.Range["A1", "L33"];
             
-            searchTarget = "Something else";
+            string searchTarget = "Something else";
             int searchRow = 5;
             int expectedColumn = 12;
             int column  = SheetUtils.FindColumn(searchRange, searchTarget, searchRow);
@@ -235,6 +241,7 @@ namespace ginasExcelUnitTests
             searchRow = 6;
             expectedColumn = 0;
             column= SheetUtils.FindRow(searchRange, searchTarget, searchRow);
+            workbook.Close(false);
             Assert.AreEqual(expectedColumn, column);
         }
         
@@ -247,6 +254,7 @@ namespace ginasExcelUnitTests
             SheetUtils utils = new SheetUtils();
             Assert.IsFalse(utils.DoesSheetExist(workbook, sheetThatDoesNotExist));
             Assert.IsTrue(utils.DoesSheetExist(workbook, sheetThatExists));
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -257,6 +265,7 @@ namespace ginasExcelUnitTests
             Range range = sheet.Range["A1", "B2"];
             RangeWrapper wrapper = RangeWrapperFactory.CreateRangeWrapper(range);
             Assert.AreEqual(wrapper.GetRange().Count, range.Count);
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -290,6 +299,7 @@ namespace ginasExcelUnitTests
             callParms[0] = "key2";
 
             int locatedRow = (int)methodToTest.Invoke(retriever, callParms);
+            workbook.Close(false);
             Assert.AreEqual(2, locatedRow);
         }
 
@@ -335,6 +345,19 @@ namespace ginasExcelUnitTests
             Worksheet sheet = (Worksheet) workbook.Worksheets["1000 CAS"];
             Range range = sheet.Range["A1", "A10"];
             retriever.SetSelection(range);
+            Dictionary<string, List<int>> mappings = new Dictionary<string, List<int>>();
+            mappings.Add("828-06-8", new[] { 1 }.ToList());
+            mappings.Add("1071-94-9", new[] { 2 }.ToList());
+            mappings.Add("1320-64-5", new[] { 3 }.ToList());
+            mappings.Add("1333-65-9", new[] { 4 }.ToList());
+            mappings.Add("1688-41-1", new[] { 5 }.ToList());
+            mappings.Add("1778-10-5", new[] { 6 }.ToList());
+            mappings.Add("2180-68-9", new[] { 7 }.ToList());
+            mappings.Add("2443-50-7", new[] { 8 }.ToList());
+            mappings.Add("3136-93-4", new[] { 9 }.ToList());
+            mappings.Add("3416-57-7", new[] { 10 }.ToList());
+            FieldInfo mappingField = retriever.GetType().GetField("keysToRowLists", BindingFlags.NonPublic | BindingFlags.Instance);
+            mappingField.SetValue(retriever, mappings);
 
             Dictionary<string, string> results = (Dictionary<string, string>)retriever.HandleResults(key, largeResults);
 
@@ -345,6 +368,53 @@ namespace ginasExcelUnitTests
                    r.Key, r.Value));
             });
             Assert.IsFalse(results.Any(x => x.Value.Contains("Exception")));
+        }
+
+
+        [TestMethod]
+        public void HandleResultsMultipleTest()
+        {
+            string largeResults = "{\"828-06-8\":[\"828-06-8\tvalue1\"]}";
+            largeResults = largeResults.Replace("$IMGFORMAT$", "png");
+            string key = "gsrs_zkbcdorqhl";
+            Retriever retriever = new Retriever();
+            Dictionary<string, List<int>> mappings = new Dictionary<string, List<int>>();
+            mappings.Add("828-06-8", new[] { 1,3 }.ToList());
+            mappings.Add("50-00-0", new[] { 2 }.ToList());
+            FieldInfo mappingField = retriever.GetType().GetField("keysToRowLists", BindingFlags.NonPublic | BindingFlags.Instance);
+            mappingField.SetValue(retriever, mappings);
+
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet sheet = (Worksheet)workbook.Worksheets.Add();
+            Range range1 = sheet.Range["A1"];
+            Range activeRange = sheet.Range["A1", "B4"];
+            range1.FormulaR1C1 = "828-06-8";
+            Range range2 = sheet.Range["A2"];
+            range2.FormulaR1C1 = "50-00-0";
+            Range range3 = sheet.Range["A3"];
+            range3.FormulaR1C1 = "828-06-8";
+            retriever.SetSelection(activeRange);
+
+            Dictionary<string, string> results = (Dictionary<string, string>)retriever.HandleResults(key, largeResults);
+
+            results.Where(r => r.Value.Contains("Exception")).ToList().ForEach(r =>
+            {
+                Console.WriteLine(string.Format("Error item. key: {0}; value: {1}",
+                   r.Key, r.Value));
+            });
+            Range testRange1 = sheet.Range["B1"];
+            string actual1 = testRange1.Value2 as string;
+            Range testRange2 = sheet.Range["B2"];
+            string actual2 = testRange2.Text as string;
+            Range testRange3 = sheet.Range["B3"];
+            string actual3 = testRange3.Text as string;
+            workbook.Close(false);
+            Console.WriteLine("actual1: {0}", actual1);
+            Console.WriteLine("actual2: {0}", actual2);
+            Console.WriteLine("actual3: {0}", actual3);
+            Assert.IsTrue(actual1.StartsWith("value1"));
+            Assert.IsTrue(actual2.Length==0);
+            Assert.IsTrue(actual3.StartsWith("value"));
         }
 
 
@@ -372,6 +442,7 @@ namespace ginasExcelUnitTests
             /*string propertyName = "ScriptQueue";
             PropertyInfo queueInfo = retriever.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
             Queue<string> scriptQueue = (Queue<string>) queueInfo.GetValue(retriever);*/
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -421,6 +492,7 @@ namespace ginasExcelUnitTests
             object[] parms = new object[1];
             parms[0] = row;
             object result = method.Invoke(loader, parms);
+            workbook.Close(false);
             Console.WriteLine("result type:" + result.GetType().Name);
             Dictionary<string, Range> searchkeys = (Dictionary<string, Range>)result;//loader.GetKeys(row);
 
@@ -458,6 +530,7 @@ namespace ginasExcelUnitTests
             string expectedScriptName = "Create Substance";
 
             Assert.AreEqual(expectedScriptName, scriptName);
+            workbook.Close(false);
         }
 
 
@@ -499,6 +572,7 @@ namespace ginasExcelUnitTests
             string actualValue2 = (string)result2;
             string expectedValue2 = "True";
             Assert.AreEqual(expectedValue2, actualValue2);
+            workbook.Close(false);
         }
 
         /* 
@@ -683,6 +757,7 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(vocab[3], testText);
             workbook.Close(false);
         }
+
         [TestMethod]
         public void TestGetVocabularySheetExistsHidden()
         {
@@ -708,13 +783,13 @@ namespace ginasExcelUnitTests
             Workbook workbook = ReadExcelWorkbook(filePath);
             Worksheet sheet = (Worksheet)workbook.Sheets[1];
             string json = (string) ((Range)sheet.Cells[2, 3]).Value2;
+            workbook.Close(true);
 
             string replacement1 = "⑤";
             string replacement0 = "ℓ";
             string replacement2 = "ꬷ";
             string charToReplace = ((char)10).ToString();
             string stringToReplace = ((char)92).ToString() + ((char)110).ToString();
-            string stringToUse = ((char)92).ToString() + ((char)92).ToString() + ((char)110).ToString();
             string transformedJson = json.Replace("\n", replacement0).Replace(charToReplace, replacement1).Replace(stringToReplace, replacement2);
             transformedJson = transformedJson.Replace(replacement2, "\\\n");
             transformedJson = transformedJson.Replace(replacement0, string.Empty);
@@ -751,6 +826,7 @@ namespace ginasExcelUnitTests
             object[] parms = new object[1];
             parms[0] = sheet;
             List<string> columnHeaders= (List<string>) method.Invoke(null, parms);
+            workbook.Close(true);
             string[] expectedHeaders = {"BATCH:Add Substance", "PT", "PT LANGUAGE", "PT TYPE", "SUBSTANCE TYPE",
                 "REFERENCE TEXT", "MOLECULAR WEIGHT"};
             Assert.AreEqual(expectedHeaders.Length, columnHeaders.Count);
@@ -816,6 +892,7 @@ namespace ginasExcelUnitTests
             List<string> messages = new List<string>();
             SheetUtils.CheckSDSheetForDuplicates(sheet, messages, CurrentConfiguration.SelectedServer.ServerUrl);
             Assert.AreEqual(0, messages.Count);
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -970,7 +1047,6 @@ namespace ginasExcelUnitTests
             Assert.AreEqual("UUID", cell2Actual);
             string hostName = (string)retrievalForm.ExecuteScript("window.location.hostname");
             Console.WriteLine("hostname: " + hostName);
-            
             workbook.Close(false);
         }
 
@@ -1053,6 +1129,7 @@ namespace ginasExcelUnitTests
             Assert.IsTrue(SheetUtils.IsRowBlank(row3));
             Range row4 = sheet.Range["A4"].EntireRow;
             Assert.IsFalse(SheetUtils.IsRowBlank(row4));
+			workbook.Close(false);
         }
 
         [TestMethod]
@@ -1105,7 +1182,6 @@ namespace ginasExcelUnitTests
             Console.WriteLine("To run {0} runs of {1} rows each took {2} ms", repeatMax, rowLimit, timer.ElapsedMilliseconds);
 
             Assert.IsTrue(timer.ElapsedMilliseconds > 0);
-
         }
 
         [TestMethod]
@@ -1124,10 +1200,94 @@ namespace ginasExcelUnitTests
             object[] args = new object[1];
             args[0] = headerRow;
             Dictionary<int, string> keys = (Dictionary<int, string>)GetColumnKeysInfo.Invoke(loader, args);
+            workbook.Close(false);
             Assert.IsTrue(keys.ContainsKey(1));
             Assert.AreEqual("PT", keys[3]);
             Assert.AreEqual("ALLOW MULTIPLES", keys[11]);
             Assert.AreEqual("FORCED", keys[18]);
+        }
+
+
+        private Workbook ReadDefaultExcelWorkbook()
+        {
+            string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
+            sheetFilePath = Path.GetFullPath(sheetFilePath);
+            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
+            return workbook;
+        }
+
+
+        private byte[] getBinaryData(string file)
+        {
+            return File.ReadAllBytes(file);
+        }
+
+        private void CheckForm()
+        {
+            int iter = 0;
+            int maxIter = 40;
+
+            while ((retrievalForm == null || !retrievalForm.IsReady)
+                && iter < maxIter)
+            {
+                Thread.Sleep(1000);
+                iter++;
+                log.DebugFormat("init iteration {0}", iter);
+            }
+            log.DebugFormat("retrievalForm: {0}", retrievalForm);
+            if (retrievalForm == null || !retrievalForm.IsReady)
+            {
+                Assert.Fail("Connection to server is not working");
+            }
+        }
+
+        [TestMethod]
+        public void GetSheetPropertyValueTest()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet)workbook.Sheets.Add();
+            object propValue= SheetUtils.GetSheetPropertyValue(worksheet, "Anything");
+            Assert.IsNull(propValue);
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void GetSheetPropertyValueTest2()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet)workbook.Sheets.Add();
+            string newValue = "Value " + DateTime.Now.ToLongDateString();
+            worksheet.CustomProperties.Add("Anything", newValue);
+            object propValue = SheetUtils.GetSheetPropertyValue(worksheet, "Anything");
+            Assert.AreEqual(newValue, propValue.ToString());
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void SetSheetPropertyValueTest()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet)workbook.Sheets.Add();
+            string newValue = "Value " + DateTime.Now.ToLongDateString();
+            SheetUtils.SetSheetPropertyValue(worksheet, "Any Property", newValue);
+            object propValue = worksheet.CustomProperties.Item[1].Value;
+            Assert.AreEqual(newValue, propValue.ToString());
+            workbook.Close(false);
+        }
+
+        [TestMethod]
+        public void SetSheetPropertyValueTest2()
+        {
+            Workbook workbook = excel.Workbooks.Add();
+            Worksheet worksheet = (Worksheet)workbook.Sheets.Add();
+            string firstValue = "Value " + DateTime.Now.ToLongDateString();
+            SheetUtils.SetSheetPropertyValue(worksheet, "Any Property", firstValue);
+
+            string secondValue = "New Value " + DateTime.Now.ToLongDateString();
+            SheetUtils.SetSheetPropertyValue(worksheet, "Any Property", secondValue);
+            object propValue = worksheet.CustomProperties.Item[1].Value;
+            Assert.AreEqual(secondValue, propValue.ToString());
+            workbook.Close(false);
         }
 
         [TestMethod]
@@ -1285,13 +1445,6 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expected, result);
         }
 
-        private Workbook ReadDefaultExcelWorkbook()
-        {
-            string sheetFilePath = @"..\..\..\Test_Files\comment test.xlsx";
-            sheetFilePath = Path.GetFullPath(sheetFilePath);
-            Workbook workbook = excel.Workbooks.Open(sheetFilePath);
-            return workbook;
-        }
 
 
         internal Workbook ReadExcelWorkbook(string filePath)
@@ -1343,28 +1496,33 @@ namespace ginasExcelUnitTests
             Assert.AreEqual(expectedValue, actualValue);
         }
 
-        private byte[] getBinaryData(string file)
+
+
+        [TestMethod]
+        public void TestCharacterConversion()
         {
-            return File.ReadAllBytes(file);
+            string input = "";
+            string expected = "α";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
         }
 
-        private void CheckForm()
+        [TestMethod]
+        public void TestCharacterConversion2()
         {
-            int iter = 0;
-            int maxIter = 40;
+            string input = ", , 1-2 acid";
+            string expected = "α, β, 1-→2 acid";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
+        }
 
-            while ((retrievalForm == null || !retrievalForm.IsReady)
-                && iter < maxIter)
-            {
-                Thread.Sleep(1000);
-                iter++;
-                log.DebugFormat("init iteration {0}", iter);
-            }
-            log.DebugFormat("retrievalForm: {0}", retrievalForm);
-            if (retrievalForm == null || !retrievalForm.IsReady)
-            {
-                Assert.Fail("Connection to server is not working");
-            }
+        [TestMethod]
+        public void TestCharacterConversion3()
+        {
+            string input    = "' ' ' ' ' ' ' ' ' ' ' ' ' ''";
+            string expected = "'α 'β 'χ 'δ 'ε 'φ 'γ 'η 'ι 'ϕ 'κ 'λ 'μ '→'";
+            string actual = SheetFormatUtils.ConvertChars(input);
+            Assert.AreEqual(expected, actual);
         }
 
     }

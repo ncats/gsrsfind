@@ -30,7 +30,7 @@ namespace ginasExcelUnitTests.Utils
 
         internal static string GetUuidForPt(string pt)
         {
-            string query = string.Format("select owner_uuid from ix_ginas_name n where upper(n.name) = upper('{0}') and preferred = 1",
+            string query = string.Format("select owner_uuid from ix_ginas_name n where upper(n.name) = upper('{0}') and display_name = 1",
                 pt);
             string uuid = string.Empty;
                         

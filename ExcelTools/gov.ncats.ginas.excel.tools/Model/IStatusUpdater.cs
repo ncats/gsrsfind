@@ -14,5 +14,6 @@ namespace gov.ncats.ginas.excel.tools.Model
 
         bool GetDebugSetting();
 
+        bool HasUserCancelled();
     }
 }

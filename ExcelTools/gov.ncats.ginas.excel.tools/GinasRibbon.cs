@@ -10,12 +10,15 @@ using gov.ncats.ginas.excel.tools.Utils;
 using gov.ncats.ginas.excel.tools.Controller;
 using gov.ncats.ginas.excel.tools.Model;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Configuration;
 
 namespace gov.ncats.ginas.excel.tools
 {
     public partial class GinasRibbon
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        static Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
 
         private void ginas_Load(object sender, RibbonUIEventArgs e)
         {
@@ -36,7 +39,18 @@ namespace gov.ncats.ginas.excel.tools
             form.CurrentOperationType = OperationType.Resolution;
             form.Controller = retriever;
             form.Visible = false;
+            if (config.AppSettings.Settings["resolutionMode"].Value.Equals("synchronous", 
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                log.Debug("resolving using modal dialog");
             form.ShowDialog();
+        }
+            else
+            {
+                log.Debug("resolving using modeless dialog");
+                form.Show();
+            }
+                
         }
 
 
@@ -93,6 +107,8 @@ namespace gov.ncats.ginas.excel.tools
             stringBuilder.AppendLine("Technical details:");
             stringBuilder.Append(applicationName);
             stringBuilder.Append(Environment.NewLine);
+            stringBuilder.Append("Running on ");
+            stringBuilder.Append(Assembly.GetExecutingAssembly().ImageRuntimeVersion);
             
             UIUtils.ShowMessageToUser(stringBuilder.ToString());
         }
@@ -131,6 +147,7 @@ namespace gov.ncats.ginas.excel.tools
                 form.Controller = sDFileProcessor;
                 sDFileProcessor.SetStatusUpdater(form);
                 sDFileProcessor.HandleSDFileImport(sdFilePath, (Excel.Worksheet)window.Application.ActiveSheet);
+
             }
             catch(Exception ex)
             {
@@ -162,6 +179,100 @@ namespace gov.ncats.ginas.excel.tools
             sDFileProcessor.ManageSetupRemainingColumns();
         }
 
+        private void buttonApplication_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            HandleApplicationProcessing(window, OperationType.ProcessApplication);
+        }
+
+        private void HandleApplicationProcessing(Excel.Window window, OperationType operationType)
+        {
+            ApplicationProcessor appProcessor = new ApplicationProcessor();
+
+            RetrievalForm form = new RetrievalForm();
+            appProcessor.SetScriptExecutor(form);
+            appProcessor.SetExcelWindow(window);
+            form.CurrentOperationType = operationType;
+            form.Controller = appProcessor;
+            form.Visible = false;
+            form.SetSize(1);
+            form.Show();
+            appProcessor.SetStatusUpdater(form);
+            appProcessor.CurrentOperationType = operationType;
+            appProcessor.SetScriptExecutor(form);
+            log.Debug("before appProcessor.StartOperation()");
+            string operationUrl = "addApplication";
+            if (operationType== OperationType.AddIngredient)
+            { 
+                operationUrl = "updateApplicationSave";
+            }
+            appProcessor.StartOperation(operationUrl);
+        }
+        private void button5_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ApplicationSheetCreator sheetCreator = new ApplicationSheetCreator();
+            sheetCreator.SetExcelWindow(window);
+            RetrievalForm form = new RetrievalForm();
+            form.CurrentOperationType = OperationType.ProcessApplication;
+            form.Controller = sheetCreator;
+            form.Visible = false;
+            form.SetSize(1);
+            sheetCreator.SetScriptExecutor(form);
+            sheetCreator.SetStatusUpdater(form);
+            form.Show();
+            sheetCreator.CreateApplicationSheet();
+        }
+
+        private void buttonAddProduct_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            if( !ApplicationSheetCreator.IsApplicationWorksheet( (Excel.Worksheet) window.ActiveSheet))
+            {
+                return;
+            }
+            ApplicationSheetCreator sheetCreator = new ApplicationSheetCreator();
+            sheetCreator.SetExcelWindow(window);
+            RetrievalForm form = new RetrievalForm();
+            form.CurrentOperationType = OperationType.ProcessApplication;
+            form.Controller = sheetCreator;
+            form.Visible = false;
+            form.SetSize(1);
+            sheetCreator.SetScriptExecutor(form);
+            sheetCreator.SetStatusUpdater(form);
+            form.Show();
+            sheetCreator.CopySheet((Excel.Worksheet)window.ActiveSheet, true);
+        }
+
+        private void buttonAddIngredient_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            HandleApplicationProcessing(window, OperationType.AddIngredient);
+        }
+
+        private void CheckBoxMonitorSheets_Click(object sender, RibbonControlEventArgs e)
+        {
+            if( this.checkBoxMonitorSheets.Checked)
+            {
+                Globals.ThisAddIn.TurnOnMonitoring();
+                log.Debug("turned monitoring on");
+            }
+            else
+            {
+                Globals.ThisAddIn.TurnOffMonitoring();
+                log.Debug("turned monitoring off");
+            }
+        }
+
+        private void ButtonGetInfo_Click(object sender, RibbonControlEventArgs e)
+        {
+            RetrievalForm form = new RetrievalForm();
+            form.Show();
+            System.Threading.Thread.Sleep(3000);
+            string loc = form.ExecuteScript("window.location").ToString();
+            UIUtils.ShowMessageToUser(loc);
+        }
+
         private void buttonDnaToProtein_Click(object sender, RibbonControlEventArgs e)
         {
             Excel.Window window = e.Control.Context;
@@ -172,6 +283,58 @@ namespace gov.ncats.ginas.excel.tools
         {
             Excel.Window window = e.Control.Context;
             SequenceProcessor.StartDnaToRetrovirusRna(window);
+        }
+
+        private void buttonCreateIngredientSheet_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ApplicationSheetCreator sheetCreator = new ApplicationSheetCreator();
+            sheetCreator.SetExcelWindow(window);
+            RetrievalForm form = new RetrievalForm();
+            form.CurrentOperationType = OperationType.ProcessApplication;
+            form.Controller = sheetCreator;
+            form.Visible = false;
+            form.SetSize(1);
+            sheetCreator.SetScriptExecutor(form);
+            sheetCreator.SetStatusUpdater(form);
+            form.Show();
+            sheetCreator.CreateIngredientSheet();
+        }
+
+        private async void button5_Click_1(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            PubChemRetriever retriever = new PubChemRetriever();
+            ExternalSourceRetrievalProgress externalSourceStatus = new ExternalSourceRetrievalProgress();
+            externalSourceStatus.SetSourceText("PubChem");
+            externalSourceStatus.Show();
+            retriever.SetExcelWindow(window);
+            retriever.SetStatusUpdater(externalSourceStatus);
+            await retriever.StartResolution();
+        }
+
+        private async void buttonGetMolfileFromChemSpider_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ChemSpiderRetriever retriever = new ChemSpiderRetriever();
+            ExternalSourceRetrievalProgress externalSourceStatus = new ExternalSourceRetrievalProgress();
+            externalSourceStatus.SetSourceText("ChemSpider");
+            externalSourceStatus.Show();
+            retriever.SetExcelWindow(window);
+            retriever.SetStatusUpdater(externalSourceStatus);
+            await retriever.StartResolution();
+        }
+
+        private async void buttonLookupChemSpider_Click(object sender, RibbonControlEventArgs e)
+        {
+            Excel.Window window = e.Control.Context;
+            ChemSpiderRetriever retriever = new ChemSpiderRetriever();
+            /*ExternalSourceRetrievalProgress externalSourceStatus = new ExternalSourceRetrievalProgress();
+            externalSourceStatus.SetSourceText("ChemSpider");
+            externalSourceStatus.Show();*/
+            retriever.SetExcelWindow(window);
+            //retriever.SetStatusUpdater(externalSourceStatus);
+            await retriever.StartGeneralResolution();
         }
     }
 }

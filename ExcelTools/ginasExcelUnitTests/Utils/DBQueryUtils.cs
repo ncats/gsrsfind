@@ -140,6 +140,38 @@ namespace ginasExcelUnitTests.Utils
             return codes;
         }
 
+        internal List<CodeProxy> GetCodesEtcForUuid(string uuid)
+        {
+            string query =
+                string.Format("select code_system, code, comments, url,type from ix_ginas_code where owner_uuid = '{0}'",
+                 uuid);
+            List<CodeProxy> codes = new List<CodeProxy>();
+            NpgsqlCommand command = connection.CreateCommand();
+            command.CommandText = query;
+            command.CommandType = CommandType.Text;
+            NpgsqlDataReader reader = command.ExecuteReader();
+            // Execute the SQL command and return a reader for navigating the results.
+
+            while (reader.Read() == true)
+            {
+                string codeSystem = reader.GetString(0);
+                string code = reader.GetString(1);
+                string comments = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+                string url = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                string type = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+                CodeProxy codeProxy = new CodeProxy();
+                codeProxy.CodeSystem = codeSystem;
+                codeProxy.Code = code;
+                codeProxy.Url = url;
+                codeProxy.Comments = comments;
+                codeProxy.Type = type;
+                codes.Add(codeProxy);
+            }
+            command.Dispose();
+            reader.Close();
+            return codes;
+        }
+
 
         internal List<Tuple<string, string>> GetCodesForBdNum(string bdNum)
         {
@@ -361,7 +393,7 @@ namespace ginasExcelUnitTests.Utils
             }
             reader.Close();
 
-            return string.Join(";", sequences);
+            return string.Join(",", sequences);
         }
 
         internal SubstanceProxy GetSubstance(string nameOrCode)

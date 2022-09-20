@@ -103,13 +103,16 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         public void Dispose()
         {
-            try
+            if (_timer != null)
             {
-                _timer.Dispose();
-            }
-            catch (Exception ignore)
-            {
-                Debug.WriteLine("Error disposing timer: " + ignore.Message);
+                try
+                {
+                    _timer.Dispose();
+                }
+                catch (Exception ignore)
+                {
+                    Debug.WriteLine("Error disposing timer: " + ignore.Message);
+                }
             }
         }
 
@@ -203,7 +206,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             if (scriptUtils.ExpectedVocabularies.Count == 0)
             {
                 CompleteSheet();
-                if( CurrentOperationType != OperationType.ProcessApplication)
+                if (CurrentOperationType != OperationType.ProcessApplication)
                 {
                     log.Debug("about to call StatusUpdater.Complete");
                     StatusUpdater.Complete();
@@ -315,6 +318,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
         protected void Authenticate()
         {
+            log.Debug("starting in Authenticate");
             if (!string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.Username)
                 && !string.IsNullOrWhiteSpace(GinasConfiguration.SelectedServer.PrivateKey))
             {

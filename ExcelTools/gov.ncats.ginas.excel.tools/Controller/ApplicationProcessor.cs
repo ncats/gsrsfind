@@ -38,6 +38,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
         {
             CurrentOperationType = OperationType.ProcessApplication;
         }
+
         public string CreateApplicationJson(ApplicationEntity application)
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -123,6 +124,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     json.Append(" } ]");
                 }
+                log.DebugFormat("f: {0}; fields.Count: {1}; json last char {2}", f, fields.Count,
+                    json.ToString().Substring(json.Length - 1));
                 if (f < fields.Count - 1) json.Append(",");
             }
             return true;
@@ -220,6 +223,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
                     }
                     entity.EntityFields.Add(entityField);
                 }
+                //now add the fields with fixed values
+
+                ApplicationMetadata.GetFields(level)
+                    .Where(f => !f.IncludeInSheet && !string.IsNullOrWhiteSpace(f.ResolvedValue))
+                    .ToList()
+                    .ForEach(f => {
+                        ApplicationField entityField = f.Clone();
+                        entityField.FieldValue = f.ResolvedValue;
+                        entity.EntityFields.Add(entityField);
+                        });
+
                 entities.Add(entity);
                 rowOffset++;
             }
@@ -278,7 +292,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
                         if (callbackWithKey is UpdateCallback)
                             ((UpdateCallback)callbackWithKey).SetRangeText(processingResult.message);
                         Callbacks.Remove(resultsKey);
-                        if( Callbacks.Count >0)
+                        if (Callbacks.Count > 0)
                         {
                             log.Debug(" Starting next callback");
                             StartFirstUpdateCallback();
@@ -289,9 +303,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 {
                     UIUtils.ShowMessageToUser(processingResult.message);
                 }
-
-                log.Debug("calling StatusUpdater.Complete");
-                StatusUpdater.Complete();
+                if (CurrentOperationType != OperationType.AddIngredient || Callbacks == null || Callbacks.Count == 0)
+                {
+                    log.Debug("calling StatusUpdater.Complete");
+                    StatusUpdater.Complete();
+                }
             }
             return message;
         }
@@ -307,12 +323,15 @@ namespace gov.ncats.ginas.excel.tools.Controller
 
             log.Debug("created application JSON: " + applicationJson);
             string applicationJsonNoNewLines = applicationJson.Replace(Environment.NewLine, "");
-            string url = GinasConfiguration.SelectedServer.ServerUrl + _urlEndPoint;
+            string url = GinasConfiguration.SelectedServer.ServerUrl;
+            url = url + "api/v1/applications";
+            //+ "applications/" + _urlEndPoint;
             if (_urlEndPoint.Contains("updateApplication"))
             {
                 object AppId = SheetUtils.GetSheetPropertyValue(_worksheet, APPLICATION_ID_PROPERTY);
                 url += "?applicationId=" + AppId;
             }
+            Authenticate();
             log.DebugFormat("using URL {0}", url);
             ScriptUtils scriptUtils = new ScriptUtils();
             scriptUtils.ScriptExecutor = ScriptExecutor;
@@ -341,16 +360,17 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 scriptUtils.ScriptExecutor = ScriptExecutor;
                 Callbacks = new Dictionary<string, Callback>();
                 ProcessIngredientsFromExcel((Worksheet)ExcelWindow.ActiveSheet);
-                return;
             }
-            ApplicationEntity application = GetApplication((Worksheet)ExcelWindow.SelectedSheets.Item[1]);
-            if (application == null)
+            else
             {
-                log.Debug("Application creation aborted because of missing fields");
-                return;
+                ApplicationEntity application = GetApplication((Worksheet)ExcelWindow.SelectedSheets.Item[1]);
+                if (application == null)
+                {
+                    log.Debug("Application creation aborted because of missing fields");
+                    return;
+                }
+                _application = application;
             }
-            _application = application;
-
         }
 
         public bool OkToWrite(int numberOfColumns)
@@ -415,7 +435,7 @@ namespace gov.ncats.ginas.excel.tools.Controller
             }
         }
 
-       
+
         public void ProcessIngredientsFromExcel(Worksheet ingredientSheet)
         {
             List<ApplicationField> ingredientFields = ApplicationMetadata.GetFields(ApplicationField.Level.AddIngredient).ToList();
@@ -460,9 +480,9 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 string appType = ingredientFields.First(f => f.FieldName.Equals("Application Type", StringComparison.CurrentCultureIgnoreCase)).GetValue();
                 string appNumber = ingredientFields.First(f => f.FieldName.Equals("Application Number", StringComparison.CurrentCultureIgnoreCase)).GetValue();
                 string center = ingredientFields.First(f => f.FieldName.Equals("Center", StringComparison.CurrentCultureIgnoreCase)).GetValue();
-                string bdnum = ingredientFields.First(f => f.FieldName.Equals("Ingredient BDNUM", StringComparison.CurrentCultureIgnoreCase)).GetValue();
-                log.DebugFormat("retrieved params for row {0}: appType={1}, appNumber={2}, center={3}, bdnum={4}. ",
-                    currentRow, appType, appNumber, center, bdnum);
+                log.DebugFormat("retrieved params for row {0}: appType={1}, appNumber={2}, center={3}. ",
+                    currentRow, appType, appNumber, center);
+                //string fullUrl = GinasConfiguration.SelectedServer.ServerUrl.Replace("/ginas/app","") + config.AppSettings.Settings["applicationLookupUrl"].Value;
                 string fullUrl = GinasConfiguration.SelectedServer.ServerUrl + config.AppSettings.Settings["applicationLookupUrl"].Value;
                 string fullUrlWithParameters = string.Format(fullUrl, appType, appNumber, center, provenance);
                 log.DebugFormat("looking up application using URL {0}", fullUrlWithParameters);
@@ -475,22 +495,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             StartFirstUpdateCallback();
         }
 
-        public void AddIngredient(Application application, int productItem, List<ApplicationIngredient> newIngredients)
-        {
-            List<ApplicationIngredient> applicationIngredients = new List<ApplicationIngredient>();
-            applicationIngredients.AddRange(application.applicationProductList[productItem].applicationIngredientList);
-            foreach (ApplicationIngredient ingredient in newIngredients)
-            {
-                applicationIngredients.Add(ingredient);
-            }
-            application.applicationProductList[productItem].applicationIngredientList = applicationIngredients.ToArray();
-        }
-
         private void StartVocabularyRetrievals()
         {
             log.Debug("Look-ups complete; now vocabularies");
             List<string> vocabularyNames = ApplicationMetadata.Metadata.Where(f =>
-                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList().ToHashSet().ToList();
+                !string.IsNullOrEmpty(f.VocabularyName)).Select(i => i.VocabularyName).ToList().ToList();
             vocabularyNames.ForEach(vn => log.Debug(vn));
             scriptUtils.ScriptExecutor = ScriptExecutor;
             scriptUtils.StartVocabularyRetrievals(vocabularyNames);
@@ -532,6 +541,8 @@ namespace gov.ncats.ginas.excel.tools.Controller
         public UpdateCallback CreateIngredientUpdateCallback(Range messageCell, string url, List<ApplicationField> fields,
                 StringBuilder messageBuilder)
         {
+            log.Debug("starting in CreateIngredientUpdateCallback");
+            string applicationsUrlEnd = "api/v1/applications";
             if (GinasConfiguration == null)
             {
                 log.Debug("configuration was null");
@@ -550,11 +561,12 @@ namespace gov.ncats.ginas.excel.tools.Controller
                 log.DebugFormat("In {0}, setting parm {1} to {2}",
                       MethodBase.GetCurrentMethod().Name,
                       "url", url);
-                string postUrl = GinasConfiguration.SelectedServer.ServerUrl + _updateUrlEndPoint;
+                //string postUrl = GinasConfiguration.SelectedServer.ServerUrl.Replace("ginas/app/", "api/v1/applications");
+                string postUrl = GinasConfiguration.SelectedServer.ServerUrl + applicationsUrlEnd;
                 updateCallback.ParameterValues.Add("postUrl", postUrl);
-                log.DebugFormat("In {0}, setting parm {1} to {2}",
+                log.DebugFormat("In {0}, setting parm {1} to {2}, from ServerUrl {3} and end part {4}",
                       MethodBase.GetCurrentMethod().Name,
-                      "postUrl", postUrl);
+                      "postUrl", postUrl, GinasConfiguration.SelectedServer.ServerUrl, applicationsUrlEnd);
                 foreach (ApplicationField field in fields)
                 {
                     if (!string.IsNullOrEmpty(field.JsonFieldName) && field.FieldValue != null && field.FieldValue.ToString().Length > 0)

@@ -59,11 +59,21 @@ namespace gov.ncats.ginas.excel.tools.Model
 
         public static void AddImageCaption(Range cell, string url, int size)
         {
+            try
+            {
+                log.Debug("starting in AddImageCaption");
             if (!hascomment(cell)) cell.AddComment();
             cell.Comment.Shape.Fill.UserPicture(url);
+                log.Debug("set url");
             cell.Comment.Shape.Fill.ForeColor.SchemeColor = 1;
             cell.Comment.Shape.Height = size / 4 * 3;
             cell.Comment.Shape.Width = size / 4 * 3;
+                log.Debug("finished setting up comment");
+            }
+            catch(Exception ex)
+            {
+                log.Error(string.Format("Error setting up image URL {0}", url), ex);
+            }
         }
 
         public string getTempFile(String url, String suffix)
@@ -118,17 +128,21 @@ namespace gov.ncats.ginas.excel.tools.Model
 
                 //Returns TRUE if the Status code == 200
                 long contentLength = response.ContentLength;
-
+                foreach( string key in response.Headers.AllKeys)
+                {
+                    log.DebugFormat("key: {0}; header: {1}", key, response.Headers[key]);
+                }
                 response.Close();
 
                 TimeSpan elapsed = DateTime.Now.Subtract(start);
                 log.DebugFormat("in {0}, length: {1}; duration {2}", System.Reflection.MethodBase.GetCurrentMethod().Name,
                     contentLength, elapsed.Milliseconds);
-                return (response.StatusCode == HttpStatusCode.OK && contentLength > 0);
+                return (response.StatusCode == HttpStatusCode.OK /*&& contentLength > 0*/);
             }
             catch (Exception ex)
             {
-                log.DebugFormat("Error while looking up URL: " + ex.Message);
+                log.DebugFormat("Error while looking up URL: {0}. URL: {1}", ex.Message, url);
+                log.Debug(ex.StackTrace);
                 //Any exception will returns false.
                 return false;
             }

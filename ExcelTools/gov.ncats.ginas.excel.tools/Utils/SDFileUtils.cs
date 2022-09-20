@@ -41,7 +41,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             ImageOps imageOps = new ImageOps();
             sheetUtils.ImageOpsHandle = imageOps;
             //create a title row
-            sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, imageOps, worksheet, 0);
+            sheetUtils.TransferDataToRow(fieldNames.ToArray(), 1, 1, worksheet, 0);
 
             int row = 1;
             foreach(SDFileRecord record in fileData)
@@ -90,6 +90,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         oneFieldData.Add(MOLFILE_END);
                     }
                 }
+                log.DebugFormat("going to add field {0}", currentFieldName);
                 oneRecord.RecordData.Add(currentFieldName, string.Join("\n", oneFieldData));
 
                 if (SDF_FIELD_DELIMS.Any(d => line.StartsWith(d)))

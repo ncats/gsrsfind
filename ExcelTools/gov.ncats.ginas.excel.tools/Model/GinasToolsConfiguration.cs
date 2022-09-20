@@ -76,6 +76,13 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         }
+
+        public string ChemSpiderApiKey
+        {
+            get;
+            set;
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -95,6 +102,14 @@ namespace gov.ncats.ginas.excel.tools.Model
             get;
             set;
         }
+
+        public bool MarkupNameFields
+        {
+            get;
+            set;
+
+        }
+
     }
 
     public class GinasServer
@@ -124,6 +139,12 @@ namespace gov.ncats.ginas.excel.tools.Model
         }
 
         public string Token
+        {
+            get;
+            set;
+        }
+
+        public string StructureUrl
         {
             get;
             set;

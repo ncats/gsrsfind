@@ -112,7 +112,9 @@ namespace ginasExcelUnitTests
 
             ExecuteScript("GlobalSettings.setBaseURL('" + _configuration.SelectedServer.ServerUrl
                 + _configuration.ApiPath + "');");
-
+            object scriptResult =ExecuteScript("GlobalSettings.setStructureUrl('"
+                + _configuration.SelectedServer.StructureUrl + "');");
+            log.DebugFormat("Result of setStructureUrl: {0}", scriptResult);
             if (CurrentOperationType == OperationType.Loading)
             {
                 ExecuteScript("setMode('update');");
@@ -276,5 +278,9 @@ namespace ginasExcelUnitTests
             Controller = controller;
         }
 
+        public bool HasUserCancelled()
+        {
+            return false;
+        }
     }
 }
