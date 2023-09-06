@@ -1335,7 +1335,7 @@ namespace ginasExcelUnitTests
             string filePath = @"..\..\..\Test_Files\downloadedimage0.png";//cyclohexane.mol";// 
             string mimeType = "image/png";// "text /plain";//"application/octet-stream";//
             filePath = Path.GetFullPath(filePath);
-            string serverUrl = "http://localhost:9000/ginas/app/";
+            string serverUrl = "http://localhost:8081/ginas/app/";
             string userName = "mitch";
             string key = "cqj8VcN3GpEqBtm0Mej5";
             Dictionary<string, string> headers = new Dictionary<string, string>();
@@ -1355,7 +1355,7 @@ namespace ginasExcelUnitTests
             string filePath = @"..\..\..\Test_Files\cyclohexane.mol";// 
             string mimeType = "text/plain";//"application/octet-stream";//
             filePath = Path.GetFullPath(filePath);
-            string serverUrl = "http://localhost:9000/ginas/app/";
+            string serverUrl = "http://localhost:8081/ginas/app/";
             string userName = "mitch";
             string key = "cqj8VcN3GpEqBtm0Mej5";
             Dictionary<string, string> headers = new Dictionary<string, string>();
