@@ -120,62 +120,80 @@ namespace gov.ncats.ginas.excel.tools.UI
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            if (comboBoxURLs.SelectedIndex > -1)
+            log.Debug("buttonOK_Click");
+            try
             {
-                CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[comboBoxURLs.SelectedIndex];
-                CurrentConfiguration.SelectedServer.Username = textBoxUsername.Text;
-                CurrentConfiguration.SelectedServer.PrivateKey = textBoxKey.Text;
-                CurrentConfiguration.SelectedServer.StructureUrl = GetStructureContext();
-            }
-            else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
-            {
-                if (!Utils.RestUtils.IsValidHttpUrl(comboBoxURLs.Text))
+
+                if (comboBoxURLs.SelectedIndex > -1)
                 {
-                    Utils.UIUtils.ShowMessageToUser("Please make sure the URL starts with 'http://' or 'https://' ");
-                    return;
+                    CurrentConfiguration.SelectedServer = CurrentConfiguration.Servers[comboBoxURLs.SelectedIndex];
+                    CurrentConfiguration.SelectedServer.Username = textBoxUsername.Text;
+                    CurrentConfiguration.SelectedServer.PrivateKey = textBoxKey.Text;
+                    CurrentConfiguration.SelectedServer.StructureUrl = GetStructureContext();
                 }
-                GinasServer newServer = new GinasServer();
-                newServer.ServerUrl = comboBoxURLs.Text;
-                if (!newServer.ServerUrl.EndsWith("/")) newServer.ServerUrl = newServer.ServerUrl + "/";
-                newServer.Username = textBoxUsername.Text;
-                newServer.PrivateKey = textBoxKey.Text;
-                newServer.ServerName = newServer.ServerUrl;
-                newServer.StructureUrl = GetStructureContext();
-                CurrentConfiguration.Servers.Add(newServer);
-                CurrentConfiguration.SelectedServer = newServer;
+                else if (!string.IsNullOrWhiteSpace(comboBoxURLs.Text) && comboBoxURLs.Text.Length > 0)
+                {
+                    if (!Utils.RestUtils.IsValidHttpUrl(comboBoxURLs.Text))
+                    {
+                        Utils.UIUtils.ShowMessageToUser("Please make sure the URL starts with 'http://' or 'https://' ");
+                        return;
+                    }
+                    GinasServer newServer = new GinasServer();
+                    newServer.ServerUrl = comboBoxURLs.Text;
+                    if (!newServer.ServerUrl.EndsWith("/")) newServer.ServerUrl = newServer.ServerUrl + "/";
+                    newServer.Username = textBoxUsername.Text;
+                    newServer.PrivateKey = textBoxKey.Text;
+                    newServer.ServerName = newServer.ServerUrl;
+                    newServer.StructureUrl = GetStructureContext();
+                    CurrentConfiguration.Servers.Add(newServer);
+                    CurrentConfiguration.SelectedServer = newServer;
+                }
+                CurrentConfiguration.DebugMode = checkBoxDebugInfo.Checked;
+                CurrentConfiguration.SortVocabsAlphabetically = checkBoxSortVocabs.Checked;
+                CurrentConfiguration.BatchSize = Convert.ToInt32(textBoxBatchSize.Text);
+                float tempFloat;
+                if (float.TryParse(textBoxExpirationOffset.Text, out tempFloat))
+                {
+                    CurrentConfiguration.ExpirationOffset = Convert.ToSingle(textBoxExpirationOffset.Text);
+                }
+                else
+                {
+                    log.WarnFormat("Unable to get a number from text box value {0}",
+                        textBoxExpirationOffset.Text);
+                }
+
+                log.Debug("float.TryParse(textBoxImageSize.Text");
+                if (float.TryParse(textBoxImageSize.Text, out tempFloat))
+                {
+                    int structureImageSize = Convert.ToInt32(Math.Round(tempFloat));
+                    CurrentConfiguration.StructureImageSize = structureImageSize;
+                }
+
+                log.Debug("about to handle textBoxChemSpiderApiKey");
+                if (!string.IsNullOrWhiteSpace(textBoxChemSpiderApiKey.Text))
+                {
+                    CurrentConfiguration.ChemSpiderApiKey = textBoxChemSpiderApiKey.Text;
+                }
+                log.Debug("calling SaveGinasConfiguration");
+                Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
+
+                DialogResult = DialogResult.OK;
+                Close();
             }
-            CurrentConfiguration.DebugMode = checkBoxDebugInfo.Checked;
-            CurrentConfiguration.SortVocabsAlphabetically = checkBoxSortVocabs.Checked;
-            CurrentConfiguration.BatchSize = Convert.ToInt32(textBoxBatchSize.Text);
-            float tempFloat;
-            if (float.TryParse(textBoxExpirationOffset.Text, out tempFloat))
+            catch (Exception ex)
             {
-                CurrentConfiguration.ExpirationOffset = Convert.ToSingle(textBoxExpirationOffset.Text);
-            }
-            else
-            {
-                log.WarnFormat("Unable to get a number from text box value {0}",
-                    textBoxExpirationOffset.Text);
+                log.Error("error processing configuration for save", ex);
             }
 
-            if (float.TryParse(textBoxImageSize.Text, out tempFloat))
-            {
-                int structureImageSize = Convert.ToInt32(Math.Round(tempFloat));
-                CurrentConfiguration.StructureImageSize = structureImageSize;
-            }
-
-            if( !string.IsNullOrWhiteSpace(textBoxChemSpiderApiKey.Text))
-            {
-                CurrentConfiguration.ChemSpiderApiKey = textBoxChemSpiderApiKey.Text;
-            }
-            Utils.FileUtils.SaveGinasConfiguration(CurrentConfiguration);
-
-            DialogResult = DialogResult.OK;
-            Close();
         }
 
         private string GetStructureContext()
         {
+            if(comboBoxStructureContext.SelectedItem == null)
+            {
+                Utils.UIUtils.ShowMessageToUser("Please select a value for Structure Context!");
+                return string.Empty;
+            }
             string structureContext = comboBoxStructureContext.SelectedItem as string;
             Regex regEx = new Regex(@"\[(.+)\]");
             Match m = regEx.Match(structureContext);

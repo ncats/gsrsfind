@@ -373,9 +373,9 @@ namespace gov.ncats.ginas.excel.tools.UI
             DomUtils.BuildDocumentHead(webBrowser1.Document);
             DomUtils.BuildDocumentBody(webBrowser1.Document,
                 (CurrentOperationType == OperationType.Loading || CurrentOperationType == OperationType.ShowScripts),
-                _configuration.DebugMode);
+                _configuration.DebugMode );
             webBrowser1.Document.Title = "GSRS Tools";
-
+            
             if (_configuration.DebugMode && FileUtils.FolderExists(@"c:\temp"))
             {
                 FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
@@ -456,6 +456,10 @@ namespace gov.ncats.ginas.excel.tools.UI
             buttonDebugDOM.Visible = false;
             checkBoxSaveDiagnostic.Enabled = _configuration.DebugMode;
 
+            if( _configuration.DebugMode && FileUtils.FolderExists(@"c:\temp"))
+            {
+                FileUtils.WriteToFile(@"c:\temp\debugdom.html", webBrowser1.Document.GetElementsByTagName("html")[0].OuterHtml);
+            }            
             webBrowser1.Visible = true;
             IsReady = true;
             webBrowser1.ScriptErrorsSuppressed = !_configuration.DebugMode;

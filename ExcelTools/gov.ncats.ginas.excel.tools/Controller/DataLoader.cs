@@ -552,6 +552,11 @@ namespace gov.ncats.ginas.excel.tools.Controller
             rawVocab = rawVocab.Substring(delim2 + 1);
             Vocab vocab = JSTools.GetVocabFromString(rawVocab);
 
+            log.DebugFormat("vocabName: {0}", vocabName);
+            if (scriptUtils.Vocabularies.ContainsKey(vocabName)) 
+            {
+                return;
+            }
             scriptUtils.Vocabularies.Add(vocabName, vocab);
             scriptUtils.MarkVocabArrived(vocabName);
             log.DebugFormat("adding vocabulary for {0}. Remaining: {1}",
