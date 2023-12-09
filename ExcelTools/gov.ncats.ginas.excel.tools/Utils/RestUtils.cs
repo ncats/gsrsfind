@@ -68,7 +68,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                         {
                             if (cell != null)
                             {
-                                string structureImageUrl = serverUrl + "img/" + r.Structure.Id + ".png";
+                                string structureImageUrl = serverUrl + "img/" + r.Structure.Id + ".png?format=png";
                                 log.DebugFormat("using structure URL {0}", structureImageUrl);
                                 ImageOps.AddImageCaption(cell, structureImageUrl, 300);
                             }
