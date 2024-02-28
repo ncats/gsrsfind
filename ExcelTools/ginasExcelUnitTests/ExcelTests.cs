@@ -28,7 +28,7 @@ namespace ginasExcelUnitTests
     public class ExcelTests
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
 
         static Application excel;
         static TestRetrievalForm retrievalForm = null;
