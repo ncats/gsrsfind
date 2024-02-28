@@ -178,6 +178,7 @@
     </Content>
     <Content Include="readme.txt" />
     <None Include="app.config" />
+    <None Include="connection.config" />
     <None Include="get.snk" />
     <None Include="gov.ncats.ginas.excel.tools_TemporaryKey.pfx" />
     <None Include="Oracle.DataAccess.Common.Configuration.Section.xsd">

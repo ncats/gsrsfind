@@ -20,6 +20,7 @@ using ginasExcelUnitTests.Utils;
 using gov.ncats.ginas.excel.tools.UI;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Configuration;
 
 namespace ginasExcelUnitTests
 {
@@ -27,6 +28,7 @@ namespace ginasExcelUnitTests
     public class ExcelTests
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
 
         static Application excel;
         static TestRetrievalForm retrievalForm = null;
@@ -1336,8 +1338,8 @@ namespace ginasExcelUnitTests
             string mimeType = "image/png";// "text /plain";//"application/octet-stream";//
             filePath = Path.GetFullPath(filePath);
             string serverUrl = "http://localhost:8081/ginas/app/";
-            string userName = "mitch";
-            string key = "cqj8VcN3GpEqBtm0Mej5";
+            string userName = config.AppSettings.Settings["testUserName"].Value;
+            string key = config.AppSettings.Settings["testUserKey"].Value;
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("auth-userName", userName);
             headers.Add("auth-key", key);
