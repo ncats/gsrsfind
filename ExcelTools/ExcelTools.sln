@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gov.ncats.ginas.excel.tools", "gov.ncats.ginas.excel.tools\gov.ncats.ginas.excel.tools.csproj", "{9F608C0A-5B24-4AEF-89E2-36E26DC73752}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ginasExcelUnitTests", "ginasExcelUnitTests\ginasExcelUnitTests.csproj", "{0A887B89-B815-40F0-B543-B8EC524698FB}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "GinasExcelToolsSetup", "GinasExcelToolsSetup\GinasExcelToolsSetup.vdproj", "{C46AE67D-2B05-4B10-A648-BCC2790AFB36}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F608C0A-5B24-4AEF-89E2-36E26DC73752}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F608C0A-5B24-4AEF-89E2-36E26DC73752}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F608C0A-5B24-4AEF-89E2-36E26DC73752}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F608C0A-5B24-4AEF-89E2-36E26DC73752}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A887B89-B815-40F0-B543-B8EC524698FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A887B89-B815-40F0-B543-B8EC524698FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A887B89-B815-40F0-B543-B8EC524698FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A887B89-B815-40F0-B543-B8EC524698FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C46AE67D-2B05-4B10-A648-BCC2790AFB36}.Debug|Any CPU.ActiveCfg = Debug
+		{C46AE67D-2B05-4B10-A648-BCC2790AFB36}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E19FDA85-B269-4F19-86EB-C0F50CBF8239}
+	EndGlobalSection
+EndGlobal

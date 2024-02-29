@@ -1,0 +1,37 @@
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using gov.ncats.ginas.excel.tools.Utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace gov.ncats.ginas.excel.tools.Utils.Tests
+{
+    [TestClass()]
+    public class DomUtilsTests
+    {
+        HtmlDocument doc = null;
+        WebBrowser webBrowser;
+        [TestMethod()]
+        public void BuildDocumentBodyTest()
+        {
+            string docText = "<!DOCTYPE html><html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"><head>    <meta charset=\"utf-8\" />    <title>Error</title></head><body style=\"text-align:center\">    <h1>Error Page</h1>    <br/>    <h2>Sorry to report that an error occurred</h2>    <br/>    <h3 id=\"ErrorMessage\">$MESSAGE1$</h3>    <br/>    <h4>$MESSAGE2$</h4></body></html>";
+            webBrowser = new WebBrowser();
+            webBrowser.DocumentText = docText;
+            webBrowser.DocumentCompleted += WebBrowser_DocumentCompleted;
+            
+            doc = webBrowser.Document;
+            Assert.IsNotNull(doc);
+        }
+
+        private void WebBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            DomUtils.BuildDocumentBody(doc, false);
+
+            Assert.IsTrue(webBrowser.DocumentText.Contains("fetcherTemplate"));
+            Console.WriteLine("complete");
+        }
+    }
+}
