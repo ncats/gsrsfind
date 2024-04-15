@@ -22,11 +22,11 @@ namespace ginasExcelUnitTests.Utils
     internal class DBQueryUtils
     {
         System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None); // Add an Application Setting.
-        private string dbHost = "localhost"; 
-        private string dbName = "ginas_db";
-        private string dbUser = "ginas";
-        private string dbPw = "ginas";
-        private int dbPort = 5432;
+        private string dbHost;
+        private string dbName;
+        private string dbUser;
+        private string dbPw;
+        private int dbPort;
         private string conectionString = "";
 
         NpgsqlConnection connection;
@@ -46,7 +46,14 @@ namespace ginasExcelUnitTests.Utils
                     dbHost, dbPort, dbUser,
                     dbPw, dbName);
             connection = new NpgsqlConnection(conectionString);
-            connection.Open();
+            try
+            {
+                connection.Open();
+            }
+            catch(Exception ex)
+            {
+                log.Error("error establishing db connection", ex);
+            }
         }
 
         ~DBQueryUtils()

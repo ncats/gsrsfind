@@ -237,24 +237,11 @@ namespace gov.ncats.ginas.excel.tools.Utils
             log.Debug("Starting in AddScripts");
             HtmlDocument document = headElement.Document;
 
-            /*HtmlElement lodashScript = document.CreateElement("script");
-            lodashScript.SetAttribute("type", "text/javascript");
-            lodashScript.SetAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js");// "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.0.0/lodash.js");
-            //lodashScript.SetAttribute("src", "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js");
-            lodashScript.SetAttribute("crossorigin", "anonymous");
-            headElement.AppendChild(lodashScript);*/
-
-            //HtmlElement jQueryScript = document.CreateElement("script");
-            //jQueryScript.SetAttribute("type", "text/javascript");
-            //   //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.12.4.js");
-            //jQueryScript.SetAttribute("src", "https://code.jquery.com/jquery-1.11.1.js");
-            //jQueryScript.SetAttribute("integrity", "sha256-MCmDSoIMecFUw3f1LicZ/D/yonYAoHrgiep/3pCH9rw=");
-            //jQueryScript.SetAttribute("crossorigin", "anonymous");
-            //headElement.AppendChild(jQueryScript);
             HtmlElement jqueryScriptlocal = document.CreateElement("script");
             jqueryScriptlocal.SetAttribute("type", "text/javascript");
             IHTMLScriptElement elementLocalJ = (IHTMLScriptElement)jqueryScriptlocal.DomElement;
             elementLocalJ.text = Environment.NewLine + FileUtils.GetJQueryJavaScript() + Environment.NewLine;
+            log.Debug("built JQuery into DOM");
             headElement.AppendChild(jqueryScriptlocal);
 
 
@@ -290,11 +277,8 @@ namespace gov.ncats.ginas.excel.tools.Utils
             HtmlElement mainGinasScript = document.CreateElement("script");
             mainGinasScript.SetAttribute("type", "text/javascript");
             string imageFormat = Properties.Resources.ImageFormat;
-            //mainGinasScript.InnerHtml = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
             IHTMLScriptElement element = (IHTMLScriptElement)mainGinasScript.DomElement;
             element.text = FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
-            //string scriptText= FileUtils.GetJavaScript().Replace("$IMGFORMAT$", imageFormat);
-            //mainGinasScript.InnerHtml = scriptText;
             headElement.AppendChild(mainGinasScript);
 
             HtmlElement shimScript = document.CreateElement("script");

@@ -95,7 +95,7 @@ namespace gov.ncats.ginas.excel.tools
         private void buttonAbout_Click(object sender, RibbonControlEventArgs e)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("Welcome to g-srs Excel Tools!");
+            stringBuilder.Append("Welcome to GSRS Excel Tools!");
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append(Environment.NewLine);
             stringBuilder.Append("Some icons provided by ");
