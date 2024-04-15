@@ -62,12 +62,12 @@ namespace gov.ncats.ginas.excel.tools.Model
             try
             {
                 log.Debug("starting in AddImageCaption");
-            if (!hascomment(cell)) cell.AddComment();
-            cell.Comment.Shape.Fill.UserPicture(url);
+                if (!hascomment(cell)) cell.AddComment();
+                cell.Comment.Shape.Fill.UserPicture(url);
                 log.Debug("set url");
-            cell.Comment.Shape.Fill.ForeColor.SchemeColor = 1;
-            cell.Comment.Shape.Height = size / 4 * 3;
-            cell.Comment.Shape.Width = size / 4 * 3;
+                cell.Comment.Shape.Fill.ForeColor.SchemeColor = 1;
+                cell.Comment.Shape.Height = size / 4 * 3;
+                cell.Comment.Shape.Width = size / 4 * 3;
                 log.Debug("finished setting up comment");
             }
             catch(Exception ex)

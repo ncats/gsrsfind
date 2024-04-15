@@ -16,7 +16,7 @@ $.support.cors = true;
 var CALLBACK_NUMBER = 0;
 var GSRSAPI = {
     PrimaryCodes : ['CAS', 'PUBCHEM', 'BDNUM'],
-    MultipleMatchMessage : "matched multiple records",
+    MultipleMatchMessage: "matched multiple records",
     StartQueryChar: "^",
     EscapedQuote: '"',
 
@@ -921,7 +921,7 @@ var GSRSAPI = {
                                     }
                                 });
                             }
-            }
+                        }
                         if (filteredSubstances.length > 0) {
                             return filteredSubstances;
                         } else {
@@ -967,7 +967,7 @@ var GSRSAPI = {
 
                 b.appendTransform = function (t) {
                     var oldTransform = b._transform;
-                    
+
                     b._transform = function (s) {
                         var sNew = oldTransform(s);
                         return t(sNew);
@@ -1010,7 +1010,7 @@ var GSRSAPI = {
                     jsonpatch.apply(fullSub, b.ops);
                     return b._transform(fullSub);
                 };
-        
+
                 /*should return a promise
                  simplesub -unexpected.
                  get full version
@@ -1020,7 +1020,7 @@ var GSRSAPI = {
                     return simpleSub.full()
                         .andThen(function (ret) {
                             var rr = ret;
-                            rr=b.transform(rr);
+                            rr = b.transform(rr);
                             /*jsonpatch.apply(rr, b.ops); from external library.  apply may cause data scramble. Removes/Replace becuase it uses
                              ordinals to identify items in collections.
                              New method: transform.  Each method below will call transform rather than .apply.*/
@@ -1148,7 +1148,7 @@ var GSRSAPI = {
                                 .fetcher(simpleSub)
                                 .get(function (g) {
                                     if ((typeof g) ==='object') {
-                                    cb(g.join("\t"));
+                                        cb(g.join("\t"));
                                     } else {
                                         cb(g);
                                     }
@@ -1170,11 +1170,11 @@ var GSRSAPI = {
                     fetcher: function (simp) {
                         return g_api.JPromise.of(function (cb) {
                             if (simp.hasOwnProperty('uuid')) {
-                            maker(simp).get(function (ret) {
-                                if (cb) {
-                                cb(ret, name);
-                                }
-                            });
+                                maker(simp).get(function (ret) {
+                                    if (cb) {
+                                        cb(ret, name);
+                                    }
+                                });
                             } else if (simp.length > 0 && cb){
                                 cb(simp);
                             }
@@ -1671,9 +1671,9 @@ var GSRSAPI = {
                     name.nameOrgs = orgs;
                     return name;
                 },
-				name.setDisplay = function (displayBool) {
-                    name.displayName = displayBool;
-                    return name;
+                    name.setDisplay = function (displayBool) {
+                        name.displayName = displayBool;
+                        return name;
                     },
                     name.setup = function () {
                         console.log("in name setup");
@@ -2408,9 +2408,9 @@ FetcherRegistry.addFetcher(
 
                     /*return "";*/
                 }
-                
+
                 if (simpleSub && simpleSub.structure && simpleSub.structure.smiles) {
-                return simpleSub.structure.smiles;
+                    return simpleSub.structure.smiles;
                 }
                 return "";
             });
@@ -2471,7 +2471,7 @@ FetcherRegistry.addFetcher(
                     return "";
                 }
                 var base = GlobalSettings.getBaseURL().replace(/api.*/g, "");
-                var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300";
+                var imgurl = base + "img/" + simpleSub.uuid + ".$IMGFORMAT$?size=300&format=$IMGFORMAT$";
 
                 return imgurl;
             });
@@ -2546,7 +2546,7 @@ FetcherRegistry.addFetcher(
                     return n.replace(/!!!/g, "|");
                 }
                 
-        });
+            });
         }
         return simpleSub;
     }).addTag("Substance")

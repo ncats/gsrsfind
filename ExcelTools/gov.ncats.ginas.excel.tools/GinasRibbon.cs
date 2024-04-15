@@ -43,8 +43,8 @@ namespace gov.ncats.ginas.excel.tools
                 StringComparison.InvariantCultureIgnoreCase))
             {
                 log.Debug("resolving using modal dialog");
-            form.ShowDialog();
-        }
+                form.ShowDialog();
+            }
             else
             {
                 log.Debug("resolving using modeless dialog");
