@@ -90,7 +90,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
                 string vocabularyName = GetVocabName(i);
                 log.DebugFormat("in {0}, got vocabularyName: {1}", MethodBase.GetCurrentMethod().Name,
                         vocabularyName);
-                if (!string.IsNullOrWhiteSpace(vocabularyName))
+                if (!string.IsNullOrWhiteSpace(vocabularyName) && !vocabularyNames.Contains(vocabularyName))
                 {
                     string vocabScript = "CVHelper.getDictionary('" + vocabularyName + "').get(function(s) {sendMessageBackToCSharp(s);});";
                     ScriptExecutor.ExecuteScript(vocabScript);
@@ -99,7 +99,7 @@ namespace gov.ncats.ginas.excel.tools.Utils
             }
             lock (LOCK_OBJECT)
             {
-                expectedVocabularies = vocabularyNames;
+                expectedVocabularies = vocabularyNames.Distinct().ToList();
             }
             return vocabularyNames;
         }

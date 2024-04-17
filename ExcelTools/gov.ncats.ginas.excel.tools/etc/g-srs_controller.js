@@ -1870,7 +1870,8 @@ var GSRSAPI = {
             },
             isDuplicate: function (existingRef, newReferenceType, newReferenceCitation, newReferenceUrl) {
                 if (existingRef.docType === newReferenceType && existingRef.citation === newReferenceCitation
-                    && existingRef.url === newReferenceUrl) {
+                    && (existingRef.url === newReferenceUrl ||
+                        (existingRef.url == null || existingRef.url.length == 0) && (newReferenceUrl == null || newReferenceUrl.length == 0))) {
                     return true;
                 }
                 return false;
@@ -3465,16 +3466,24 @@ Script.builder().mix({ name: "Add Name", description: "Adds a name to a substanc
                     console.log('detected string; returning false');
                     return { "message": substance, valid: false };
                 }
+                var needNewReference = true;
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         _.forEach(refs, function (ref) {
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
-                        nameObject.addReference(reference);
+                        if (needNewReference) {
+                            nameObject.addReference(reference);
+                        } else {
+                            console.log('skipped addition of new reference');
+                            nameObject.addReferenceUUID(reference.uuid);
+                        }
+                        
                         return substance;
                     })
                     .andThen(function (s2) {
@@ -3675,6 +3684,7 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                 if ((typeof substance) === 'string') {
                     return { valid: false, message: rec };
                 }
+                var needNewReference = true;
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         console.log('retrieved refs');
@@ -3682,10 +3692,16 @@ Script.builder().mix({ name: "Add Code", description: "Adds a code to a substanc
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
-                        code.addReference(reference);
+                        if (needNewReference) {
+                            code.addReference(reference);
+                        } else {
+                            console.log('skipped addition of new reference');
+                            code.addReferenceUUID(reference.uuid);
+                        }
                     })
                     .andThen(function (s2) {
                         return substance.fetch("codes")
@@ -3858,6 +3874,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
         }
 
         var searchCrit = (uuid) ? uuid : pt;
+        var needNewReference = true;
         var substanceObject;
         return GGlob.SubstanceFinder.comprehensiveSubstanceSearchByArgs(args)
             .andThen(function (s) {
@@ -3874,6 +3891,7 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
@@ -3899,7 +3917,11 @@ Script.builder().mix({ name: "Add Relationship", description: "Adds a relationsh
                             .setRelatedSubstance(substanceObject2) /*make sure this works!*/
                             .setType(relationshiptype);
                         if (reference) {
-                            relationship.addReference(reference);
+                            if (needNewReference) {
+                                relationship.addReference(reference);
+                            } else {
+                                relationship.addReferenceUUID(reference.uuid);
+                            }
                         }
 
                         return substanceObject.patch().addData(relationship)
@@ -4087,17 +4109,24 @@ Script.builder().mix({
                                             valid: false
                                         };
                                     }
+                                    var needNewReference = true;
                                     _.forEach(refs, function (ref) {
                                         if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                             console.log('Duplicate reference found! Will skip creation of new one. '
                                                 + 'type: ' + referenceType + '; citation: ' + referenceCitation);
                                             reference = ref;
                                             refIsNew = false;
+                                            needNewReference = false;
                                             return false;
                                         }
                                     });
                                     if (reference) {
-                                        code.addReference(reference);
+                                        if (needNewReference) {
+                                            code.addReference(reference);
+                                        } else {
+                                            code.addReferenceUUID(reference.uuid);
+                                        }
+                                        
                                     }
                                     console.log('codeUuidToReplace: ' + codeUuidToReplace);
                                     if (codeUuidToReplace.length > 0) {
@@ -4277,15 +4306,21 @@ Script.builder().mix({ name: "Replace Code Text", description: "Replaces the tex
                                 .andThen(function (refs) {
                                     var indexCodeToRemove = -1;
                                     var codeUuidToReplace = '';
+                                    var needNewReference = true;
                                     _.forEach(refs, function (ref) {
                                         if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                             console.log('Duplicate reference found! Will skip creation of new one.');
                                             reference = null;
+                                            needNewReference = false;
                                             return false;
                                         }
                                     });
                                     if (reference) {
-                                        code.addReference(reference);
+                                        if (needNewReference) {
+                                            code.addReference(reference);
+                                        } else {
+                                            code.addReferenceUUID(reference.uuid);
+                                        }
                                     }
 
                                     for (var i = 0; i < codeCollection.length; i++) {
@@ -5579,17 +5614,23 @@ Script.builder().mix({ name: "Volume of Distribution", description: "Add values 
                 if ((typeof s0) === 'undefined') {
                     return { valid: false, message: substance };
                 }
+                var needNewReference = true;
                 return s0.fetch("references")
                     .andThen(function (refs) {
                         _.forEach(refs, function (ref) {
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
                         if (reference) {
-                            prop.addReference(reference);
+                            if (needNewReference) {
+                                prop.addReference(reference);
+                            } else {
+                                prop.addReferenceUUID(reference.uuid);
+                            }
                         }
                         return s0.patch()
                             .addData(prop)
@@ -5758,18 +5799,24 @@ Script.builder().mix({ name: "Add Property Value", description: "Add a value to 
                 if ((typeof substance) === 'string') {
                     return { valid: false, message: substance };
                 }
-
+                var needNewReference = true;
                 return s0.fetch("references")
                     .andThen(function (refs) {
                         _.forEach(refs, function (ref) {
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
                         if (reference) {
-                            prop.addReference(reference);
+                            if (needNewReference) {
+                                prop.addReference(reference);
+                            } else {
+                                prop.addReferenceUUID(reference.uuid);
+                            }
+                            
                         }
                         return s0.patch()
                             .addData(prop)
@@ -5955,16 +6002,22 @@ Script.builder().mix({ name: "Add Note", description: "Adds a note to a substanc
                     return { valid: false, message: substance };
                 }
 
+                var needNewReference = true;
                 return substance.fetch("references")
                     .andThen(function (refs) {
                         _.forEach(refs, function (ref) {
                             if (Reference.isDuplicate(ref, referenceType, referenceCitation, referenceUrl)) {
                                 console.log('Duplicate reference found! Will skip creation of new one.');
                                 reference = ref;
+                                needNewReference = false;
                                 return false;
                             }
                         });
-                        noteObject.addReference(reference);
+                        if (needNewReference) {
+                            noteObject.addReference(reference);
+                        } else {
+                            noteObject.addReferenceUUID(reference.uuid);
+                        }
                         return substance;
                     })
                     .andThen(function (s2) {
