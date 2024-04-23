@@ -1334,7 +1334,7 @@ namespace ginasExcelUnitTests
         [TestMethod]
         public void TestSaveBinaryFileAndDisplay()
         {
-            string filePath = @"..\..\..\Test_Files\downloadedimage0.png";//cyclohexane.mol";// 
+            string filePath = @"..\..\..\Test_Files\downloadedimage0.png";
             string mimeType = "image/png";// "text /plain";//"application/octet-stream";//
             filePath = Path.GetFullPath(filePath);
             string serverUrl = "http://localhost:8081/ginas/app/";
