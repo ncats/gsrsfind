@@ -306,12 +306,12 @@ namespace gov.ncats.ginas.excel.tools.UI
             {
                 MessageBox.Show("Error resolving your data.  Please try again or talk to your GSRS administrator");
             }
-            /*if (CurrentOperationType == OperationType.ShowScripts)
+            if (CurrentOperationType == OperationType.ShowScripts)
             {
                 DialogResult = DialogResult.Yes;
                 Close();
                 Dispose();
-            }*/
+            }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
