@@ -464,9 +464,6 @@
     <None Include="etc\g-srs.tools.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="etc\g-srs_controller.js.bak">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="GSRSExcelTools_TemporaryKey.pfx" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
