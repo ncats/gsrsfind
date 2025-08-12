@@ -1,0 +1,69 @@
+{
+	"applicationIndicationList": [{
+			"indication": "Simple Application"
+		}],
+	"applicationProductList": [{
+			"applicationProductNameList": [{
+					"productName": "Pill Test",
+					"productNameType": "PROPRIETARY"
+				}],
+			"applicationIngredientList": [{
+					"applicantIngredName": "aspirin",
+					"subRelationshipList": [{
+							"id": "fa478461-0aac-49d8-8a9b-c27f2cd22460",
+							"substanceId": "a05ec20c-8fe2-4e02-ba7f-df69e5e30248",
+							"ownerBdnum": "0007647AA",
+							"relationshipType": "ACTIVE MOIETY",
+							"relationshipName": "ASPIRIN",
+							"relationshipUnii": "R16CO5Y76E"
+						}],
+					"ingredientName": "ASPIRIN",
+					"bdnum": "0007647AA",
+					"substanceId": "a05ec20c-8fe2-4e02-ba7f-df69e5e30248",
+					"ingNameMessage": "FOUND",
+					"basisOfStrengthName": "ASPIRIN",
+					"basisOfStrengthBdnum": "0007647AA",
+					"ingBasisMessage": "",
+					"ingredientType": "Active Ingredient",
+					"average": "10",
+					"unit": "%"
+				}, {
+					"applicantIngredName": "povidone",
+					"subRelationshipList": [{
+							"id": "6e0c4853-c0ea-4bbf-a23d-5951e8b805d7",
+							"substanceId": "197aee8b-8370-4a82-bdb7-4c367fa9aa28",
+							"ownerBdnum": "0005607AA",
+							"relationshipType": "ACTIVE MOIETY",
+							"relationshipName": "POVIDONE, UNSPECIFIED",
+							"relationshipUnii": "FZ989GH94E"
+						}],
+					"ingredientName": "POVIDONE",
+					"bdnum": "0005607AA",
+					"substanceId": "197aee8b-8370-4a82-bdb7-4c367fa9aa28",
+					"ingNameMessage": "FOUND",
+					"basisOfStrengthName": "POVIDONE",
+					"basisOfStrengthBdnum": "0005607AA",
+					"ingBasisMessage": "NOT FOUND",
+					"ingredientType": "Inactive Ingredient",
+					"average": "90",
+					"unit": "%",
+					"grade": "Grade 1"
+				}],
+			"dosageForm": "CAPSULE",
+			"routeAdmin": "ORAL",
+			"unitPresentation": "PACKAGE",
+			"amount": "2",
+			"unit": "UNIT"
+		}],
+	"center": "OC",
+	"appType": "TOR",
+	"appNumber": "001122",
+	"status": "COMPLETE",
+	"publicDomain": "YES",
+	"nonProprietaryName": "Simple Test",
+	"sponsorName": "Simple Test",
+	"appSubType": "CLASS I",
+	"title": "Simple Application",
+	"externalTitle": "Simple Application",
+	"id":5780
+}

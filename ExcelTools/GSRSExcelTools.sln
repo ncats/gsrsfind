@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35728.132
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GSRSExcelTools", "GSRSExcelTools\GSRSExcelTools.csproj", "{B93C59D0-3A82-4C3B-9874-569D562C145B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GSRSExcelToolsTests", "GSRSExcelToolsTests\GSRSExcelToolsTests.csproj", "{002AC668-BF87-4E7B-AE3F-F9DC37C4D39B}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "GSRSExcelToolsSetup", "GSRSExcelToolsSetup\GSRSExcelToolsSetup.vdproj", "{D031A8C2-6BBF-8D72-91FD-939CC6A5AB58}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B93C59D0-3A82-4C3B-9874-569D562C145B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B93C59D0-3A82-4C3B-9874-569D562C145B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B93C59D0-3A82-4C3B-9874-569D562C145B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B93C59D0-3A82-4C3B-9874-569D562C145B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{002AC668-BF87-4E7B-AE3F-F9DC37C4D39B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{002AC668-BF87-4E7B-AE3F-F9DC37C4D39B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{002AC668-BF87-4E7B-AE3F-F9DC37C4D39B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{002AC668-BF87-4E7B-AE3F-F9DC37C4D39B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D031A8C2-6BBF-8D72-91FD-939CC6A5AB58}.Debug|Any CPU.ActiveCfg = Debug
+		{D031A8C2-6BBF-8D72-91FD-939CC6A5AB58}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CDD03994-2927-41DD-B51C-9D9F787B1918}
+	EndGlobalSection
+EndGlobal

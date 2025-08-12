@@ -1,0 +1,18 @@
+﻿{
+  "Servers": [
+    {
+      "ServerName": "NCATS GSRS Server",
+      "ServerUrl": "https://gsrs.ncats.nih.gov/ginas/app/",
+      "Username": "",
+      "PrivateKey": null,
+      "Token": null
+    }
+  ],
+  "DebugMode": false,
+  "SortVocabsAlphabetically": true,
+  "BatchSize": 50,
+  "ExpirationOffset" :  200,
+  "ApiPath" : "api/v1/",
+  "StructureImageSize" : 200,
+  "InitPath" : "api"
+}
